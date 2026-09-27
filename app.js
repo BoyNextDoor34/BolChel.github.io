@@ -109,14 +109,14 @@ function generatePaletteFromSeed(seedHex) {
   const lightOnPrimaryContainer = onColor(hexToRgb(lightPrimaryContainer));
   const lightOnSecondaryContainer = onColor(hexToRgb(lightSecondaryContainer));
 
-  const darkPrimary = hslHex(h, clamp(s * .42,.14,.52), .78);
+  const darkPrimary = hslHex(h, clamp(s * .58,.22,.66), .74);
   const darkPrimaryContainer = hslHex(h, clamp(s,.32,.82), .31);
-  const darkSecondary = hslHex(secondaryH, clamp(s * .28,.10,.30), .79);
+  const darkSecondary = hslHex(secondaryH, clamp(s * .38,.12,.42), .76);
   const darkSecondaryContainer = hslHex(secondaryH, clamp(s*.22,.08,.24), .24);
-  const darkTertiary = hslHex(tertiaryH, clamp(s * .32,.10,.34), .78);
-  const darkSurface = rgbToHex(mixColor(seedRgb,[7,8,10],.96));
-  const darkSurfaceContainer = rgbToHex(mixColor(seedRgb,[11,12,14],.93));
-  const darkSurfaceHigh = rgbToHex(mixColor(seedRgb,[17,18,20],.89));
+  const darkTertiary = hslHex(tertiaryH, clamp(s * .42,.14,.44), .76);
+  const darkSurface = '#151619';
+  const darkSurfaceContainer = '#1d1f22';
+  const darkSurfaceHigh = '#282a2e';
   const darkOnPrimary = onColor(hexToRgb(darkPrimary));
   const darkOnPrimaryContainer = onColor(hexToRgb(darkPrimaryContainer));
   const darkOnSecondaryContainer = onColor(hexToRgb(darkSecondaryContainer));
@@ -134,7 +134,7 @@ function generatePaletteFromSeed(seedHex) {
       primary:darkPrimary, on_primary:darkOnPrimary, primary_container:darkPrimaryContainer, on_primary_container:darkOnPrimaryContainer,
       secondary:darkSecondary, secondary_container:darkSecondaryContainer, on_secondary_container:darkOnSecondaryContainer,
       tertiary:darkTertiary, on_tertiary:onColor(hexToRgb(darkTertiary)), surface:darkSurface,
-      surface_tint:darkSurface, surface_container_low:rgbToHex(mixColor(seedRgb,[20,18,24],.9)), surface_container:darkSurfaceContainer, surface_container_high:darkSurfaceHigh,
+      surface_tint:'#191b1e', surface_container_low:'#181a1d', surface_container:darkSurfaceContainer, surface_container_high:darkSurfaceHigh,
       on_surface:'#eee8f0', on_surface_variant:'#d0c7d2', outline:'#978f9b', outline_variant:'#514b55', error:'#ffb4ab'
     }
   };
@@ -978,6 +978,8 @@ function handleGlobalKeydown(e){
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
 
+  if(e.repeat && state.keySequence) return;
+
   // The help panel owns keyboard scrolling while open.
   if(state.expandedHelp){
     if(code==='Escape'){
@@ -1059,7 +1061,7 @@ function handleGlobalKeydown(e){
   if(code==='KeyG' && e.shiftKey){e.preventDefault();jumpToEdge(true);return;}
   if(code==='KeyG'){
     if(state.keySequence==='G'){ state.keySequence=''; jumpToEdge(false); return; }
-    state.keySequence='G'; clearTimeout(state.keySequenceTimer); state.keySequenceTimer=setTimeout(()=>state.keySequence='',850); return;
+    state.keySequence='G'; clearTimeout(state.keySequenceTimer); state.keySequenceTimer=setTimeout(()=>state.keySequence='',1200); return;
   }
 
   if(state.keySequence==='G'){
