@@ -23,7 +23,7 @@ const KEYMAP = [
     [['J / ↓'],'Следующая новость'],[['K / ↑'],'Предыдущая новость'],[['Ctrl+D'],'Прокрутить вниз'],[['Ctrl+U'],'Прокрутить вверх'],[['PageDown'],'Следующий экран'],[['PageUp'],'Предыдущий экран'],[['Home'],'В начало списка'],[['G'],'В конец списка'],[['G','G'],'В начало страницы'],[['Enter / O'],'Открыть выбранную новость'],[['Esc'],'Назад из статьи'],[['[ / ]'],'Предыдущая / следующая статья'],[['R'],'Случайная новость'],[['C'],'Сбросить раздел'],[['X'],'Очистить поиск'],[['N / Shift+N'],'Следующий / предыдущий результат']
   ]},
   {group:'Разделы и страницы', rows:[
-    [['G','N'],'Новости'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','M'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
+    [['G','N'],'Новости'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','-'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
   ]},
   {group:'Поиск и интерфейс', rows:[
     [['/'],'Фокус поиска'],[['Space','/'],'Открыть расширенную шпаргалку'],[['T'],'Светлая / тёмная тема'],[['?'],'Расширенная шпаргалка'],[['Tab / Shift+Tab'],'Переход по интерактивным элементам']
@@ -275,7 +275,6 @@ function openSection(section) {
   document.body.classList.toggle('article-mode',section==='article');
   if(section==='profile') renderProfile();
   if(section==='article') renderArticle();
-  if(section==='editor') renderEditor();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -291,8 +290,7 @@ function renderCategoryNav() {
     const btn=document.createElement('button');
     btn.className='nav-item compact-item'+(state.category===category?' is-active':'');
     btn.dataset.category=category;
-    btn.dataset.number=index<10?String((index+1)%10):'';
-    btn.innerHTML=`<span class="material-symbols-rounded">${CATEGORY_ICONS[index]}</span><span>${escapeHtml(category)}</span>${btn.dataset.number?`<kbd>${btn.dataset.number}</kbd>`:''}`;
+    btn.innerHTML=`<span class="material-symbols-rounded">${CATEGORY_ICONS[index]}</span><span>${escapeHtml(category)}</span>`;
     root.appendChild(btn);
   });
   const mobile=$('#mobile-category-nav');
@@ -545,11 +543,28 @@ function updateAuthUI(){
 
 async function handleSession(session){
   state.user=session?.user?{...session.user}:null;
+  state.admin=false;
   if(state.user && state.supabase){
-    const {data:profile}=await state.supabase.from('profiles').select('*').eq('id',state.user.id).single();
-    state.user.profile=profile||{nickname:state.user.email?.split('@')[0],role:'reader'};
-    state.admin=state.user.profile.role==='admin';
-  }else state.admin=false;
+    try{
+      const {data:profile,error}=await state.supabase.from('profiles').select('*').eq('id',state.user.id).maybeSingle();
+      if(error) throw error;
+      state.user.profile=profile||{
+        nickname:state.user.email?.split('@')[0]||'Пользователь',
+        role:'reader',
+        avatar_url:null,
+        bio:''
+      };
+      state.admin=state.user.profile.role==='admin';
+    }catch(error){
+      console.warn('Profile load failed:',error);
+      state.user.profile={
+        nickname:state.user.email?.split('@')[0]||'Пользователь',
+        role:'reader',
+        avatar_url:null,
+        bio:''
+      };
+    }
+  }
   updateAuthUI();
   renderProfile();
 }
@@ -572,7 +587,7 @@ async function initSupabase(){
   const cfg=window.SUPABASE_CONFIG;
   if(!cfg?.url || !cfg?.anonKey) return;
   if(/^https:\/\/YOUR-PROJECT-REF\.supabase\.co/i.test(String(cfg.url)) || String(cfg.anonKey).includes('YOUR-ANON-PUBLIC-KEY')){
-    console.warn('Supabase config still contains placeholders; running in demo mode.');
+    console.warn('Supabase config still contains placeholders; remote data is disabled.');
     return;
   }
   try{
@@ -580,7 +595,8 @@ async function initSupabase(){
     state.supabase=sdk.createClient(cfg.url,cfg.anonKey);
     const {data:{session}}=await state.supabase.auth.getSession();
     await handleSession(session);
-    state.supabase.auth.onAuthStateChange((_event,nextSession)=>setTimeout(()=>handleSession(nextSession),0));
+    state.supabase.auth.onAuthStateChange((_event,nextSession)=>setTimeout(async()=>{ await handleSession(nextSession); await loadRemoteNews(); },0));
+    await loadRemoteNews();
   }catch(error){
     console.warn('Supabase unavailable',error);
     showToast('Supabase пока недоступен — открыт демонстрационный режим.');
@@ -595,7 +611,7 @@ async function loadRemoteNews(){
     if(data?.length) state.news=data.map(mapRemoteNews);
     else state.news=[];
     renderNews();
-  }catch(error){ console.warn('News load failed; keeping demo data',error); }
+  }catch(error){ console.warn('News load failed:',error); if(!state.news.length) renderNews(); }
 }
 
 function openEditor(id){
@@ -641,6 +657,19 @@ function editorTemplate(news){
     </div>
     <p id="admin-message" class="form-message"></p>
   </div>`;
+}
+
+function renderEditor(){
+  if(!state.admin){
+    state.section='news';
+    showToast('Редактор доступен только администраторам.');
+    openSection('news');
+    return;
+  }
+  const news=state.editor.id
+    ? state.news.find(item=>String(item.id)===String(state.editor.id))
+    : null;
+  setupEditor(news||null);
 }
 
 function setupEditor(news){
@@ -950,6 +979,39 @@ function handleGlobalKeydown(e){
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
 
+  // The help panel owns keyboard scrolling while open.
+  if(state.expandedHelp){
+    if(code==='Escape'){
+      e.preventDefault();
+      toggleHelp(false);
+      return;
+    }
+    if(code==='PageDown' || code==='ArrowDown' || code==='KeyJ' || (e.ctrlKey && code==='KeyD')){
+      e.preventDefault();
+      const panel=$('#whichkey-panel');
+      panel?.scrollBy({top:code==='PageDown'?panel.clientHeight*.85:180,behavior:'smooth'});
+      return;
+    }
+    if(code==='PageUp' || code==='ArrowUp' || code==='KeyK' || (e.ctrlKey && code==='KeyU')){
+      e.preventDefault();
+      const panel=$('#whichkey-panel');
+      panel?.scrollBy({top:code==='PageUp'?-panel.clientHeight*.85:-180,behavior:'smooth'});
+      return;
+    }
+    if(code==='Home'){
+      e.preventDefault();
+      const panel=$('#whichkey-panel');
+      if(panel)panel.scrollTo({top:0,behavior:'smooth'});
+      return;
+    }
+    if(code==='End'){
+      e.preventDefault();
+      const panel=$('#whichkey-panel');
+      if(panel)panel.scrollTo({top:panel.scrollHeight,behavior:'smooth'});
+      return;
+    }
+  }
+
   if(code==='Escape' && !e.ctrlKey && !e.metaKey){
     if(state.expandedHelp){e.preventDefault();toggleHelp(false);return;}
     if($('#auth-dialog').open){e.preventDefault();$('#auth-dialog').close();return;}
@@ -981,7 +1043,7 @@ function handleGlobalKeydown(e){
   }
 
   if(state.keySequence==='SPACE' && code==='Slash'){
-    e.preventDefault(); state.keySequence=''; clearTimeout(state.keySequenceTimer); toggleHelp(true); return;
+    e.preventDefault(); state.keySequence=''; clearTimeout(state.keySequenceTimer); toggleHelp(!state.expandedHelp); return;
   }
 
   if(code==='Slash'){
