@@ -6,6 +6,36 @@ const CATEGORY_ICONS = ['policy','payments','groups','science','museum','sports_
 const DEFAULT_SEED = '#6750A4';
 const DEFAULT_AVATAR = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#6750a4"/><stop offset="1" stop-color="#9c8ad3"/></linearGradient></defs><rect width="256" height="256" rx="80" fill="url(#g)"/><circle cx="128" cy="106" r="44" fill="#fff" opacity=".96"/><path d="M54 224c6-49 37-71 74-71s68 22 74 71" fill="#fff" opacity=".96"/></svg>`);
 
+const state = {
+  section:'news', previousSection:'news', category:null, search:'', news:[],
+  selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
+  supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null,
+  editor:{ id:null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
+  avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
+  pendingAvatarBlob:null, sitePalette:null
+};
+
+const $ = (selector, root=document) => root.querySelector(selector);
+const $ = (selector, root=document) => [...root.querySelectorAll(selector)];
+
+const KEYMAP = [
+  {group:'Новости', rows:[
+    [['J / ↓'],'Следующая новость'],[['K / ↑'],'Предыдущая новость'],[['Ctrl+D'],'Прокрутить вниз'],[['Ctrl+U'],'Прокрутить вверх'],[['PageDown'],'Следующий экран'],[['PageUp'],'Предыдущий экран'],[['Home'],'В начало списка'],[['G'],'В конец списка'],[['G','G'],'В начало страницы'],[['Enter / O'],'Открыть выбранную новость'],[['Esc'],'Назад из статьи'],[['[ / ]'],'Предыдущая / следующая статья'],[['R'],'Случайная новость'],[['C'],'Сбросить раздел'],[['X'],'Очистить поиск'],[['N / Shift+N'],'Следующий / предыдущий результат']
+  ]},
+  {group:'Разделы и страницы', rows:[
+    [['G','N'],'Новости'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','M'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
+  ]},
+  {group:'Поиск и интерфейс', rows:[
+    [['/'],'Фокус поиска'],[['Space','/'],'Открыть расширенную шпаргалку'],[['T'],'Светлая / тёмная тема'],[['?'],'Расширенная шпаргалка'],[['Tab / Shift+Tab'],'Переход по интерактивным элементам']
+  ]},
+  {group:'Администрирование', rows:[
+    [['E'],'Открыть редактор новой новости'],[['Ctrl+S'],'Сохранить новость в редакторе'],[['Ctrl+Enter'],'Опубликовать / сохранить'],[['D'],'Удалить текущую новость (admin)'],[['Enter'],'Открыть выбранную новость / подтвердить действие']
+  ]},
+  {group:'Редактор Markdown', rows:[
+    [['Ctrl+B'],'Жирный текст'],[['Ctrl+I'],'Курсив'],[['Ctrl+K'],'Ссылка'],[['Tab'],'Отступ в Markdown'],[['Shift+Tab'],'Убрать отступ'],[['Ctrl+Shift+7'],'Нумерованный список'],[['Ctrl+Shift+8'],'Маркированный список']
+  ]}
+];
+
 function showToast(message) {
   const toast = $('#toast');
   toast.textContent = message;
