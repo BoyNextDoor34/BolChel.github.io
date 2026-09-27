@@ -133,6 +133,7 @@ function generatePaletteFromSeed(seedHex) {
 
   return {
     source:'image',
+    generator:'sung-tonal-spot-v1',
     seed:seedHex,
     light:{
       primary:lightPrimary,
@@ -248,7 +249,7 @@ function mapRemoteNews(row) {
   const dt=formatDateTime(row.published_at);
   let palette=row.palette||null;
   if(typeof palette==='string'){ try{palette=JSON.parse(palette);}catch(_){palette=null;} }
-  if(!palette?.source || palette.source!=='image' || !palette.light?.primary || !palette.dark?.primary) palette=null;
+  if(!palette?.source || palette.source!=='image' || palette.generator!=='sung-tonal-spot-v1' || !palette.light?.primary || !palette.dark?.primary) palette=null;
   const fallbackImage='https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1100&q=82';
   return { id:row.id, category:row.category, title:row.title, summary:row.summary||'', body:row.body||'', date:dt.date, time:dt.time, author:'Редакция', image:row.image_url||fallbackImage, accent:palette?.light?.primary||null, palette, authorId:row.author_id, published_at:row.published_at };
 }
@@ -373,7 +374,7 @@ function updateSelectedCard() {
 function visibleNewsCards(){ return $$('.news-card'); }
 
 async function ensureNewsPalette(newsItem) {
-  if(newsItem.palette?.light?.primary) return newsItem.palette;
+  if(newsItem.palette?.generator==='sung-tonal-spot-v1' && newsItem.palette.light?.primary) return newsItem.palette;
   if(!newsItem.image) return generatePaletteFromSeed(DEFAULT_SEED);
   try{
     const seed=await extractSeedFromImage(newsItem.image);
