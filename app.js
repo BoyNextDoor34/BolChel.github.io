@@ -109,14 +109,14 @@ function generatePaletteFromSeed(seedHex) {
   const lightOnPrimaryContainer = onColor(hexToRgb(lightPrimaryContainer));
   const lightOnSecondaryContainer = onColor(hexToRgb(lightSecondaryContainer));
 
-  const darkPrimary = hslHex(h, clamp(s + .06,.38,.85), .78);
+  const darkPrimary = hslHex(h, clamp(s * .42,.14,.52), .78);
   const darkPrimaryContainer = hslHex(h, clamp(s,.32,.82), .31);
-  const darkSecondary = hslHex(secondaryH, clamp(s * .45,.12,.42), .79);
-  const darkSecondaryContainer = hslHex(secondaryH, clamp(s*.38,.11,.4), .29);
-  const darkTertiary = hslHex(tertiaryH, clamp(s * .55,.16,.52), .78);
-  const darkSurface = rgbToHex(mixColor(seedRgb,[20,18,24],.86));
-  const darkSurfaceContainer = rgbToHex(mixColor(seedRgb,[20,18,24],.73));
-  const darkSurfaceHigh = rgbToHex(mixColor(seedRgb,[20,18,24],.63));
+  const darkSecondary = hslHex(secondaryH, clamp(s * .28,.10,.30), .79);
+  const darkSecondaryContainer = hslHex(secondaryH, clamp(s*.22,.08,.24), .24);
+  const darkTertiary = hslHex(tertiaryH, clamp(s * .32,.10,.34), .78);
+  const darkSurface = rgbToHex(mixColor(seedRgb,[7,8,10],.96));
+  const darkSurfaceContainer = rgbToHex(mixColor(seedRgb,[11,12,14],.93));
+  const darkSurfaceHigh = rgbToHex(mixColor(seedRgb,[17,18,20],.89));
   const darkOnPrimary = onColor(hexToRgb(darkPrimary));
   const darkOnPrimaryContainer = onColor(hexToRgb(darkPrimaryContainer));
   const darkOnSecondaryContainer = onColor(hexToRgb(darkSecondaryContainer));
@@ -599,7 +599,7 @@ async function initSupabase(){
     await loadRemoteNews();
   }catch(error){
     console.warn('Supabase unavailable',error);
-    showToast('Supabase пока недоступен — открыт демонстрационный режим.');
+    showToast('Supabase сейчас недоступен. Можно просматривать пустую ленту.');
   }
 }
 
@@ -1086,8 +1086,24 @@ function handleGlobalKeydown(e){
   state.keySequence='';
 }
 
-function onMobileMenu(){ $('.app-nav').classList.add('is-open'); $('#mobile-scrim').classList.add('is-visible'); }
-function closeMobileMenu(){ $('.app-nav').classList.remove('is-open'); $('#mobile-scrim').classList.remove('is-visible'); }
+function onMobileMenu(){
+  const nav=$('.app-nav');
+  const scrim=$('#mobile-scrim');
+  if(!nav)return;
+  if(window.matchMedia('(max-width: 860px)').matches){
+    nav.classList.add('is-open');
+    scrim?.classList.add('is-visible');
+  }else{
+    nav.classList.toggle('is-collapsed');
+    document.body.classList.toggle('nav-collapsed',nav.classList.contains('is-collapsed'));
+  }
+}
+function closeMobileMenu(){
+  const nav=$('.app-nav');
+  const scrim=$('#mobile-scrim');
+  nav?.classList.remove('is-open');
+  scrim?.classList.remove('is-visible');
+}
 
 function initAvatarCrop(){
   const input=$('#profile-avatar-file'), canvas=$('#avatar-crop-canvas'), ctx=canvas.getContext('2d');
