@@ -9,7 +9,7 @@ const DEFAULT_AVATAR = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
 const state = {
   section:'news', previousSection:'news', category:null, search:'', news:[],
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
-  supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null,
+  supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null
@@ -94,48 +94,87 @@ function hslHex(h,s,l){ return rgbToHex(hslToRgb([h,s,l])); }
 function generatePaletteFromSeed(seedHex) {
   const seedRgb = hexToRgb(seedHex);
   let [h,s,l] = rgbToHsl(seedRgb);
-  if (s < .18) s = .18;
-  const secondaryH = (h + 28) % 360;
-  const tertiaryH = (h + 62) % 360;
-  const lightPrimary = hslHex(h, clamp(s + .08,.42,.92), .38);
-  const lightPrimaryContainer = hslHex(h, clamp(s,.35,.9), .91);
-  const lightSecondary = hslHex(secondaryH, clamp(s * .55,.16,.55), .36);
-  const lightSecondaryContainer = hslHex(secondaryH, clamp(s * .5,.14,.48), .9);
-  const lightTertiary = hslHex(tertiaryH, clamp(s * .65,.2,.6), .38);
-  const lightSurface = rgbToHex(mixColor(seedRgb,[255,251,254],.965));
-  const lightSurfaceContainer = rgbToHex(mixColor(seedRgb,[255,251,254],.88));
-  const lightSurfaceHigh = rgbToHex(mixColor(seedRgb,[255,251,254],.83));
+  if (s < .16) s = .16;
+
+  // Material 3 Tonal Spot-inspired roles:
+  // keep the source hue, reduce chroma for a calmer/pastel surface system,
+  // and reserve the strongest chroma for the primary role.
+  const secondaryH = (h + 32) % 360;
+  const tertiaryH = (h + 58) % 360;
+
+  const lightPrimary = hslHex(h, clamp(s * .56, .28, .68), .42);
+  const lightPrimaryContainer = hslHex(h, clamp(s * .30, .16, .42), .90);
+  const lightSecondary = hslHex(secondaryH, clamp(s * .34, .12, .34), .40);
+  const lightSecondaryContainer = hslHex(secondaryH, clamp(s * .20, .08, .25), .91);
+  const lightTertiary = hslHex(tertiaryH, clamp(s * .40, .14, .38), .43);
+  const lightSurface = rgbToHex(mixColor(seedRgb,[255,251,254],.975));
+  const lightSurfaceContainer = rgbToHex(mixColor(seedRgb,[255,251,254],.93));
+  const lightSurfaceHigh = rgbToHex(mixColor(seedRgb,[255,251,254],.885));
+
+  const darkPrimary = hslHex(h, clamp(s * .40, .18, .52), .78);
+  const darkPrimaryContainer = hslHex(h, clamp(s * .26, .10, .34), .34);
+  const darkSecondary = hslHex(secondaryH, clamp(s * .24, .08, .28), .80);
+  const darkSecondaryContainer = hslHex(secondaryH, clamp(s * .14, .05, .18), .27);
+  const darkTertiary = hslHex(tertiaryH, clamp(s * .28, .10, .30), .80);
+
+  // Keep dark surfaces softly tinted instead of black, matching the M3
+  // "neutral with source-hue trace" idea used by Sung.
+  const darkBase = mixColor(seedRgb,[18,20,22],.90);
+  const darkSurface = rgbToHex(darkBase);
+  const darkSurfaceContainer = rgbToHex(mixColor(darkBase,[30,31,33],.48));
+  const darkSurfaceHigh = rgbToHex(mixColor(darkBase,[42,43,45],.40));
+
   const lightOnPrimary = onColor(hexToRgb(lightPrimary));
   const lightOnPrimaryContainer = onColor(hexToRgb(lightPrimaryContainer));
   const lightOnSecondaryContainer = onColor(hexToRgb(lightSecondaryContainer));
-
-  const darkPrimary = hslHex(h, clamp(s * .58,.22,.66), .74);
-  const darkPrimaryContainer = hslHex(h, clamp(s,.32,.82), .31);
-  const darkSecondary = hslHex(secondaryH, clamp(s * .38,.12,.42), .76);
-  const darkSecondaryContainer = hslHex(secondaryH, clamp(s*.22,.08,.24), .24);
-  const darkTertiary = hslHex(tertiaryH, clamp(s * .42,.14,.44), .76);
-  const darkSurface = '#151619';
-  const darkSurfaceContainer = '#1d1f22';
-  const darkSurfaceHigh = '#282a2e';
   const darkOnPrimary = onColor(hexToRgb(darkPrimary));
   const darkOnPrimaryContainer = onColor(hexToRgb(darkPrimaryContainer));
   const darkOnSecondaryContainer = onColor(hexToRgb(darkSecondaryContainer));
 
   return {
-    source:'image', seed:seedHex,
+    source:'image',
+    seed:seedHex,
     light:{
-      primary:lightPrimary, on_primary:lightOnPrimary, primary_container:lightPrimaryContainer, on_primary_container:lightOnPrimaryContainer,
-      secondary:lightSecondary, secondary_container:lightSecondaryContainer, on_secondary_container:lightOnSecondaryContainer,
-      tertiary:lightTertiary, on_tertiary:onColor(hexToRgb(lightTertiary)), surface:lightSurface,
-      surface_tint:lightSurface, surface_container_low:rgbToHex(mixColor(seedRgb,[255,251,254],.98)), surface_container:lightSurfaceContainer, surface_container_high:lightSurfaceHigh,
-      on_surface:'#1d1b20', on_surface_variant:'#4d4651', outline:'#79737e', outline_variant:'#cbc3cf', error:'#ba1a1a'
+      primary:lightPrimary,
+      on_primary:lightOnPrimary,
+      primary_container:lightPrimaryContainer,
+      on_primary_container:lightOnPrimaryContainer,
+      secondary:lightSecondary,
+      secondary_container:lightSecondaryContainer,
+      on_secondary_container:lightOnSecondaryContainer,
+      tertiary:lightTertiary,
+      on_tertiary:onColor(hexToRgb(lightTertiary)),
+      surface:lightSurface,
+      surface_tint:lightSurface,
+      surface_container_low:rgbToHex(mixColor(seedRgb,[255,251,254],.985)),
+      surface_container:lightSurfaceContainer,
+      surface_container_high:lightSurfaceHigh,
+      on_surface:'#241f25',
+      on_surface_variant:'#5e5660',
+      outline:'#807781',
+      outline_variant:'#d1c8d2',
+      error:'#ba1a1a'
     },
     dark:{
-      primary:darkPrimary, on_primary:darkOnPrimary, primary_container:darkPrimaryContainer, on_primary_container:darkOnPrimaryContainer,
-      secondary:darkSecondary, secondary_container:darkSecondaryContainer, on_secondary_container:darkOnSecondaryContainer,
-      tertiary:darkTertiary, on_tertiary:onColor(hexToRgb(darkTertiary)), surface:darkSurface,
-      surface_tint:'#191b1e', surface_container_low:'#181a1d', surface_container:darkSurfaceContainer, surface_container_high:darkSurfaceHigh,
-      on_surface:'#eee8f0', on_surface_variant:'#d0c7d2', outline:'#978f9b', outline_variant:'#514b55', error:'#ffb4ab'
+      primary:darkPrimary,
+      on_primary:darkOnPrimary,
+      primary_container:darkPrimaryContainer,
+      on_primary_container:darkOnPrimaryContainer,
+      secondary:darkSecondary,
+      secondary_container:darkSecondaryContainer,
+      on_secondary_container:darkOnSecondaryContainer,
+      tertiary:darkTertiary,
+      on_tertiary:onColor(hexToRgb(darkTertiary)),
+      surface:darkSurface,
+      surface_tint:darkSurface,
+      surface_container_low:rgbToHex(mixColor(darkBase,[25,26,28],.35)),
+      surface_container:darkSurfaceContainer,
+      surface_container_high:darkSurfaceHigh,
+      on_surface:'#f1ebf1',
+      on_surface_variant:'#d0c6d1',
+      outline:'#928893',
+      outline_variant:'#4b454e',
+      error:'#ffb4ab'
     }
   };
 }
@@ -275,6 +314,7 @@ function openSection(section) {
   document.body.classList.toggle('article-mode',section==='article');
   if(section==='profile') renderProfile();
   if(section==='article') renderArticle();
+  if(section==='editor') renderEditor();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -978,7 +1018,8 @@ function handleGlobalKeydown(e){
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
 
-  if(e.repeat && state.keySequence) return;
+  const leaderCode = code==='KeyG' || code==='Space';
+  if(e.repeat && (state.keySequence || leaderCode)) return;
 
   // The help panel owns keyboard scrolling while open.
   if(state.expandedHelp){
@@ -1037,14 +1078,23 @@ function handleGlobalKeydown(e){
 
   if(code==='Space'){
     e.preventDefault();
+    state.leaderHeld='SPACE';
     state.keySequence='SPACE';
     clearTimeout(state.keySequenceTimer);
-    state.keySequenceTimer=setTimeout(()=>state.keySequence='',800);
+    state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='SPACE') state.keySequence=''; },1200);
     return;
   }
 
   if(state.keySequence==='SPACE' && code==='Slash'){
-    e.preventDefault(); state.keySequence=''; clearTimeout(state.keySequenceTimer); toggleHelp(!state.expandedHelp); return;
+    e.preventDefault();
+    clearTimeout(state.keySequenceTimer);
+    toggleHelp(!state.expandedHelp);
+    if(state.leaderHeld==='SPACE'){
+      state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='SPACE') state.keySequence=''; },1200);
+    }else{
+      state.keySequence='';
+    }
+    return;
   }
 
   if(code==='Slash'){
@@ -1060,13 +1110,35 @@ function handleGlobalKeydown(e){
   if(code==='Home'){e.preventDefault();jumpToEdge(false);return;}
   if(code==='KeyG' && e.shiftKey){e.preventDefault();jumpToEdge(true);return;}
   if(code==='KeyG'){
-    if(state.keySequence==='G'){ state.keySequence=''; jumpToEdge(false); return; }
-    state.keySequence='G'; clearTimeout(state.keySequenceTimer); state.keySequenceTimer=setTimeout(()=>state.keySequence='',1200); return;
+    if(state.keySequence==='G' && state.leaderHeld!=='G'){
+      e.preventDefault();
+      state.keySequence='';
+      clearTimeout(state.keySequenceTimer);
+      jumpToEdge(false);
+      return;
+    }
+    e.preventDefault();
+    state.leaderHeld='G';
+    state.keySequence='G';
+    clearTimeout(state.keySequenceTimer);
+    state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='G') state.keySequence=''; },1200);
+    return;
   }
 
   if(state.keySequence==='G'){
     const commands={KeyN:()=>openSection('news'),KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyE:()=>openEditor(null),KeyT:()=>setCategory('Туризм'),Minus:()=>setCategory('Военнообязанные'),Digit1:()=>setCategory(CATEGORIES[0]),Digit2:()=>setCategory(CATEGORIES[1]),Digit3:()=>setCategory(CATEGORIES[2]),Digit4:()=>setCategory(CATEGORIES[3]),Digit5:()=>setCategory(CATEGORIES[4]),Digit6:()=>setCategory(CATEGORIES[5]),Digit7:()=>setCategory(CATEGORIES[6]),Digit8:()=>setCategory(CATEGORIES[7]),Digit9:()=>setCategory(CATEGORIES[8]),Digit0:()=>setCategory(CATEGORIES[9])};
-    if(commands[code]){e.preventDefault();commands[code]();state.keySequence='';clearTimeout(state.keySequenceTimer);return;}
+    if(commands[code]){
+      e.preventDefault();
+      commands[code]();
+      clearTimeout(state.keySequenceTimer);
+      if(state.leaderHeld==='G'){
+        state.keySequence='G';
+        state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='G') state.keySequence=''; },1200);
+      }else{
+        state.keySequence='';
+      }
+      return;
+    }
   }
 
   if(code==='Enter'||code==='KeyO'){e.preventDefault(); if(state.section==='news')openSelectedNews(); return;}
@@ -1143,6 +1215,11 @@ function bindGlobalEvents(){
   };
 
   document.addEventListener('keydown',handleGlobalKeydown);
+  document.addEventListener('keyup',e=>{
+    if(e.code==='KeyG' && state.leaderHeld==='G') state.leaderHeld='';
+    if(e.code==='Space' && state.leaderHeld==='SPACE') state.leaderHeld='';
+    if(!state.leaderHeld) clearTimeout(state.keySequenceTimer);
+  });
 
   bind('#theme-toggle','click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
   bind('#keyboard-help','click',()=>toggleHelp(true));
