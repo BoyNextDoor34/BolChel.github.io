@@ -1058,43 +1058,85 @@ function initAvatarCrop(){
 }
 
 function bindGlobalEvents(){
-  document.addEventListener('keydown',handleGlobalKeydown);
-  $('#theme-toggle').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
-  $('#keyboard-help').onclick=()=>toggleHelp(true);
-  $('#close-help').onclick=()=>toggleHelp(false);
-  $('#auth-button').onclick=()=>openAuth('login');
-  $('#avatar-button').onclick=()=>openSection('profile');
-  $('#mobile-menu').onclick=onMobileMenu;
-  $('#mobile-scrim').onclick=closeMobileMenu;
-  $('#random-news').onclick=randomNews;
-  $('#clear-news-state').onclick=clearNewsState;
-  $('#news-search').addEventListener('input',e=>searchNews(e.target.value));
-  $('#search-clear').onclick=clearSearch;
-  $('#main-nav').onclick=e=>{const btn=e.target.closest('[data-section]');if(btn){openSection(btn.dataset.section);closeMobileMenu();}};
-  $('#category-nav').onclick=e=>{const btn=e.target.closest('[data-category]');if(btn)setCategory(btn.dataset.category);};
-  $('#mobile-category-nav').onclick=e=>{const btn=e.target.closest('[data-category]');if(btn)setCategory(btn.dataset.category);};
-  $('#mobile-dock').onclick=e=>{const btn=e.target.closest('[data-section]');if(btn){openSection(btn.dataset.section);window.scrollTo({top:0,behavior:'smooth'});}};
-  $$('.segment').forEach(btn=>btn.onclick=()=>setAuthMode(btn.dataset.authMode));
-  $('#auth-submit').onclick=submitAuth;
-  $('#profile-save').onclick=saveProfile;
-  initAvatarCrop();
-}
+  const bind=(selector,event,handler)=>{
+    const el=$(selector);
+    if(el)el.addEventListener(event,handler);
+  };
 
-async function bootstrap(){
+  document.addEventListener('keydown',handleGlobalKeydown);
+
+  bind('#theme-toggle','click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+  bind('#keyboard-help','click',()=>toggleHelp(true));
+  bind('#close-help','click',()=>toggleHelp(false));
+  bind('#auth-button','click',()=>openAuth('login'));
+  bind('#avatar-button','click',()=>openSection('profile'));
+  bind('#mobile-menu','click',onMobileMenu);
+  bind('#mobile-scrim','click',closeMobileMenu);
+  bind('#random-news','click',randomNews);
+  bind('#clear-news-state','click',clearNewsState);
+  bind('#news-search','input',e=>searchNews(e.target.value));
+  bind('#search-clear','click',clearSearch);
+  bind('#main-nav','click',e=>{
+    const btn=e.target.closest('[data-section]');
+    if(btn){
+      openSection(btn.dataset.section);
+      closeMobileMenu();
+    }
+  });
+  bind('#category-nav','click',e=>{
+    const btn=e.target.closest('[data-category]');
+    if(btn)setCategory(btn.dataset.category);
+  });
+  bind('#mobile-category-nav','click',e=>{
+    const btn=e.target.closest('[data-category]');
+    if(btn)setCategory(btn.dataset.category);
+  });
+  bind('#mobile-dock','click',e=>{
+    const btn=e.target.closest('[data-section]');
+    if(btn){
+      openSection(btn.dataset.section);
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  });
+
+  $$('.segment').forEach(btn=>{
+    btn.addEventListener('click',()=>setAuthMode(btn.dataset.authMode));
+  });
+  bind('#auth-submit','click',submitAuth);
+  bind('#profile-save','click',saveProfile);
+
   try{
-    renderCategoryNav();
-    renderKeyHelp();
-    bindGlobalEvents();
-    renderNews();
-    renderProfile();
-    setTheme(document.documentElement.dataset.theme||'light');
-    await initSupabase();
-    await loadRemoteNews();
+    initAvatarCrop();
   }catch(error){
-    console.error('Site bootstrap failed:',error);
-    const grid=$('#news-grid');
-    if(grid) grid.innerHTML='<div class="empty-state"><h2>Не удалось запустить интерфейс</h2><p>Откройте консоль браузера и проверьте ошибку JavaScript. Статическая часть сайта загрузилась, но приложение встретило ошибку при инициализации.</p></div>';
+    console.error('Avatar crop initialization failed:',error);
   }
 }
+
+function safeRun(label,fn){
+  try{
+    return fn();
+  }catch(error){
+    console.error(label+' failed:',error);
+    return null;
+  }
+}
+
+function bootstrap(){
+  // Core input handling is installed first so rendering/auth failures never
+  // disable mouse or keyboard interaction for the whole site.
+  safeRun('bindGlobalEvents',bindGlobalEvents);
+  safeRun('renderCategoryNav',renderCategoryNav);
+  safeRun('renderKeyHelp',renderKeyHelp);
+  safeRun('renderNews',renderNews);
+  safeRun('renderProfile',renderProfile);
+  safeRun('setTheme',()=>setTheme(document.documentElement.dataset.theme||'light'));
+
+  // Supabase is intentionally non-blocking for the static frontend.
+  Promise.resolve(initSupabase())
+    .catch(error=>console.error('Supabase initialization failed:',error));
+
+  window.__NEWS_APP_READY__=true;
+}
+
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootstrap,{once:true});
 else bootstrap();
