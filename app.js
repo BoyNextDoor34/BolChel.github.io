@@ -6,6 +6,12 @@ const CATEGORY_ICONS = ['policy','payments','groups','science','museum','sports_
 const DEFAULT_SEED = '#6750A4';
 const DEFAULT_AVATAR = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#6750a4"/><stop offset="1" stop-color="#9c8ad3"/></linearGradient></defs><rect width="256" height="256" rx="80" fill="url(#g)"/><circle cx="128" cy="106" r="44" fill="#fff" opacity=".96"/><path d="M54 224c6-49 37-71 74-71s68 22 74 71" fill="#fff" opacity=".96"/></svg>`);
 
+const DEMO_NEWS = [
+    {id:'demo-1',category:'Технологии и наука',title:'Новая вычислительная архитектура обещает снизить энергозатраты ИИ',summary:'Демонстрационный материал для проверки новостного интерфейса.',date:'27 сентября 2026',time:'12:10',author:'Редакция',image:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=82',body:'# Новая вычислительная архитектура\n\nДемонстрационный материал интерфейса.',palette:null},
+    {id:'demo-2',category:'Общество',title:'Города расширяют общественные пространства',summary:'Демонстрационная новость для проверки карточек и навигации.',date:'27 сентября 2026',time:'11:20',author:'Редакция',image:'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1100&q=82',body:'## Городская среда\n\nДемонстрационный материал.',palette:null},
+    {id:'demo-3',category:'Экономика',title:'Малый бизнес ускоряет переход на цифровые расчёты',summary:'Демонстрационная новость для проверки разделов.',date:'27 сентября 2026',time:'10:15',author:'Редакция',image:'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1100&q=82',body:'### Цифровые расчёты\n\nДемонстрационный материал.',palette:null}
+  ];
+
 const state = {
   section:'news', previousSection:'news', category:null, search:'', news:[...DEMO_NEWS],
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
@@ -23,7 +29,7 @@ const KEYMAP = [
     [['J / ↓'],'Следующая новость'],[['K / ↑'],'Предыдущая новость'],[['Ctrl+D'],'Прокрутить вниз'],[['Ctrl+U'],'Прокрутить вверх'],[['PageDown'],'Следующий экран'],[['PageUp'],'Предыдущий экран'],[['Home'],'В начало списка'],[['G'], 'В конец списка'],[['G','G'],'В начало страницы'],[['Enter / O'],'Открыть выбранную новость'],[['Q / Esc'],'Назад из статьи'],[['[ / ]'],'Предыдущая / следующая статья'],[['R'],'Случайная новость'],[['C'],'Сбросить раздел'],[['X'],'Очистить поиск'],[['N / Shift+N'],'Следующий / предыдущий результат']
   ]},
   {group:'Разделы и страницы', rows:[
-    [['G','N'],'Новости'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','T'],[['G','-'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
+    [['G','N'],'Новости'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','T'],'Туризм'],[['G','M'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
   ]},
   {group:'Поиск и интерфейс', rows:[
     [['/'],'Фокус поиска'],[['Space','/'],'Открыть расширенную шпаргалку'],[['T'],'Светлая / тёмная тема'],[['?'],'Расширенная шпаргалка'],[['Space','/'],'Закрыть активный режим / модальное окно'],[['Tab / Shift+Tab'],'Переход по интерактивным элементам']
@@ -461,9 +467,12 @@ function renderKeyHelp(){
 }
 
 function toggleHelp(expanded=true){
+  const panel=$('#whichkey-panel');
+  if(!panel) return;
   state.expandedHelp=expanded;
-  $('#whichkey-panel').classList.toggle('is-expanded',expanded);
-  if(expanded){ $('#whichkey-panel').scrollTo({top:0,behavior:'smooth'}); $('#close-help').focus({preventScroll:true}); }
+  panel.classList.toggle('is-expanded',expanded);
+  panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+  if(expanded){ panel.scrollTo({top:0,behavior:'smooth'}); $('#close-help')?.focus({preventScroll:true}); }
 }
 
 function openAuth(mode='login'){ setAuthMode(mode); $('#auth-dialog').showModal(); setTimeout(()=>$('#auth-email').focus(),30); }
