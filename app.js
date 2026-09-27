@@ -616,9 +616,8 @@ async function loadRemoteNews(){
 
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
-  state.editor={ id:id?String(id):null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null };
+  state.editor={ id:id?String(id):null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null };
   openSection('editor');
-  setupEditor(id?state.news.find(n=>String(n.id)===String(id)):null);
 }
 
 function editorTemplate(news){
@@ -921,7 +920,7 @@ async function saveEditorNews(){
 async function deleteNews(id){
   if(!state.supabase||!state.admin) return;
   const n=state.news.find(item=>String(item.id)===String(id));
-  if(!n||String(id).startsWith('demo-')){showToast('Демонстрационные материалы удалить нельзя.');return;}
+  if(!n)return;
   if(!window.confirm(`Удалить новость «${n.title}»? Это действие необратимо.`)) return;
   try{
     const {error}=await state.supabase.from('news').delete().eq('id',id);
