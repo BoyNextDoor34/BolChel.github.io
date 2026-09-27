@@ -1,0 +1,6 @@
+# Optional build-time Matugen configuration.
+# The site itself can run on GitHub Pages without this file.
+# Use the output JSON to populate the `palette` column of public.news.
+
+[config]
+# template = "matugen/template.css"
