@@ -1,6 +1,8 @@
 name: Repair site runtime
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -33,12 +35,7 @@ jobs:
 
             const app = await read('app.js');
             let js = app.text;
-
-            js = js.replace(
-              "[['G','T'],[['G','-'],'Военнообязанные']",
-              "[['G','T'],'Туризм'],[['G','M'],'Военнообязанные']"
-            );
-
+            js = js.replace("[['G','T'],[['G','-'],'Военнообязанные']", "[['G','T'],'Туризм'],[['G','M'],'Военнообязанные']");
             if (!/const\s+DEMO_NEWS\s*=/.test(js)) {
               const demo = `const DEMO_NEWS = [
                 {id:'demo-1',category:'Технологии и наука',title:'Новая вычислительная архитектура обещает снизить энергозатраты ИИ',summary:'Демонстрационный материал для проверки новостного интерфейса.',date:'27 сентября 2026',time:'12:10',author:'Редакция',image:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=82',body:'# Новая вычислительная архитектура\\n\\nДемонстрационный материал интерфейса.',palette:null},
@@ -47,16 +44,8 @@ jobs:
               ];\n\n`;
               js = js.replace('const state = {', demo + 'const state = {');
             }
-
-            js = js.replace(
-              "function toggleHelp(expanded=true){\n  state.expandedHelp=expanded;\n  $('#whichkey-panel').classList.toggle('is-expanded',expanded);",
-              "function toggleHelp(expanded=true){\n  const panel=$('#whichkey-panel');\n  if(!panel) return;\n  state.expandedHelp=expanded;\n  panel.classList.toggle('is-expanded',expanded);\n  panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');"
-            );
-            js = js.replace(
-              "if(expanded){ $('#whichkey-panel').scrollTo({top:0,behavior:'smooth'}); $('#close-help').focus({preventScroll:true}); }",
-              "if(expanded){ panel.scrollTo({top:0,behavior:'smooth'}); $('#close-help')?.focus({preventScroll:true}); }"
-            );
-
+            js = js.replace("function toggleHelp(expanded=true){\n  state.expandedHelp=expanded;\n  $('#whichkey-panel').classList.toggle('is-expanded',expanded);", "function toggleHelp(expanded=true){\n  const panel=$('#whichkey-panel');\n  if(!panel) return;\n  state.expandedHelp=expanded;\n  panel.classList.toggle('is-expanded',expanded);\n  panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');");
+            js = js.replace("if(expanded){ $('#whichkey-panel').scrollTo({top:0,behavior:'smooth'}); $('#close-help').focus({preventScroll:true}); }", "if(expanded){ panel.scrollTo({top:0,behavior:'smooth'}); $('#close-help')?.focus({preventScroll:true}); }");
             if (js === app.text) core.setFailed('Expected frontend patterns were not found.');
             await write('app.js', js, app.sha, 'Fix frontend JavaScript bootstrap and keyboard help');
 
