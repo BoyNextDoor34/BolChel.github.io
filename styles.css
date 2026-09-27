@@ -312,7 +312,7 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 .mobile-dock { display:none; }
 
 @media (max-width:1280px) {
-  :root { --help-side:320px; }
+  :root { --help-side:0px; }
   .news-card { grid-column:span 6; }
   .news-card.featured { grid-column:span 12; }
   .profile-layout { grid-template-columns:1fr; }
@@ -320,7 +320,7 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 }
 
 @media (max-width:1050px) {
-  :root { --desktop-side:240px; --help-side:290px; }
+  :root { --desktop-side:240px; --help-side:0px; }
   .topbar { padding:0 18px; }
   main { padding-left:22px; padding-right:22px; }
   .whichkey-panel { right:10px; }
