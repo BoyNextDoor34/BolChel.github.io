@@ -79,8 +79,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .app-nav.is-collapsed .nav-divider,
 .app-nav.is-collapsed .nav-help .leader-hint { display:none; }
 .app-nav.is-collapsed .brand-lockup { justify-content:center; }
+.app-nav.is-collapsed .brand-mark { margin-inline:auto; }
 .app-nav.is-collapsed .nav-item { justify-content:center; }
-:root.nav-collapsed { --desktop-side:88px; }
 
 
 .visually-hidden { position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
@@ -111,6 +111,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .nav-help { width:100%; justify-content:flex-start !important; }
 .leader-hint { margin-left:auto; display:flex; gap:4px; }
 
+body.nav-collapsed .topbar { left:88px; }
+body.nav-collapsed main { margin-left:88px; }
 .topbar { position:fixed; top:0; left:var(--desktop-side); right:0; height:78px; z-index:25; display:flex; align-items:center; justify-content:space-between; padding:0 28px; background:color-mix(in srgb, var(--md-sys-color-surface-tint) 90%, transparent); backdrop-filter:blur(18px); border-bottom:1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 35%, transparent); }
 .topbar-left, .topbar-actions { display:flex; align-items:center; gap:10px; }
 .page-context { display:flex; align-items:center; gap:9px; font-size:14px; color:var(--md-sys-color-on-surface-variant); }
@@ -343,6 +345,8 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 
 @media (max-width:860px) {
   :root { --desktop-side:0px; --help-side:0px; }
+  body.nav-collapsed .topbar { left:0; }
+  body.nav-collapsed main { margin-left:0; }
   .app-nav { transform:translateX(-102%); transition:transform .2s ease; width:min(310px, 88vw); z-index:90; }
   .app-nav.is-open { transform:none; }
   .topbar { left:0; right:0; padding:0 14px; }
