@@ -16,7 +16,7 @@ const state = {
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
-const $ = (selector, root=document) => [...root.querySelectorAll(selector)];
+const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 
 const KEYMAP = [
   {group:'Новости', rows:[
@@ -363,7 +363,7 @@ function renderNews() {
   $('#search-status').textContent=state.search.trim()?`${total} ${pluralNews(total)} по запросу`:(state.category?`${total} материалов`:'');
   $('#search-clear').classList.toggle('hidden',!state.search);
   $('#news-search').value=state.search;
-  if(!items.length){ root.innerHTML='<div class="empty-state"><h2>Ничего не найдено</h2><p>Попробуйте другой раздел или измените поисковый запрос.</p></div>'; return; }
+  if(!items.length){ const title=state.search.trim()?'Ничего не найдено':'Новостей пока нет'; const text=state.search.trim()?'Попробуйте другой запрос или измените раздел.':'Публикации появятся здесь после того, как администратор разместит первую новость.'; root.innerHTML=`<div class="empty-state"><h2>${title}</h2><p>${text}</p></div>`; return; }
   root.innerHTML=items.map((n,i)=>cardTemplate(n,i===0&&!state.search&&!state.category,i)).join('');
   root.querySelectorAll('.news-card').forEach(card=>{
     card.addEventListener('click',()=>openArticle(card.dataset.id));
