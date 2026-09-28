@@ -759,6 +759,7 @@ function setupEditor(news){
   state.editor.authorId=news?.authorId||state.user?.id||'';
   $('#news-category-input').value=news?.category||CATEGORIES[0];
   loadEditorAuthors(state.editor.authorId);
+  bindEditorSelectControls();
   $('#news-summary-input').value=news?.summary||'';
   $('#news-body-input').value=news?.body||'';
   $('#news-image-input').value=news?.image||'';
@@ -805,42 +806,13 @@ function bindEditorEvents(){
   });
 
   editorRoot?.addEventListener('click',e=>{
-    const option=e.target.closest('[data-editor-option]');
-    const selectButton=e.target.closest('.editor-select-button');
-    if(option){
-      const control=option.closest('.editor-select-control');
-      const input=control?.querySelector('input[type="hidden"]');
-      const valueNode=control?.querySelector('.editor-select-value');
-      const value=option.dataset.value||'';
-      if(!control||!input||!valueNode) return;
-      input.value=value;
-      valueNode.textContent=option.textContent.trim();
-      control.querySelectorAll('.editor-select-option').forEach(item=>item.classList.toggle('is-selected',item===option));
-      control.classList.remove('is-open');
-      control.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
-      input.dispatchEvent(new Event('change',{bubbles:true}));
-      return;
-    }
-    if(selectButton){
-      const control=selectButton.closest('.editor-select-control');
-      if(!control) return;
-      editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
-        if(item!==control){
-          item.classList.remove('is-open');
-          item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
-        }
-      });
-      const open=control.classList.toggle('is-open');
-      selectButton.setAttribute('aria-expanded',String(open));
-      return;
-    }
-    if(!e.target.closest('.editor-select-control')){
-      editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
-        item.classList.remove('is-open');
-        item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
-      });
-    }
+    if(e.target.closest('.editor-select-control')) return;
+    editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
+      item.classList.remove('is-open');
+      item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+    });
   });
+
 }
 function syncEditorMode(){
   $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
@@ -923,6 +895,60 @@ function handleMarkdownKeydown(e){
 function renderMarkdownPreview(){
   const preview=$('#markdown-preview'); if(!preview) return;
   preview.innerHTML=parseMarkdown(markdownValue()||'*Начните писать — предпросмотр появится здесь.*');
+}
+
+function bindEditorSelectControls(){
+  const root=$('#editor-page');
+  if(!root) return;
+
+  root.querySelectorAll('.editor-select-button').forEach(button=>{
+    if(button.dataset.editorBound==='1') return;
+    button.dataset.editorBound='1';
+    button.onclick=e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const control=button.closest('.editor-select-control');
+      if(!control) return;
+      root.querySelectorAll('.editor-select-control.is-open').forEach(other=>{
+        if(other!==control){
+          other.classList.remove('is-open');
+          other.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+        }
+      });
+      const isOpen=control.classList.toggle('is-open');
+      button.setAttribute('aria-expanded',String(isOpen));
+    };
+    button.onkeydown=e=>{
+      if(e.key==='Enter'||e.key===' '){
+        e.preventDefault();
+        button.click();
+      }else if(e.key==='Escape'){
+        e.preventDefault();
+        const control=button.closest('.editor-select-control');
+        control?.classList.remove('is-open');
+        button.setAttribute('aria-expanded','false');
+      }
+    };
+  });
+
+  root.querySelectorAll('.editor-select-option').forEach(option=>{
+    if(option.dataset.editorBound==='1') return;
+    option.dataset.editorBound='1';
+    option.onclick=e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const control=option.closest('.editor-select-control');
+      const input=control?.querySelector('input[type="hidden"]');
+      const valueNode=control?.querySelector('.editor-select-value');
+      if(!control||!input||!valueNode) return;
+      input.value=option.dataset.value||'';
+      valueNode.textContent=option.textContent.trim();
+      control.querySelectorAll('.editor-select-option').forEach(item=>item.classList.toggle('is-selected',item===option));
+      control.classList.remove('is-open');
+      control.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+  });
 }
 
 function syncEditorSelect(inputId){
