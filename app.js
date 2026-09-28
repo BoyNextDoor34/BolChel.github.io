@@ -1592,19 +1592,45 @@ function initAvatarCrop(){
 function initMobileDockStability(){
   const dock=$('#mobile-dock');
   if(!dock) return;
+
   const mobileQuery=window.matchMedia?.('(max-width: 860px)');
-  const lockDockPosition=()=>{
-    if(!mobileQuery?.matches){
-      dock.style.removeProperty('--mobile-dock-top');
+  let frame=0;
+
+  const isMobile=()=>mobileQuery?.matches;
+
+  const updateDockLayout=()=>{
+    if(!isMobile()){
+      dock.style.removeProperty('--mobile-dock-base-top');
+      dock.style.removeProperty('--mobile-dock-scroll');
+      dock.style.removeProperty('position');
       return;
     }
-    const viewportHeight=window.innerHeight || document.documentElement.clientHeight || 0;
+
+    const layoutViewportHeight=document.documentElement.clientHeight || 0;
     const dockHeight=dock.offsetHeight || 0;
-    const top=Math.max(12,viewportHeight-dockHeight-12);
-    dock.style.setProperty('--mobile-dock-top',`${Math.round(top)}px`);
+    const baseTop=Math.max(12,layoutViewportHeight-dockHeight-12);
+    dock.style.setProperty('--mobile-dock-base-top',`${Math.round(baseTop)}px`);
+    dock.style.setProperty('--mobile-dock-scroll',`${Math.max(0,window.scrollY || window.pageYOffset || 0)}px`);
   };
-  requestAnimationFrame(lockDockPosition);
-  window.addEventListener('orientationchange',()=>setTimeout(lockDockPosition,250),{passive:true});
+
+  const updateDockScroll=()=>{
+    if(frame) return;
+    frame=requestAnimationFrame(()=>{
+      frame=0;
+      if(!isMobile()) return;
+      dock.style.setProperty('--mobile-dock-scroll',`${Math.max(0,window.scrollY || window.pageYOffset || 0)}px`);
+    });
+  };
+
+  updateDockLayout();
+
+  window.addEventListener('scroll',updateDockScroll,{passive:true});
+  window.addEventListener('resize',()=>requestAnimationFrame(updateDockLayout),{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(updateDockLayout,250),{passive:true});
+
+  if('ResizeObserver' in window){
+    new ResizeObserver(()=>requestAnimationFrame(updateDockLayout)).observe(dock);
+  }
 }
 
 function bindGlobalEvents(){
