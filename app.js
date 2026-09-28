@@ -657,7 +657,8 @@ async function loadRemoteNews(){
 
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
-  state.editor={ id:id?String(id):null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null };
+  const mobile=window.matchMedia?.('(max-width: 860px)').matches;
+  state.editor={ id:id?String(id):null, mode:mobile?'edit':'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null };
   openSection('editor');
 }
 
@@ -665,12 +666,12 @@ function editorTemplate(news){
   const edit=Boolean(news);
   return `<div class="editor-shell">
     <div class="editor-topbar">
-      <div class="editor-title-wrap"><span class="eyebrow">${edit?'Редактирование':'Публикация'} · Telegraph-like</span><input id="news-title-input" class="editor-title-input" maxlength="180" placeholder="Заголовок новости" autocomplete="off"></div>
+      <div class="editor-title-wrap"><span class="eyebrow">${edit?'Редактирование':'Публикация'}</span><input id="news-title-input" class="editor-title-input" maxlength="180" placeholder="Заголовок новости" autocomplete="off"></div>
       <div class="editor-actions"><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
     </div>
     <div class="editor-meta-grid">
-      <select id="news-category-input" aria-label="Раздел новости">${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select>
-      <textarea id="news-summary-input" class="editor-summary" maxlength="360" placeholder="Короткое описание или лид. Если оставить пустым, он будет взят из первого абзаца Markdown."></textarea>
+      <label class="editor-category-field"><span class="editor-field-label">Раздел</span><span class="editor-select-wrap"><select id="news-category-input" aria-label="Раздел новости">${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select><span class="material-symbols-rounded editor-select-icon" aria-hidden="true">expand_more</span></span></label>
+      <label class="editor-summary-field"><span class="editor-field-label">Лид</span><textarea id="news-summary-input" class="editor-summary" maxlength="360" placeholder="Короткое описание или лид. Если оставить пустым, он будет взят из первого абзаца Markdown."></textarea></label>
     </div>
     <div class="editor-cover-row">
       <div class="editor-cover-panel">
@@ -1267,6 +1268,68 @@ function bindGlobalEvents(){
   }catch(error){
     console.error('Avatar crop initialization failed:',error);
   }
+
+  try{
+    initTouchGestures();
+  }catch(error){
+    console.error('Touch gestures initialization failed:',error);
+  }
+}
+
+function initTouchGestures(){
+  if(!('ontouchstart' in window) && !navigator.maxTouchPoints) return;
+  let touchStart=null;
+  const threshold=72;
+
+  const ignoredTarget=(target)=>{
+    return !!target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],.mobile-category-scroll,.mobile-dock,pre,.md-table-wrap');
+  };
+
+  document.addEventListener('touchstart',e=>{
+    if(!window.matchMedia?.('(max-width: 860px)').matches) return;
+    const t=e.changedTouches?.[0];
+    if(!t) return;
+    touchStart={
+      x:t.clientX,y:t.clientY,
+      time:Date.now(),
+      edgeLeft:t.clientX<=28,
+      ignored:ignoredTarget(e.target)
+    };
+  },{passive:true});
+
+  document.addEventListener('touchend',e=>{
+    if(!touchStart || !window.matchMedia?.('(max-width: 860px)').matches) return;
+    const t=e.changedTouches?.[0];
+    if(!t){touchStart=null;return;}
+    const dx=t.clientX-touchStart.x;
+    const dy=t.clientY-touchStart.y;
+    const elapsed=Date.now()-touchStart.time;
+    const horizontal=Math.abs(dx)>Math.abs(dy)*1.25;
+    const quick=elapsed<900;
+
+    if(quick && horizontal && Math.abs(dx)>=threshold){
+      const nav=$('.app-nav');
+
+      if(!nav?.classList.contains('is-open') && touchStart.edgeLeft && dx>0){
+        onMobileMenu();
+        touchStart=null;
+        return;
+      }
+      if(nav?.classList.contains('is-open') && dx<0){
+        closeMobileMenu();
+        touchStart=null;
+        return;
+      }
+
+      if(!touchStart.ignored && state.section==='article'){
+        const neighbors=getArticleNeighbors();
+        if(dx<0 && neighbors.next) openArticle(neighbors.next.id);
+        else if(dx>0 && neighbors.previous) openArticle(neighbors.previous.id);
+        else showToast('Других материалов в этом направлении нет');
+      }
+    }
+    touchStart=null;
+  },{passive:true});
 }
 
 function safeRun(label,fn){
