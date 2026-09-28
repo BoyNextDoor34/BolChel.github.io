@@ -1074,7 +1074,31 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (min-width:861px) {
+  .app-nav.is-collapsed .brand-lockup {
+    width:100%;
+    justify-content:center;
+    padding-left:0;
+    padding-right:0;
+  }
+
+  .app-nav.is-collapsed .brand-header-logo {
+    position:relative;
+    width:88px;
+    max-width:88px;
+    height:66px;
+    margin:0;
+    padding:0;
+    flex:0 0 88px;
+    overflow:hidden;
+  }
+
   .app-nav.is-collapsed .brand-header-logo svg {
-    margin-left:-2px;
+    position:absolute;
+    left:16px;
+    top:0;
+    width:288px;
+    max-width:none;
+    height:75px;
+    margin:0;
   }
 }
