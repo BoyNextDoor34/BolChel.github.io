@@ -53,8 +53,8 @@ html[data-theme="dark"] {
   --md-sys-color-outline: #6f7176;
   --md-sys-color-outline-variant: #3b3d42;
   --md-sys-color-error: #ffb4ab;
-  --logo-secondary: color-mix(in srgb, var(--md-sys-color-secondary) 44%, var(--md-sys-color-surface) 56%);
-  --logo-tertiary: color-mix(in srgb, var(--md-sys-color-tertiary) 82%, var(--md-sys-color-surface) 18%);
+  --logo-secondary: var(--md-sys-color-on-surface);
+  --logo-tertiary: var(--md-sys-color-outline);
   --logo-document-line: var(--md-sys-color-on-surface);
 }
 
@@ -123,18 +123,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   padding-bottom:20px;
 }
 .app-nav.is-collapsed .brand-header-logo {
-  width:64px;
-  max-width:64px;
+  width:56px;
+  max-width:56px;
   height:66px;
   overflow:hidden;
   margin-left:auto;
   margin-right:auto;
-  flex:0 0 64px;
+  flex:0 0 56px;
 }
 .app-nav.is-collapsed .brand-header-logo svg {
   width:288px;
   max-width:none;
   height:75px;
+  margin-left:-1px;
 }
 .nav-list { display:flex; flex-direction:column; gap:5px; }
 .nav-list.compact { gap:2px; max-height:48vh; overflow:auto; }
