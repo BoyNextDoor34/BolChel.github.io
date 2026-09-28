@@ -666,7 +666,7 @@ async function loadEditorAuthors(selectedId=''){
   if(state.user?.id && !profiles.some(p=>p.id===state.user.id)) profiles.unshift({id:state.user.id,nickname:state.user.profile?.nickname||state.user.email?.split('@')[0]||'Пользователь',role:state.user.profile?.role||'admin'});
   if(!profiles.length){ select.innerHTML='<option value="">Редакция</option>'; }
   else { select.innerHTML=profiles.map(function(profile){ return '<option value="'+escapeHtml(profile.id)+'">'+escapeHtml(profile.nickname||'Пользователь')+(profile.role==='admin'?' — Администратор':'')+'</option>'; }).join(''); }
-  const value=selectedId||state.editor.authorId||state.user?.id||'';
+  const value=state.editor.authorId||selectedId||state.user?.id||'';
   if(value && [...select.options].some(option=>option.value===value)) select.value=value;
 }
 async function loadRemoteNews(){
@@ -684,7 +684,7 @@ async function loadRemoteNews(){
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
   const mobile=window.matchMedia?.('(max-width: 860px)').matches;
-  state.editor={ id:id?String(id):null, mode:mobile?'edit':'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
+  state.editor={ id:id?String(id):null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
   openSection('editor');
 }
 
