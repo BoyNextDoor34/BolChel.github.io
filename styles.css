@@ -1129,3 +1129,21 @@ input[type="range"]::-moz-range-thumb {
     -webkit-backdrop-filter:none !important;
   }
 }
+
+
+/* Stable mobile viewport anchoring.
+   The dock position is locked in JS once per viewport/orientation instead of
+   being recomputed from dynamic viewport units while the browser chrome moves. */
+@media (max-width:860px) {
+  html,
+  body {
+    overscroll-behavior-y:none;
+  }
+
+  .mobile-dock {
+    top:calc(var(--mobile-dock-top, calc(100svh - 94px)) - env(safe-area-inset-bottom)) !important;
+    bottom:auto !important;
+    transform:translateZ(0) !important;
+    will-change:auto;
+  }
+}
