@@ -1631,11 +1631,7 @@ function initMobileOverlayViewportLock(){
   };
 
   requestAnimationFrame(recaptureBaseline);
-  viewport.addEventListener('resize',()=>{
-    categoryBaseline=null;
-    dockBaseline=null;
-    requestAnimationFrame(recaptureBaseline);
-  },{passive:true});
+  viewport.addEventListener('resize',()=>requestAnimationFrame(apply),{passive:true});
 
   window.addEventListener('orientationchange',()=>{
     categoryBaseline=null;
