@@ -426,6 +426,28 @@ function cardTemplate(n,featured,index) {
   </article>`;
 }
 
+function renderNews(){
+  const root=$('#news-grid');
+  if(!root) return;
+  const items=currentVisibleNews();
+  const total=items.length;
+  $('#search-status').textContent=state.search.trim()?`${total} ${pluralNews(total)} по запросу`:(state.category?`${total} материалов`:'');
+  $('#search-clear').classList.toggle('hidden',!state.search);
+  $('#news-search').value=state.search;
+  if(!items.length){
+    const title=state.search.trim()?'Ничего не найдено':'Новостей пока нет';
+    const text=state.search.trim()?'Попробуйте другой запрос или измените раздел.':'Публикации появятся здесь после того, как администратор разместит первую новость.';
+    root.innerHTML=`<div class="empty-state"><h2>${title}</h2><p>${text}</p></div>`;
+    return;
+  }
+  root.innerHTML=items.map((n,i)=>cardTemplate(n,i===0&&!state.search&&!state.category,i)).join('');
+  root.querySelectorAll('.news-card').forEach(card=>{
+    card.addEventListener('click',()=>openArticle(card.dataset.id));
+    card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.code==='Enter') openArticle(card.dataset.id); });
+  });
+  state.selectedNewsIndex=clamp(state.selectedNewsIndex,0,items.length-1);
+  updateSelectedCard();
+}
 function updateSelectedCard() {
   const cards=visibleNewsCards();
   cards.forEach((card,i)=>card.classList.toggle('is-selected',i===state.selectedNewsIndex));
@@ -696,11 +718,13 @@ async function initSupabase(){
   state.supabaseInitPromise=(async()=>{
     try{
       const sdk=await loadSupabaseClientScript();
+      const projectRef=(new URL(String(cfg.url).trim())).hostname.split('.')[0];
       state.supabase=sdk.createClient(String(cfg.url).trim(),String(cfg.anonKey).trim(),{
         auth:{
           persistSession:true,
           autoRefreshToken:true,
           detectSessionInUrl:true,
+          storageKey:'sb-'+projectRef+'-auth-token',
           storage:window.localStorage
         }
       });
