@@ -416,7 +416,7 @@ function currentVisibleNews() {
 }
 
 function cardTemplate(n,featured,index) {
-  const accent=n.palette?.light?.primary || n.accent || '#6750a4';
+  const accent='var(--md-sys-color-primary)';
   return `<article class="news-card ${featured?'featured':''}" data-id="${escapeHtml(n.id)}" tabindex="0" aria-label="${escapeHtml(n.title)}" style="--news-primary:${accent}">
     <div class="news-card-image"><img loading="lazy" src="${escapeHtml(n.image)}" alt="" onerror="this.style.opacity='.2'"><div class="news-card-overlay">
       <div class="news-meta"><span class="category-pill" style="--news-primary:${accent}">${escapeHtml(n.category)}</span><span>${escapeHtml(n.date)} · ${escapeHtml(n.time)}</span></div>
@@ -452,7 +452,6 @@ async function openArticle(id){
   state.previousSection=state.section==='article'?'news':state.section;
   openSection('article');
   renderArticle();
-  activateArticlePalette(news);
 }
 
 
@@ -466,7 +465,7 @@ function renderArticle() {
   const root=$('#article-page');
   const n=state.news.find(item=>String(item.id)===String(state.articleId));
   if(!n){root.innerHTML='<div class="empty-state"><h2>Материал не найден</h2><button class="filled-button" data-back-news>Вернуться к новостям</button></div>'; return;}
-  const accent=n.palette?.light?.primary||n.accent||DEFAULT_SEED;
+  const accent='var(--md-sys-color-primary)';
   const body=n.body?.trim()||`*У этого материала пока нет текста.*`;
   const html=parseMarkdown(body);
   const nav=getArticleNeighbors();
@@ -629,6 +628,7 @@ async function handleSession(session){
   }
   updateAuthUI();
   renderProfile();
+  if(state.section==='profile') activateProfilePalette();
 }
 
 async function loadSupabaseClientScript(){
@@ -1181,9 +1181,10 @@ async function saveEditorNews(){
       $('#news-image-input').value=imageUrl;
     }
     if(!imageUrl){msg.textContent='Нужно добавить изображение: палитра строится только из цветов изображения новости.';return;}
-    msg.textContent='Генерируем палитру из изображения…';
-    const seed=await extractSeedFromImage(imageUrl);
-    const palette=generatePaletteFromSeed(seed);
+    msg.textContent='Генерируем M3 Content-палитру из изображения…';
+    const palette=state.editor.generatedPalette?.generator==='m3-content-v1'
+      ? state.editor.generatedPalette
+      : await generateM3ContentPaletteFromImage(imageUrl);
     state.editor.generatedPalette=palette;
     if(!summary){
       const firstPlain=(body.replace(/^#{1,6}\s+/gm,'').replace(/[*_`>#-]/g,'').split(/\n\s*\n/).find(Boolean)||'').trim();
