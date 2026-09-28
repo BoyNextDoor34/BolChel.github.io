@@ -455,7 +455,6 @@ function renderArticle() {
       <div class="article-toolbar">
         <div class="article-toolbar-left">
           <button id="article-back" class="tonal-button"><span class="material-symbols-rounded">arrow_back</span>Все новости</button>
-          <span class="chip">${escapeHtml(n.category)}</span>
         </div>
         <div class="article-toolbar-actions">
           ${state.admin && !String(n.id).startsWith('demo-')?`<button id="article-edit" class="text-button"><span class="material-symbols-rounded">edit</span>Редактировать</button><button id="article-delete" class="text-button"><span class="material-symbols-rounded">delete</span>Удалить</button>`:''}
