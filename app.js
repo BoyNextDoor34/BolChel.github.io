@@ -699,10 +699,14 @@ async function initSupabase(){
       state.supabase=sdk.createClient(String(cfg.url).trim(),String(cfg.anonKey).trim());
       state.supabaseError=null;
 
-      const {data:{session},error:sessionError}=await state.supabase.auth.getSession();
-      if(sessionError) throw sessionError;
+      try{
+        const {data:{session},error:sessionError}=await state.supabase.auth.getSession();
+        if(sessionError) throw sessionError;
+        await handleSession(session);
+      }catch(error){
+        console.warn('Supabase session initialization failed:',error);
+      }
 
-      await handleSession(session);
       state.supabase.auth.onAuthStateChange((_event,nextSession)=>{
         setTimeout(async()=>{
           try{
@@ -714,13 +718,18 @@ async function initSupabase(){
         },0);
       });
 
-      await loadRemoteNews();
+      try{
+        await loadRemoteNews();
+      }catch(error){
+        console.warn('Initial Supabase news load failed:',error);
+      }
+
       return state.supabase;
     }catch(error){
-      state.supabase=null;
       state.supabaseError=error;
-      console.error('Supabase initialization failed:',error);
-      showToast('Не удалось подключить Supabase. Повторите попытку позже.');
+      state.supabase=null;
+      console.error('Supabase client initialization failed:',error);
+      showToast('Не удалось загрузить Supabase SDK. Проверьте интернет-соединение или попробуйте обновить страницу.');
       return null;
     }finally{
       state.supabaseInitPromise=null;
