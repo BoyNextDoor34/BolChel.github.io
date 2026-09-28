@@ -673,6 +673,7 @@ async function loadEditorAuthors(selectedId=''){
   if(selected){ input.value=selected.id; state.editor.authorId=selected.id; valueNode.textContent=selected.label; }
   else{ input.value=''; valueNode.textContent='Редакция'; }
   menu.querySelectorAll('.editor-select-option').forEach(option=>option.classList.toggle('is-selected',option.dataset.value===input.value));
+  bindEditorSelectControls();
 }
 async function loadRemoteNews(){
   if(!state.supabase) return;
@@ -700,16 +701,16 @@ function editorTemplate(news){
       <div class="editor-actions"><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
     </div>
     <div class="editor-meta-grid">
-      <label class="field editor-category-field"><span>Раздел</span><div class="editor-select-control" data-editor-select="category">
+      <div class="field editor-category-field"><span>Раздел</span><div class="editor-select-control" data-editor-select="category">
         <input type="hidden" id="news-category-input" value="Политика">
         <button class="editor-select-button" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="editor-select-value">Политика</span><span class="material-symbols-rounded">expand_more</span></button>
         <div class="editor-select-menu" role="listbox" aria-label="Раздел новости">${CATEGORIES.map(c=>`<button type="button" class="editor-select-option${c===CATEGORIES[0]?' is-selected':''}" data-editor-option="category" data-value="${escapeHtml(c)}" role="option">${escapeHtml(c)}</button>`).join('')}</div>
-      </div></label>
-      <label class="field editor-author-field"><span>Автор</span><div class="editor-select-control" data-editor-select="author">
+      </div></div>
+      <div class="field editor-author-field"><span>Автор</span><div class="editor-select-control" data-editor-select="author">
         <input type="hidden" id="news-author-input" value="">
         <button class="editor-select-button" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="editor-select-value">Загрузка авторов…</span><span class="material-symbols-rounded">expand_more</span></button>
         <div id="news-author-menu" class="editor-select-menu" role="listbox" aria-label="Автор новости"><div class="editor-select-empty">Загрузка авторов…</div></div>
-      </div></label>
+      </div></div>
       <label class="editor-summary-field"><span class="editor-field-label">Лид</span><textarea id="news-summary-input" class="editor-summary" maxlength="360" placeholder="Короткое описание или лид. Если оставить пустым, он будет взят из первого абзаца Markdown."></textarea></label>
     </div>
     <div class="editor-cover-row">
