@@ -359,9 +359,9 @@ function parseMarkdown(markdown='') {
   return out.join('');
 }
 
+function isMobileLayout(){ return window.matchMedia?.('(max-width:860px)').matches===true; }
 function getMainScroller(){
-  const main=$('#main');
-  return main || document.scrollingElement || document.documentElement;
+  return isMobileLayout() ? $('#main') : (document.scrollingElement || document.documentElement);
 }
 function scrollMainToTop(behavior='smooth'){
   const main=getMainScroller();
@@ -372,8 +372,13 @@ function scrollMainBy(delta,behavior='smooth'){
   if(main) main.scrollBy({top:delta,behavior});
 }
 function scrollElementIntoMain(element,behavior='smooth'){
+  if(!element) return;
+  if(!isMobileLayout()){
+    element.scrollIntoView({block:'center',behavior});
+    return;
+  }
   const main=getMainScroller();
-  if(!element||!main) return;
+  if(!main) return;
   const mainRect=main.getBoundingClientRect();
   const rect=element.getBoundingClientRect();
   const target=main.scrollTop + (rect.top-mainRect.top) - Math.max(0,(main.clientHeight-rect.height)/2);
