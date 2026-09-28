@@ -807,24 +807,12 @@ function bindEditorEvents(){
       return;
     }
   });
-  toolbar?.addEventListener('pointerup',e=>{
-    const mdButton=e.target.closest('[data-md]');
-    if(mdButton && toolbar.contains(mdButton)){
-      e.preventDefault();
-      applyMarkdownCommand(mdButton.dataset.md);
-    }
-  });
-
   modeSwitch?.querySelectorAll('.editor-mode').forEach(btn=>{
     const selectMode=()=>{
       state.editor.mode=btn.dataset.editorMode;
       syncEditorMode();
     };
     btn.addEventListener('click',selectMode);
-    btn.addEventListener('pointerup',e=>{
-      e.preventDefault();
-      selectMode();
-    });
   });
 
   editorRoot?.addEventListener('click',e=>{
