@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0..1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260928-17">
+  <link rel="stylesheet" href="styles.css?v=20260928-18">
   <script src="supabase-config.js"></script>
 </head>
 <body>
@@ -209,13 +209,13 @@
 
   <dialog id="auth-dialog" class="modal-dialog">
     <form method="dialog" class="dialog-card" id="auth-form">
-      <div class="dialog-header"><div><span class="eyebrow">Supabase Auth</span><h2 id="auth-title">Вход</h2></div><button class="icon-button" value="cancel" type="submit" aria-label="Закрыть"><span class="material-symbols-rounded">close</span></button></div>
+      <div class="dialog-header"><div><span class="eyebrow">Supabase Auth</span><h2 id="auth-title">Вход</h2></div><button class="icon-button" value="cancel" type="submit" formnovalidate aria-label="Закрыть"><span class="material-symbols-rounded">close</span></button></div>
       <div class="segmented"><button type="button" class="segment is-selected" data-auth-mode="login">Войти</button><button type="button" class="segment" data-auth-mode="signup">Регистрация</button></div>
       <label class="field"><span>Email</span><input id="auth-email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
       <label class="field"><span>Пароль</span><input id="auth-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Минимум 6 символов"></label>
       <div id="auth-extra" class="hidden"><label class="field"><span>Ник</span><input id="auth-nickname" maxlength="40" placeholder="Ваш ник"></label></div>
       <p id="auth-message" class="form-message"></p>
-      <div class="dialog-actions"><button class="text-button" value="cancel" type="submit">Отмена</button><button id="auth-submit" class="filled-button" value="default" type="button">Войти</button></div>
+      <div class="dialog-actions"><button class="text-button" value="cancel" type="submit" formnovalidate>Отмена</button><button id="auth-submit" class="filled-button" value="default" type="button">Войти</button></div>
     </form>
   </dialog>
 
@@ -228,7 +228,7 @@
       <div id="avatar-preview-note" class="media-note">Для локального файла после выбора откроется кадрирование 1:1.</div>
       <label class="field"><span>О себе</span><textarea id="profile-bio" rows="4" maxlength="280" placeholder="Расскажите немного о себе"></textarea></label>
       <p id="profile-message" class="form-message"></p>
-      <div class="dialog-actions"><button class="text-button" value="cancel" type="submit">Отмена</button><button id="profile-save" class="filled-button" value="default" type="button">Сохранить</button></div>
+      <div class="dialog-actions"><button class="text-button" value="cancel" type="submit" formnovalidate>Отмена</button><button id="profile-save" class="filled-button" value="default" type="button">Сохранить</button></div>
     </form>
   </dialog>
 
@@ -255,6 +255,6 @@
   </dialog>
 
   <div id="mobile-scrim" class="scrim"></div>
-  <script src="app.js?v=20260928-16"></script>
+  <script src="app.js?v=20260928-17"></script>
 </body>
 </html>
