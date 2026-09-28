@@ -696,7 +696,14 @@ async function initSupabase(){
   state.supabaseInitPromise=(async()=>{
     try{
       const sdk=await loadSupabaseClientScript();
-      state.supabase=sdk.createClient(String(cfg.url).trim(),String(cfg.anonKey).trim());
+      state.supabase=sdk.createClient(String(cfg.url).trim(),String(cfg.anonKey).trim(),{
+        auth:{
+          persistSession:true,
+          autoRefreshToken:true,
+          detectSessionInUrl:true,
+          storage:window.localStorage
+        }
+      });
       state.supabaseError=null;
 
       try{
@@ -772,15 +779,36 @@ async function loadEditorAuthors(selectedId=''){
 }
 async function loadRemoteNews(){
   if(!state.supabase) return;
+
   try{
     await loadAuthorProfiles();
-    const {data,error}=await state.supabase.from('news').select('id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at').order('published_at',{ascending:false});
-    if(error) throw error;
-    if(data?.length) state.news=data.map(mapRemoteNews);
-    else state.news=[];
+
+    const fullSelect='id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at';
+    let result=await state.supabase
+      .from('news')
+      .select(fullSelect)
+      .order('published_at',{ascending:false});
+
+    if(result.error){
+      console.warn('Full news query failed, trying minimal query:',result.error);
+      result=await state.supabase
+        .from('news')
+        .select('id,author_id,category,title,summary,body,image_url,accent_hex,published_at')
+        .order('published_at',{ascending:false});
+    }
+
+    if(result.error) throw result.error;
+
+    state.news=(result.data||[]).map(mapRemoteNews);
     renderNews();
-  }catch(error){ console.warn('News load failed:',error); if(!state.news.length) renderNews(); }
+
+  }catch(error){
+    console.error('News load failed:',error);
+    showToast('Не удалось загрузить новости из Supabase: '+(error.message||'неизвестная ошибка'));
+    if(!state.news.length) renderNews();
+  }
 }
+
 
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
