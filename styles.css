@@ -408,7 +408,17 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
   .topbar-menu-button { display:grid; }
   .desktop-help-button { display:none; }
   .whichkey-panel, .whichkey-mini, .desktop-help-button { display:none !important; }
-  main { margin-left:0; margin-right:0; padding:98px 18px 100px; }
+  html {
+    height:100%;
+    overflow:hidden;
+  }
+  body {
+    height:100%;
+    min-height:100%;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+  main { margin-left:0; margin-right:0; padding:98px 18px 100px; height:100%; min-height:0; max-height:100%; overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; }
   .mobile-category-bar {
     display:block;
     position:fixed !important;
@@ -1144,11 +1154,8 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* Mobile viewport compensation: only the dock is adjusted for browser chrome.
-   The page scroll itself is never observed or used. */
+/* Mobile overlays remain outside the mobile scroll container. */
 @media (max-width:860px) {
-  html, body { overscroll-behavior-y:none; }
-
   .mobile-category-bar {
     position:fixed !important;
     left:0 !important;
@@ -1166,11 +1173,9 @@ input[type="range"]::-moz-range-thumb {
     left:12px !important;
     right:12px !important;
     top:auto !important;
-    bottom:calc(max(12px, env(safe-area-inset-bottom)) + var(--mobile-dock-vv-shift, 0px)) !important;
+    bottom:max(12px, env(safe-area-inset-bottom)) !important;
     transform:none !important;
     will-change:auto;
-    backface-visibility:hidden;
-    -webkit-backface-visibility:hidden;
     contain:layout paint;
   }
 }
