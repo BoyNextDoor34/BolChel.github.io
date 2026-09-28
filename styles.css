@@ -1098,12 +1098,14 @@ input[type="range"]::-moz-range-thumb {
 
   .app-nav.is-collapsed .brand-header-logo svg {
     position:absolute;
-    left:2px;
-    top:2px;
+    left:12px;
+    top:10px;
     width:460px;
     max-width:none;
     height:132px;
     margin:0;
+    transform:scale(.76);
+    transform-origin:top left;
   }
 
   .app-nav.is-collapsed .brand-header-logo svg #logo-text {
