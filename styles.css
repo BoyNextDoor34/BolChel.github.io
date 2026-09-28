@@ -1130,8 +1130,8 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* Mobile dock: keep it genuinely fixed and independent from document scroll.
-   Do not couple its position to dynamic viewport units or scrollY. */
+/* Mobile dock: fixed to the visual viewport, with JS compensating only
+   for mobile browser chrome changes. The document's scroll position is not used. */
 @media (max-width:860px) {
   html,
   body {
@@ -1142,8 +1142,8 @@ input[type="range"]::-moz-range-thumb {
     position:fixed !important;
     left:12px !important;
     right:12px !important;
-    top:auto !important;
-    bottom:max(12px, env(safe-area-inset-bottom)) !important;
+    top:var(--mobile-dock-top, auto) !important;
+    bottom:auto !important;
     transform:translate3d(0,0,0) !important;
     will-change:auto;
     backface-visibility:hidden;
