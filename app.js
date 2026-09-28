@@ -12,7 +12,7 @@ const state = {
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
-  pendingAvatarBlob:null, sitePalette:null, authorProfiles:{}
+  pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0, authorProfiles:{}
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -91,92 +91,96 @@ function relativeLuma(rgb) {
 function onColor(bgRgb){ return relativeLuma(bgRgb) > .48 ? '#19151e' : '#ffffff'; }
 function hslHex(h,s,l){ return rgbToHex(hslToRgb([h,s,l])); }
 
-function generatePaletteFromSeed(seedHex) {
-  const seedRgb = hexToRgb(seedHex);
-  let [h,s,l] = rgbToHsl(seedRgb);
-  if (s < .16) s = .16;
+const NEUTRAL_PALETTE = {
+  source:'neutral',
+  generator:'neutral-baseline-v1',
+  light:{
+    primary:'#6750a4', on_primary:'#ffffff', primary_container:'#eaddff', on_primary_container:'#21005d',
+    secondary:'#625b71', secondary_container:'#e8def8', on_secondary_container:'#1d192b',
+    tertiary:'#7d5260', on_tertiary:'#ffffff',
+    surface:'#fffbfe', surface_tint:'#f7f1f9', surface_container_low:'#fbf6fc',
+    surface_container:'#f3edf7', surface_container_high:'#ece6f0', surface_container_highest:'#e6e0e9',
+    on_surface:'#1d1b20', on_surface_variant:'#49454f', outline:'#79747e', outline_variant:'#cac4d0', error:'#ba1a1a'
+  },
+  dark:{
+    primary:'#b9b9b9', on_primary:'#111214', primary_container:'#303136', on_primary_container:'#eeeeee',
+    secondary:'#b8bac0', secondary_container:'#26272b', on_secondary_container:'#e8e8ea',
+    tertiary:'#c0c1c5', on_tertiary:'#16171a',
+    surface:'#151619', surface_tint:'#191b1e', surface_container_low:'#181a1d',
+    surface_container:'#1d1f22', surface_container_high:'#282a2e', surface_container_highest:'#32353a',
+    on_surface:'#f2f2f3', on_surface_variant:'#bfc0c4', outline:'#6f7176', outline_variant:'#3b3d42', error:'#ffb4ab'
+  }
+};
 
-  // Material 3 Tonal Spot-inspired roles:
-  // keep the source hue, reduce chroma for a calmer/pastel surface system,
-  // and reserve the strongest chroma for the primary role.
-  const secondaryH = (h + 32) % 360;
-  const tertiaryH = (h + 58) % 360;
+let m3UtilitiesPromise=null;
+async function loadM3ColorUtilities(){
+  if(!m3UtilitiesPromise){
+    m3UtilitiesPromise=import('https://cdn.jsdelivr.net/npm/@material/material-color-utilities@0.4.0/+esm');
+  }
+  return m3UtilitiesPromise;
+}
 
-  const lightPrimary = hslHex(h, clamp(s * .56, .28, .68), .42);
-  const lightPrimaryContainer = hslHex(h, clamp(s * .30, .16, .42), .90);
-  const lightSecondary = hslHex(secondaryH, clamp(s * .34, .12, .34), .40);
-  const lightSecondaryContainer = hslHex(secondaryH, clamp(s * .20, .08, .25), .91);
-  const lightTertiary = hslHex(tertiaryH, clamp(s * .40, .14, .38), .43);
-  const lightSurface = rgbToHex(mixColor(seedRgb,[255,251,254],.975));
-  const lightSurfaceContainer = rgbToHex(mixColor(seedRgb,[255,251,254],.93));
-  const lightSurfaceHigh = rgbToHex(mixColor(seedRgb,[255,251,254],.885));
+const M3_CONTENT_ROLE_MAP={
+  primary:'primary', on_primary:'onPrimary',
+  primary_container:'primaryContainer', on_primary_container:'onPrimaryContainer',
+  secondary:'secondary', secondary_container:'secondaryContainer', on_secondary_container:'onSecondaryContainer',
+  tertiary:'tertiary', on_tertiary:'onTertiary',
+  surface:'surface', surface_tint:'surfaceTint',
+  surface_container_low:'surfaceContainerLow', surface_container:'surfaceContainer',
+  surface_container_high:'surfaceContainerHigh', surface_container_highest:'surfaceContainerHighest',
+  on_surface:'onSurface', on_surface_variant:'onSurfaceVariant',
+  outline:'outline', outline_variant:'outlineVariant', error:'error'
+};
 
-  const darkPrimary = hslHex(h, clamp(s * .40, .18, .52), .78);
-  const darkPrimaryContainer = hslHex(h, clamp(s * .26, .10, .34), .34);
-  const darkSecondary = hslHex(secondaryH, clamp(s * .24, .08, .28), .80);
-  const darkSecondaryContainer = hslHex(secondaryH, clamp(s * .14, .05, .18), .27);
-  const darkTertiary = hslHex(tertiaryH, clamp(s * .28, .10, .30), .80);
+function schemeToPalette(scheme,utils){
+  const out={};
+  for(const [role,token] of Object.entries(M3_CONTENT_ROLE_MAP)){
+    const dynamicColor=utils.MaterialDynamicColors?.[token];
+    if(dynamicColor?.getArgb) out[role]=utils.hexFromArgb(dynamicColor.getArgb(scheme)).toLowerCase();
+  }
+  return out;
+}
 
-  // Keep dark surfaces softly tinted instead of black, matching the M3
-  // "neutral with source-hue trace" idea used by Sung.
-  const darkBase = mixColor(seedRgb,[18,20,22],.90);
-  const darkSurface = rgbToHex(darkBase);
-  const darkSurfaceContainer = rgbToHex(mixColor(darkBase,[30,31,33],.48));
-  const darkSurfaceHigh = rgbToHex(mixColor(darkBase,[42,43,45],.40));
-
-  const lightOnPrimary = onColor(hexToRgb(lightPrimary));
-  const lightOnPrimaryContainer = onColor(hexToRgb(lightPrimaryContainer));
-  const lightOnSecondaryContainer = onColor(hexToRgb(lightSecondaryContainer));
-  const darkOnPrimary = onColor(hexToRgb(darkPrimary));
-  const darkOnPrimaryContainer = onColor(hexToRgb(darkPrimaryContainer));
-  const darkOnSecondaryContainer = onColor(hexToRgb(darkSecondaryContainer));
-
+async function generateM3ContentPaletteFromSeed(seedHex){
+  const utils=await loadM3ColorUtilities();
+  const source=utils.argbFromHex(seedHex);
+  const hct=utils.Hct.fromInt(source);
+  const lightScheme=new utils.SchemeContent(hct,false,0.0);
+  const darkScheme=new utils.SchemeContent(hct,true,0.0);
   return {
     source:'image',
-    generator:'sung-tonal-spot-v1',
-    seed:seedHex,
-    light:{
-      primary:lightPrimary,
-      on_primary:lightOnPrimary,
-      primary_container:lightPrimaryContainer,
-      on_primary_container:lightOnPrimaryContainer,
-      secondary:lightSecondary,
-      secondary_container:lightSecondaryContainer,
-      on_secondary_container:lightOnSecondaryContainer,
-      tertiary:lightTertiary,
-      on_tertiary:onColor(hexToRgb(lightTertiary)),
-      surface:lightSurface,
-      surface_tint:lightSurface,
-      surface_container_low:rgbToHex(mixColor(seedRgb,[255,251,254],.985)),
-      surface_container:lightSurfaceContainer,
-      surface_container_high:lightSurfaceHigh,
-      on_surface:'#241f25',
-      on_surface_variant:'#5e5660',
-      outline:'#807781',
-      outline_variant:'#d1c8d2',
-      error:'#ba1a1a'
-    },
-    dark:{
-      primary:darkPrimary,
-      on_primary:darkOnPrimary,
-      primary_container:darkPrimaryContainer,
-      on_primary_container:darkOnPrimaryContainer,
-      secondary:darkSecondary,
-      secondary_container:darkSecondaryContainer,
-      on_secondary_container:darkOnSecondaryContainer,
-      tertiary:darkTertiary,
-      on_tertiary:onColor(hexToRgb(darkTertiary)),
-      surface:darkSurface,
-      surface_tint:darkSurface,
-      surface_container_low:rgbToHex(mixColor(darkBase,[25,26,28],.35)),
-      surface_container:darkSurfaceContainer,
-      surface_container_high:darkSurfaceHigh,
-      on_surface:'#f1ebf1',
-      on_surface_variant:'#d0c6d1',
-      outline:'#928893',
-      outline_variant:'#4b454e',
-      error:'#ffb4ab'
-    }
+    generator:'m3-content-v1',
+    seed:utils.hexFromArgb(source).toLowerCase(),
+    light:schemeToPalette(lightScheme,utils),
+    dark:schemeToPalette(darkScheme,utils)
+  };
+}
+
+async function generateM3ContentPaletteFromImage(imageUrl){
+  const utils=await loadM3ColorUtilities();
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  await new Promise((resolve,reject)=>{
+    img.onload=resolve;
+    img.onerror=()=>reject(new Error('Изображение недоступно для анализа цвета.'));
+    img.src=imageUrl;
+  });
+  let source;
+  try{
+    source=await utils.sourceColorFromImage(img);
+  }catch(_){
+    const seed=await extractSeedFromImage(imageUrl);
+    return generateM3ContentPaletteFromSeed(seed);
+  }
+  const hct=utils.Hct.fromInt(source);
+  const lightScheme=new utils.SchemeContent(hct,false,0.0);
+  const darkScheme=new utils.SchemeContent(hct,true,0.0);
+  return {
+    source:'image',
+    generator:'m3-content-v1',
+    seed:utils.hexFromArgb(source).toLowerCase(),
+    light:schemeToPalette(lightScheme,utils),
+    dark:schemeToPalette(darkScheme,utils)
   };
 }
 
@@ -220,36 +224,86 @@ async function extractSeedFromImage(imageUrl) {
   return rgbToHex(best);
 }
 
-function applySitePalette(palette) {
+function applySitePalette(palette){
   if(!palette) return;
-  state.sitePalette = palette;
-  const scheme = document.documentElement.dataset.theme==='dark' ? palette.dark : palette.light;
+  state.sitePalette=palette;
+  state.activePalette=palette;
+  const scheme=document.documentElement.dataset.theme==='dark'?palette.dark:palette.light;
   const root=document.documentElement;
   const map={
-    primary:'--md-sys-color-primary', on_primary:'--md-sys-color-on-primary', primary_container:'--md-sys-color-primary-container', on_primary_container:'--md-sys-color-on-primary-container',
-    secondary:'--md-sys-color-secondary', secondary_container:'--md-sys-color-secondary-container', on_secondary_container:'--md-sys-color-on-secondary-container',
-    tertiary:'--md-sys-color-tertiary', on_tertiary:'--md-sys-color-on-tertiary', surface:'--md-sys-color-surface', surface_tint:'--md-sys-color-surface-tint',
-    surface_container_low:'--md-sys-color-surface-container-low', surface_container:'--md-sys-color-surface-container', surface_container_high:'--md-sys-color-surface-container-high',
-    on_surface:'--md-sys-color-on-surface', on_surface_variant:'--md-sys-color-on-surface-variant', outline:'--md-sys-color-outline', outline_variant:'--md-sys-color-outline-variant', error:'--md-sys-color-error'
+    primary:'--md-sys-color-primary', on_primary:'--md-sys-color-on-primary',
+    primary_container:'--md-sys-color-primary-container', on_primary_container:'--md-sys-color-on-primary-container',
+    secondary:'--md-sys-color-secondary', secondary_container:'--md-sys-color-secondary-container',
+    on_secondary_container:'--md-sys-color-on-secondary-container',
+    tertiary:'--md-sys-color-tertiary', on_tertiary:'--md-sys-color-on-tertiary',
+    surface:'--md-sys-color-surface', surface_tint:'--md-sys-color-surface-tint',
+    surface_container_low:'--md-sys-color-surface-container-low', surface_container:'--md-sys-color-surface-container',
+    surface_container_high:'--md-sys-color-surface-container-high', surface_container_highest:'--md-sys-color-surface-container-highest',
+    on_surface:'--md-sys-color-on-surface', on_surface_variant:'--md-sys-color-on-surface-variant',
+    outline:'--md-sys-color-outline', outline_variant:'--md-sys-color-outline-variant', error:'--md-sys-color-error'
   };
   Object.entries(map).forEach(([key,varName])=>root.style.setProperty(varName,scheme[key]));
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content',scheme.surface);
 }
 
-function setTheme(theme) {
+function activateNeutralPalette(){
+  state.paletteContext='neutral';
+  state.activePalette=null;
+  applySitePalette(NEUTRAL_PALETTE);
+}
+
+async function activateArticlePalette(article){
+  const requestId=++state.paletteRequestId;
+  state.paletteContext='article';
+  state.activePalette=null;
+  applySitePalette(NEUTRAL_PALETTE);
+  if(!article?.image) return;
+  try{
+    let palette=article.palette;
+    if(!(palette?.generator==='m3-content-v1' && palette.light?.primary && palette.dark?.primary)){
+      palette=await generateM3ContentPaletteFromImage(article.image);
+      article.palette=palette;
+      article.accent=palette.light.primary||null;
+    }
+    if(requestId!==state.paletteRequestId || state.section!=='article' || String(state.articleId)!==String(article.id)) return;
+    applySitePalette(palette);
+    renderArticle();
+  }catch(error){
+    if(requestId===state.paletteRequestId) activateNeutralPalette();
+    console.warn('Article palette failed:',error);
+  }
+}
+
+async function activateProfilePalette(){
+  const requestId=++state.paletteRequestId;
+  state.paletteContext='profile';
+  state.activePalette=null;
+  applySitePalette(NEUTRAL_PALETTE);
+  if(!state.user) return;
+  const avatarUrl=state.user.profile?.avatar_url||DEFAULT_AVATAR;
+  try{
+    const palette=await generateM3ContentPaletteFromImage(avatarUrl);
+    if(requestId!==state.paletteRequestId || state.section!=='profile') return;
+    applySitePalette(palette);
+  }catch(error){
+    if(requestId===state.paletteRequestId) activateNeutralPalette();
+    console.warn('Profile palette failed:',error);
+  }
+}
+
+function setTheme(theme){
   document.documentElement.dataset.theme=theme;
   document.documentElement.style.colorScheme=theme;
   localStorage.setItem('news-theme',theme);
   $('#theme-icon').textContent=theme==='dark'?'light_mode':'dark_mode';
-  const palette=state.sitePalette || generatePaletteFromSeed(DEFAULT_SEED);
-  applySitePalette(palette);
+  applySitePalette(state.activePalette||NEUTRAL_PALETTE);
 }
 
 function mapRemoteNews(row) {
   const dt=formatDateTime(row.published_at);
   let palette=row.palette||null;
   if(typeof palette==='string'){ try{palette=JSON.parse(palette);}catch(_){palette=null;} }
-  if(!palette?.source || palette.source!=='image' || palette.generator!=='sung-tonal-spot-v1' || !palette.light?.primary || !palette.dark?.primary) palette=null;
+  if(!palette?.source || palette.source!=='image' || palette.generator!=='m3-content-v1' || !palette.light?.primary || !palette.dark?.primary) palette=null;
   const fallbackImage='https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1100&q=82';
   const authorProfile=state.authorProfiles?.[row.author_id];
   const fallbackAuthor=(row.author_id&&state.user?.id===row.author_id)?(state.user.profile?.nickname||state.user.email?.split('@')[0]||'Редакция'):'Редакция';
@@ -315,9 +369,12 @@ function openSection(section) {
   $('#page-title').textContent=title;
   $('#page-category').textContent=section==='news'?(state.category||'Все разделы'):'';
   document.body.classList.toggle('article-mode',section==='article');
-  if(section==='profile') renderProfile();
-  if(section==='article') renderArticle();
-  if(section==='editor') { renderEditor(); state.editor.mode='edit'; requestAnimationFrame(()=>syncEditorMode()); }
+  state.paletteRequestId++;
+  if(section==='news') activateNeutralPalette();
+  if(section==='about') activateNeutralPalette();
+  if(section==='profile') { activateNeutralPalette(); renderProfile(); activateProfilePalette(); }
+  if(section==='article') { activateNeutralPalette(); renderArticle(); const article=state.news.find(item=>String(item.id)===String(state.articleId)); activateArticlePalette(article); }
+  if(section==='editor') { activateNeutralPalette(); renderEditor(); state.editor.mode='edit'; requestAnimationFrame(()=>syncEditorMode()); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -375,66 +432,29 @@ function updateSelectedCard() {
 }
 function visibleNewsCards(){ return $$('.news-card'); }
 
-async function ensureNewsPalette(newsItem) {
-  if(newsItem.palette?.generator==='sung-tonal-spot-v1' && newsItem.palette.light?.primary) return newsItem.palette;
-  if(!newsItem.image) return generatePaletteFromSeed(DEFAULT_SEED);
+async function ensureNewsPalette(newsItem){
+  if(newsItem?.palette?.generator==='m3-content-v1' && newsItem.palette.light?.primary) return newsItem.palette;
+  if(!newsItem?.image) return NEUTRAL_PALETTE;
   try{
-    const seed=await extractSeedFromImage(newsItem.image);
-    const palette=generatePaletteFromSeed(seed);
+    const palette=await generateM3ContentPaletteFromImage(newsItem.image);
     newsItem.palette=palette;
-    newsItem.accent=palette.light.primary;
-    const card=document.querySelector(`.news-card[data-id="${CSS.escape(String(newsItem.id))}"]`);
-    if(card){ card.style.setProperty('--news-primary',palette.light.primary); }
+    newsItem.accent=palette.light.primary||null;
     return palette;
   }catch(_){
-    if(newsItem.palette?.source==='image' && newsItem.palette.light?.primary) return newsItem.palette;
-    return generatePaletteFromSeed(DEFAULT_SEED);
+    return NEUTRAL_PALETTE;
   }
 }
 
-async function applyBasePaletteFromNews() {
-  const first=currentVisibleNews()[0]||state.news[0];
-  if(first){ const palette=await ensureNewsPalette(first); applySitePalette(palette); }
-}
-
-function renderNews() {
-  const root=$('#news-grid');
-  const items=currentVisibleNews();
-  const total=items.length;
-  $('#search-status').textContent=state.search.trim()?`${total} ${pluralNews(total)} по запросу`:(state.category?`${total} материалов`:'');
-  $('#search-clear').classList.toggle('hidden',!state.search);
-  $('#news-search').value=state.search;
-  if(!items.length){ const title=state.search.trim()?'Ничего не найдено':'Новостей пока нет'; const text=state.search.trim()?'Попробуйте другой запрос или измените раздел.':'Публикации появятся здесь после того, как администратор разместит первую новость.'; root.innerHTML=`<div class="empty-state"><h2>${title}</h2><p>${text}</p></div>`; return; }
-  root.innerHTML=items.map((n,i)=>cardTemplate(n,i===0&&!state.search&&!state.category,i)).join('');
-  root.querySelectorAll('.news-card').forEach(card=>{
-    card.addEventListener('click',()=>openArticle(card.dataset.id));
-    card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.code==='Enter') openArticle(card.dataset.id); });
-  });
-  state.selectedNewsIndex=clamp(state.selectedNewsIndex,0,items.length-1);
-  updateSelectedCard();
-  items.slice(0,6).forEach(ensureNewsPalette);
-  if(!state.articleId) applyBasePaletteFromNews();
-}
-
-function pluralNews(n){
-  const m=n%10, m2=n%100;
-  if(m===1&&m2!==11)return'результат';
-  if(m>=2&&m<=4&&(m2<12||m2>14))return'результата';
-  return'результатов';
-}
-
-async function openArticle(id) {
+async function openArticle(id){
   const news=state.news.find(n=>String(n.id)===String(id));
   if(!news) return;
   state.articleId=id;
   state.previousSection=state.section==='article'?'news':state.section;
   openSection('article');
   renderArticle();
-  const palette=await ensureNewsPalette(news);
-  news.palette=palette;
-  applySitePalette(palette);
-  renderArticle();
+  activateArticlePalette(news);
 }
+
 
 function getArticleNeighbors() {
   const items=currentVisibleNews();
@@ -986,23 +1006,33 @@ function updateEditorCoverPreview(){
   img.src=url||'';
   img.style.opacity=url?'1':'.28';
   if(url) updateEditorPaletteFromImage(url);
+  else if(state.section==='editor') activateNeutralPalette();
 }
 
 async function updateEditorPaletteFromImage(url){
-  if(!url) return;
+  if(!url){
+    if(state.section==='editor') activateNeutralPalette();
+    return;
+  }
   const status=$('#editor-image-status');
-  if(status) status.textContent='Анализируем цвета изображения…';
+  if(status) status.textContent='Анализируем изображение по M3 Content…';
   try{
-    const seed=await extractSeedFromImage(url);
-    state.editor.generatedPalette=generatePaletteFromSeed(seed);
-    renderPaletteSwatches(state.editor.generatedPalette);
-    if(status) status.textContent=`Палитра готова из изображения. Seed: ${seed}. Ручного выбора цвета нет.`;
+    const palette=await generateM3ContentPaletteFromImage(url);
+    state.editor.generatedPalette=palette;
+    renderPaletteSwatches(palette);
+    if(state.section==='editor'){
+      state.paletteContext='editor';
+      applySitePalette(palette);
+    }
+    if(status) status.textContent=`M3 Content-палитра готова из изображения. Seed: ${palette.seed}.`;
   }catch(error){
     state.editor.generatedPalette=null;
+    if(state.section==='editor') activateNeutralPalette();
     if(status) status.textContent=`Не удалось прочитать цвета изображения: ${error.message}`;
     $('#editor-palette-swatches').innerHTML='';
   }
 }
+
 
 function renderPaletteSwatches(palette){
   const root=$('#editor-palette-swatches'); if(!root||!palette) return;
@@ -1018,13 +1048,11 @@ async function handleNewsImageUpload(){
   state.editor.imageObjectUrl=localUrl;
   state.editor.pendingCoverFile=file;
   $('#editor-crop-image').disabled=false;
-  try{
-    const seed=await extractSeedFromImage(localUrl); // local object URLs are same-origin to the browser.
-    state.editor.generatedPalette=generatePaletteFromSeed(seed); renderPaletteSwatches(state.editor.generatedPalette);
-    $('#editor-image-status').textContent=`Изображение готово. Можно обрезать его перед публикацией; палитра извлечена из исходного файла.`;
-  }catch(error){ $('#editor-image-status').textContent=error.message; }
+  await updateEditorPaletteFromImage(localUrl);
+  $('#editor-image-status').textContent='Изображение готово. Можно обрезать его перед публикацией.';
   saveEditorDraft();
 }
+
 
 function openNewsCoverCrop(){
   const dialog=$('#news-cover-crop-dialog'), canvas=$('#news-cover-crop-canvas');
@@ -1213,7 +1241,7 @@ async function saveProfile(){
     const {data,error}=await state.supabase.from('profiles').upsert(payload).select('*').single();
     if(error) throw error;
     state.user.profile=data; state.pendingAvatarBlob=null; $('#avatar-preview-note').textContent='Для локального файла после выбора откроется кадрирование 1:1.';
-    $('#edit-profile-dialog').close(); updateAuthUI(); renderProfile(); showToast('Профиль сохранён');
+    $('#edit-profile-dialog').close(); updateAuthUI(); renderProfile(); if(state.section==='profile') activateProfilePalette(); showToast('Профиль сохранён');
   }catch(error){ msg.textContent=error.message||'Не удалось сохранить профиль.'; }
 }
 
