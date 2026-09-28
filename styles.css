@@ -73,14 +73,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .mobile-only { display:grid; }
 .topbar-menu-button { margin-right:2px; display:grid; }
 .app-nav.is-collapsed { width:88px; }
-.app-nav.is-collapsed .brand-lockup > div:last-child,
+.app-nav.is-collapsed .brand-svg-text,
 .app-nav.is-collapsed .nav-item > span:not(.material-symbols-rounded),
 .app-nav.is-collapsed .nav-caption,
 .app-nav.is-collapsed .nav-help > span:not(.material-symbols-rounded),
 .app-nav.is-collapsed .nav-help .leader-hint { display:none; }
 .app-nav.is-collapsed .nav-divider { display:block; width:40px; margin:10px auto; }
 .app-nav.is-collapsed .brand-lockup { justify-content:center; }
-.app-nav.is-collapsed .brand-mark { margin-inline:auto; }
 .app-nav.is-collapsed .nav-item { justify-content:center; }
 
 
@@ -95,10 +94,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   border-right:1px solid var(--md-sys-color-outline-variant);
   display:flex; flex-direction:column; z-index:40;
 }
-.brand-lockup { display:flex; align-items:center; gap:12px; padding:8px 10px 22px; }
-.brand-mark { width:46px; height:46px; border-radius:15px; display:grid; place-items:center; font-weight:700; background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); font-size:22px; }
-.brand-name { font:700 20px 'Google Sans', sans-serif; letter-spacing:-.02em; }
-.brand-subtitle { font-size:12px; color:var(--md-sys-color-on-surface-variant); margin-top:1px; }
+.brand-lockup { display:flex; align-items:center; padding:6px 0 20px; }
+.brand-header-logo { display:block; width:100%; max-width:258px; line-height:0; color:inherit; }
+.brand-header-logo svg { display:block; width:100%; height:auto; overflow:visible; }
+.app-nav.is-collapsed .brand-lockup { padding-top:8px; }
+.app-nav.is-collapsed .brand-header-logo { width:58px; max-width:58px; margin-inline:auto; }
+.app-nav.is-collapsed .brand-header-logo svg { width:58px; height:64px; }
+.app-nav.is-collapsed .brand-lockup { padding-bottom:20px; }
 .nav-list { display:flex; flex-direction:column; gap:5px; }
 .nav-list.compact { gap:2px; max-height:48vh; overflow:auto; }
 .nav-item { border:0; background:transparent; min-height:48px; border-radius:18px; padding:0 16px; display:flex; align-items:center; gap:13px; cursor:pointer; text-align:left; color:var(--md-sys-color-on-surface-variant); }
