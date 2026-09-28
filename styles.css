@@ -1146,6 +1146,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Mobile overlays: viewport-anchored controls; no scroll-driven positioning. */
 @media (max-width:860px) {
+  #section-news { padding-top:80px; }
   html, body { overscroll-behavior-y:none; }
   .mobile-category-bar {
     position:fixed !important;
