@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0..1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260928-2">
+  <link rel="stylesheet" href="styles.css?v=20260928-3">
   <script src="supabase-config.js"></script>
 </head>
 <body>
@@ -31,19 +31,23 @@
     <style>
       .m3-primary { fill: var(--md-sys-color-primary, #6750A4); }
       .m3-primary-container { fill: var(--md-sys-color-primary-container, #EADDFF); }
-      .m3-secondary { fill: var(--md-sys-color-secondary, #625B71); }
+      .m3-secondary { fill: var(--logo-secondary, var(--md-sys-color-secondary, #625B71)); }
       .m3-secondary-container { fill: var(--md-sys-color-secondary-container, #E8DEF8); }
-      .m3-tertiary { fill: var(--md-sys-color-tertiary, #7D5260); }
+      .m3-tertiary { fill: var(--logo-tertiary, var(--md-sys-color-tertiary, #7D5260)); }
       .m3-tertiary-container { fill: var(--md-sys-color-tertiary-container, #FFD8E4); }
       .m3-on-primary { fill: var(--md-sys-color-on-primary, #FFFFFF); }
       .m3-on-secondary { fill: var(--md-sys-color-on-secondary-container, #1D192B); }
       .m3-on-tertiary { fill: var(--md-sys-color-on-tertiary, #FFFFFF); }
+      .m3-logo-secondary { fill: var(--logo-secondary, var(--md-sys-color-secondary, #625B71)); }
+      .m3-logo-tertiary { fill: var(--logo-tertiary, var(--md-sys-color-tertiary, #7D5260)); }
+      .m3-logo-bg { fill: var(--logo-mark-bg, var(--md-sys-color-surface-container-highest, #E6E0E9)); }
+      .m3-logo-line { fill: var(--logo-document-line, var(--md-sys-color-on-surface, #1D1B20)); }
       .m3-on-surface { fill: var(--md-sys-color-on-surface, #1D1B20); }
       .m3-on-surface-variant { fill: var(--md-sys-color-on-surface-variant, #49454F); }
 
       .m3-title {
         font-family: 'Roboto Flex', 'Google Sans', system-ui, -apple-system, sans-serif;
-        font-size: 37px;
+        font-size: 42px;
         font-weight: 750;
         letter-spacing: 0.005em;
         fill: var(--md-sys-color-primary, #6750A4);
@@ -51,22 +55,22 @@
 
       .m3-subtitle {
         font-family: 'Roboto Flex', 'Google Sans', system-ui, -apple-system, sans-serif;
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 650;
         letter-spacing: 0.075em;
         fill: var(--md-sys-color-on-surface-variant, #49454F);
       }
     </style>
-<g id="logo-mark" transform="translate(4, 6)">
+<g id="logo-mark" transform="translate(3, 4) scale(1.06)">
     <rect x="2" y="2" width="80" height="80" rx="24"
-          fill="var(--md-sys-color-surface-container-highest, #E6E0E9)"
+          fill="var(--logo-mark-bg, var(--md-sys-color-surface-container-highest, #E6E0E9))"
           stroke="var(--md-sys-color-outline-variant, #CAC4D0)" stroke-width="1.5"/>
     <rect x="14" y="46" width="22" height="26" rx="7"
-          fill="var(--md-sys-color-secondary, #625B71)"/>
+          fill="var(--logo-secondary, var(--md-sys-color-secondary, #625B71))"/>
     <path d="M 44,34 H 58 A 8,8 0 0 1 66,42 V 60 A 10,10 0 0 1 56,70 H 46 A 8,8 0 0 1 38,62 V 40 A 6,6 0 0 1 44,34 Z"
-          fill="var(--md-sys-color-tertiary, #7D5260)"/>
+          fill="var(--logo-tertiary, var(--md-sys-color-tertiary, #7D5260))"/>
     <rect x="44" y="40" width="14" height="4" rx="2"
-          fill="var(--md-sys-color-on-tertiary, #FFFFFF)"/>
+          fill="var(--logo-document-line, var(--md-sys-color-on-tertiary, #FFFFFF))"/>
     <rect x="44" y="47" width="10" height="4" rx="2"
           fill="var(--md-sys-color-on-tertiary, #FFFFFF)"/>
     <circle cx="38" cy="22" r="6.5" fill="var(--md-sys-color-primary, currentColor)"/>
@@ -81,11 +85,11 @@
 </g>
     
 <g id="logo-text">
-    <text x="102" y="40" class="m3-title">БОЛЬШОЕ</text>
-    <text x="102" y="75" class="m3-title">ЧЕЛОВЕЧЕСКОЕ</text>
+    <text x="104" y="43" class="m3-title">БОЛЬШОЕ</text>
+    <text x="104" y="79" class="m3-title">ЧЕЛОВЕЧЕСКОЕ</text>
 
-    <text x="102" y="96" class="m3-subtitle">Новостное издание</text>
-    <text x="102" y="112" class="m3-subtitle">нового поколения!</text>
+    <text x="104" y="101" class="m3-subtitle">Новостное издание</text>
+    <text x="104" y="117" class="m3-subtitle">нового поколения!</text>
 </g>  </svg>
 </div>
       </div>
