@@ -317,7 +317,7 @@ function openSection(section) {
   document.body.classList.toggle('article-mode',section==='article');
   if(section==='profile') renderProfile();
   if(section==='article') renderArticle();
-  if(section==='editor') renderEditor();
+  if(section==='editor') { renderEditor(); state.editor.mode='edit'; requestAnimationFrame(()=>syncEditorMode()); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -688,7 +688,6 @@ async function loadRemoteNews(){
 
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
-  const mobile=window.matchMedia?.('(max-width: 860px)').matches;
   state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
   openSection('editor');
 }
@@ -793,25 +792,16 @@ function bindEditorEvents(){
   $('#news-body-input').addEventListener('keydown',handleMarkdownKeydown);
 
   const editorRoot=$('#editor-page');
-  const toolbar=$('#editor-toolbar');
-  const modeSwitch=editorRoot?.querySelector('.editor-mode-switch');
 
-  // One delegated handler keeps toolbar controls reliable on touch devices and
-  // survives any re-render of the editor markup.
-  toolbar?.addEventListener('click',e=>{
-    const mdButton=e.target.closest('[data-md]');
-    if(mdButton && toolbar.contains(mdButton)){
-      e.preventDefault();
-      applyMarkdownCommand(mdButton.dataset.md);
-      return;
-    }
+  $$('#editor-toolbar [data-md]').forEach(btn=>{
+    btn.onclick=()=>applyMarkdownCommand(btn.dataset.md);
   });
-  modeSwitch?.querySelectorAll('.editor-mode').forEach(btn=>{
-    const selectMode=()=>{
+
+  $$('.editor-mode').forEach(btn=>{
+    btn.onclick=()=>{
       state.editor.mode=btn.dataset.editorMode;
       syncEditorMode();
     };
-    btn.addEventListener('click',selectMode);
   });
 
   editorRoot?.addEventListener('click',e=>{
