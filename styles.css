@@ -94,13 +94,39 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   border-right:1px solid var(--md-sys-color-outline-variant);
   display:flex; flex-direction:column; z-index:40;
 }
-.brand-lockup { display:flex; align-items:center; padding:6px 0 20px; }
-.brand-header-logo { display:block; width:100%; max-width:258px; line-height:0; color:inherit; }
-.brand-header-logo svg { display:block; width:100%; height:auto; overflow:visible; }
-.app-nav.is-collapsed .brand-lockup { padding-top:8px; }
-.app-nav.is-collapsed .brand-header-logo { width:58px; max-width:58px; height:64px; overflow:hidden; margin-inline:auto; }
-.app-nav.is-collapsed .brand-header-logo svg { width:258px; max-width:none; height:72px; }
-.app-nav.is-collapsed .brand-lockup { padding-bottom:20px; }
+.brand-lockup { display:flex; align-items:center; padding:6px 0 20px; min-width:0; }
+.brand-header-logo {
+  display:block;
+  width:100%;
+  max-width:260px;
+  min-width:0;
+  line-height:0;
+  color:inherit;
+}
+.brand-header-logo svg {
+  display:block;
+  width:100%;
+  height:auto;
+  max-width:260px;
+  overflow:visible;
+}
+.app-nav.is-collapsed .brand-lockup {
+  padding-top:8px;
+  padding-bottom:20px;
+}
+.app-nav.is-collapsed .brand-header-logo {
+  width:64px;
+  max-width:64px;
+  height:66px;
+  overflow:hidden;
+  margin-inline:auto;
+  flex:0 0 64px;
+}
+.app-nav.is-collapsed .brand-header-logo svg {
+  width:288px;
+  max-width:none;
+  height:75px;
+}
 .nav-list { display:flex; flex-direction:column; gap:5px; }
 .nav-list.compact { gap:2px; max-height:48vh; overflow:auto; }
 .nav-item { border:0; background:transparent; min-height:48px; border-radius:18px; padding:0 16px; display:flex; align-items:center; gap:13px; cursor:pointer; text-align:left; color:var(--md-sys-color-on-surface-variant); }
