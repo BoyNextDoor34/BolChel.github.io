@@ -1589,57 +1589,6 @@ function initAvatarCrop(){
   };
 }
 
-function initMobileOverlayViewportLock(){
-  const categoryBar=$('.mobile-category-bar');
-  const dock=$('#mobile-dock');
-  const viewport=window.visualViewport;
-  const mobileQuery=window.matchMedia?.('(max-width: 860px)');
-  if(!categoryBar || !dock || !viewport || !mobileQuery?.matches) return;
-
-  let categoryBaseline=null;
-  let dockBaseline=null;
-  let frame=0;
-
-  const recaptureBaseline=()=>{
-    if(!mobileQuery.matches){
-      categoryBaseline=null;
-      dockBaseline=null;
-      categoryBar.style.removeProperty('--mobile-category-top');
-      dock.style.removeProperty('--mobile-dock-top');
-      return;
-    }
-
-    categoryBaseline=categoryBar.getBoundingClientRect().top + viewport.offsetTop;
-    dockBaseline=dock.getBoundingClientRect().top + viewport.offsetTop;
-    apply();
-  };
-
-  const apply=()=>{
-    if(!mobileQuery.matches || categoryBaseline===null || dockBaseline===null) return;
-    const offset=viewport.offsetTop;
-    categoryBar.style.setProperty('--mobile-category-top',`${Math.round(categoryBaseline-offset)}px`);
-    dock.style.setProperty('--mobile-dock-top',`${Math.round(dockBaseline-offset)}px`);
-    dock.style.setProperty('--mobile-dock-bottom','auto');
-  };
-
-  const schedule=()=>{
-    if(frame) return;
-    frame=requestAnimationFrame(()=>{
-      frame=0;
-      apply();
-    });
-  };
-
-  requestAnimationFrame(recaptureBaseline);
-  viewport.addEventListener('resize',()=>requestAnimationFrame(apply),{passive:true});
-
-  window.addEventListener('orientationchange',()=>{
-    categoryBaseline=null;
-    dockBaseline=null;
-    setTimeout(recaptureBaseline,300);
-  },{passive:true});
-}
-
 function bindGlobalEvents(){
   const bind=(selector,event,handler)=>{
     const el=$(selector);
@@ -1660,7 +1609,6 @@ function bindGlobalEvents(){
   bind('#avatar-button','click',()=>openSection('profile'));
   bind('#mobile-menu','click',onMobileMenu);
   bind('#mobile-scrim','click',closeMobileMenu);
-  initMobileOverlayViewportLock();
   bind('#random-news','click',randomNews);
   bind('#clear-news-state','click',clearNewsState);
   bind('#news-search','input',e=>searchNews(e.target.value));
