@@ -839,9 +839,10 @@ function bindEditorEvents(){
   });
 }
 function syncEditorMode(){
-  $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
+  $('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
   const panes=$('#editor-panes');
   if(!panes) return;
+  panes.dataset.editorMode=state.editor.mode;
   panes.style.gridTemplateColumns=state.editor.mode==='split'?'1fr 1fr':'1fr';
   $('.editor-pane-input').classList.toggle('hidden',state.editor.mode==='preview');
   $('.editor-pane-preview').classList.toggle('hidden',state.editor.mode==='edit');
