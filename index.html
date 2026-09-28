@@ -32,24 +32,35 @@
       .m3-primary { fill: var(--md-sys-color-primary, #6750A4); }
       .m3-primary-container { fill: var(--md-sys-color-primary-container, #EADDFF); }
       .m3-secondary { fill: var(--md-sys-color-secondary, #625B71); }
+      .m3-secondary-container { fill: var(--md-sys-color-secondary-container, #E8DEF8); }
       .m3-tertiary { fill: var(--md-sys-color-tertiary, #7D5260); }
-      .m3-tertiary-container { fill: var(--md-sys-color-tertiary-container, #FFD8E4); }
+      .m3-tertiary-container {
+        fill: color-mix(
+          in srgb,
+          var(--md-sys-color-tertiary, #7D5260) 22%,
+          var(--md-sys-color-surface-container-high, #ECE6F0)
+        );
+      }
+      .m3-on-tertiary-container {
+        fill: var(--md-sys-color-on-surface, #1D1B20);
+      }
       .m3-on-surface { fill: var(--md-sys-color-on-surface, #1D1B20); }
       .m3-on-surface-variant { fill: var(--md-sys-color-on-surface-variant, #49454F); }
 
-      .brand-title-text {
+      .m3-title {
         font-family: 'Roboto Flex', 'Google Sans', system-ui, -apple-system, sans-serif;
-        font-size: 38px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: -0.01em;
+        letter-spacing: 0.01em;
+        fill: var(--md-sys-color-on-surface, #1D1B20);
       }
 
-      .brand-subtitle-text {
+      .m3-subtitle {
         font-family: 'Roboto Flex', 'Google Sans', system-ui, -apple-system, sans-serif;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 600;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
+        letter-spacing: 0.10em;
+        fill: var(--md-sys-color-on-surface-variant, #49454F);
       }
     </style>
 <g id="logo-mark" transform="translate(4, 6)">
@@ -71,11 +82,11 @@
 </g>
     
 <g id="logo-text">
-    <text x="102" y="32" class="m3-title">БОЛЬШОЕ</text>
-    <text x="102" y="54" class="m3-title">ЧЕЛОВЕЧЕСКОЕ</text>
+    <text x="102" y="36" class="m3-title">БОЛЬШОЕ</text>
+    <text x="102" y="69" class="m3-title">ЧЕЛОВЕЧЕСКОЕ</text>
 
-    <text x="102" y="73" class="m3-subtitle">Новостное издание</text>
-    <text x="102" y="87" class="m3-subtitle">нового поколения!</text>
+    <text x="102" y="91" class="m3-subtitle">Новостное издание</text>
+    <text x="102" y="106" class="m3-subtitle">нового поколения!</text>
 </g>  </svg>
 </div>
       </div>
