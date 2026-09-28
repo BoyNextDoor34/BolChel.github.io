@@ -1062,3 +1062,19 @@ input[type="range"]::-moz-range-thumb {
     font-size:18px;
   }
 }
+
+
+/* Final mobile dock and collapsed-logo positioning */
+@media (max-width:860px) {
+  .mobile-dock {
+    bottom:auto !important;
+    top:calc(100svh - 94px - env(safe-area-inset-bottom)) !important;
+    transform:none !important;
+  }
+}
+
+@media (min-width:861px) {
+  .app-nav.is-collapsed .brand-header-logo svg {
+    margin-left:-2px;
+  }
+}
