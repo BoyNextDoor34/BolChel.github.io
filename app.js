@@ -1589,48 +1589,6 @@ function initAvatarCrop(){
   };
 }
 
-function initMobileDockViewportLock(){
-  const dock=$('#mobile-dock');
-  const viewport=window.visualViewport;
-  const mobileQuery=window.matchMedia?.('(max-width: 860px)');
-  if(!dock || !viewport || !mobileQuery?.matches) return;
-
-  let baselineY=null;
-  let frame=0;
-
-  const schedule=()=>{
-    if(frame) return;
-    frame=requestAnimationFrame(()=>{
-      frame=0;
-      if(!mobileQuery.matches){
-        dock.style.removeProperty('--mobile-dock-top');
-        dock.style.removeProperty('--mobile-dock-bottom');
-        baselineY=null;
-        return;
-      }
-
-      const rect=dock.getBoundingClientRect();
-      const currentBottom=viewport.offsetTop + viewport.height;
-      if(baselineY===null){
-        baselineY=currentBottom-rect.height-12;
-      }
-
-      const top=baselineY-viewport.offsetTop;
-      dock.style.setProperty('--mobile-dock-top',`${Math.round(top)}px`);
-      dock.style.setProperty('--mobile-dock-bottom','auto');
-    });
-  };
-
-  schedule();
-
-  viewport.addEventListener('resize',schedule,{passive:true});
-  viewport.addEventListener('scroll',schedule,{passive:true});
-  window.addEventListener('orientationchange',()=>{
-    baselineY=null;
-    setTimeout(schedule,300);
-  },{passive:true});
-}
-
 function bindGlobalEvents(){
   const bind=(selector,event,handler)=>{
     const el=$(selector);
@@ -1651,7 +1609,6 @@ function bindGlobalEvents(){
   bind('#avatar-button','click',()=>openSection('profile'));
   bind('#mobile-menu','click',onMobileMenu);
   bind('#mobile-scrim','click',closeMobileMenu);
-  initMobileDockViewportLock();
   bind('#random-news','click',randomNews);
   bind('#clear-news-state','click',clearNewsState);
   bind('#news-search','input',e=>searchNews(e.target.value));
