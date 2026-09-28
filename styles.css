@@ -409,7 +409,20 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
   .desktop-help-button { display:none; }
   .whichkey-panel, .whichkey-mini, .desktop-help-button { display:none !important; }
   main { margin-left:0; margin-right:0; padding:98px 18px 100px; }
-  .mobile-category-bar { display:block; position:sticky; top:78px; z-index:15; padding:8px 0 12px; background:color-mix(in srgb, var(--md-sys-color-surface-tint) 90%, transparent); backdrop-filter:blur(14px); }
+  .mobile-category-bar {
+    display:block;
+    position:sticky;
+    top:78px;
+    z-index:30;
+    width:100vw;
+    margin-left:calc(50% - 50vw);
+    margin-right:calc(50% - 50vw);
+    padding:8px 18px 12px;
+    background:var(--md-sys-color-surface);
+    border-bottom:1px solid var(--md-sys-color-outline-variant);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
   .mobile-category-label { font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--md-sys-color-on-surface-variant); margin:0 2px 7px; }
   .mobile-category-scroll { display:flex; gap:7px; overflow:auto; padding:0 2px 3px; scrollbar-width:none; }
   .mobile-category-scroll::-webkit-scrollbar { display:none; }
@@ -1130,8 +1143,8 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* Mobile dock: fixed to the visual viewport, with JS compensating only
-   for mobile browser chrome changes. The document's scroll position is not used. */
+/* Mobile overlays: full-width category bar and a fixed dock with a safe fallback.
+   JS adjusts the dock only when the browser's visual viewport changes. */
 @media (max-width:860px) {
   html,
   body {
@@ -1143,11 +1156,18 @@ input[type="range"]::-moz-range-thumb {
     left:12px !important;
     right:12px !important;
     top:var(--mobile-dock-top, auto) !important;
-    bottom:auto !important;
+    bottom:var(--mobile-dock-bottom, max(12px, env(safe-area-inset-bottom))) !important;
     transform:translate3d(0,0,0) !important;
     will-change:auto;
     backface-visibility:hidden;
     -webkit-backface-visibility:hidden;
     contain:layout paint;
+  }
+}
+
+@media (max-width:420px) {
+  .mobile-category-bar {
+    padding-left:12px;
+    padding-right:12px;
   }
 }
