@@ -659,15 +659,21 @@ async function loadAuthorProfiles(){
 }
 
 async function loadEditorAuthors(selectedId=''){
-  const select=$('#news-author-input');
-  if(!select) return;
+  const control=$('.editor-author-field .editor-select-control');
+  const input=$('#news-author-input');
+  const menu=$('#news-author-menu');
+  const valueNode=control?.querySelector('.editor-select-value');
+  if(!control||!input||!menu||!valueNode) return;
   await loadAuthorProfiles();
   const profiles=Object.values(state.authorProfiles||{}).sort((a,b)=>String(a.nickname||'').localeCompare(String(b.nickname||''),'ru'));
   if(state.user?.id && !profiles.some(p=>p.id===state.user.id)) profiles.unshift({id:state.user.id,nickname:state.user.profile?.nickname||state.user.email?.split('@')[0]||'Пользователь',role:state.user.profile?.role||'admin'});
-  if(!profiles.length){ select.innerHTML='<option value="">Редакция</option>'; }
-  else { select.innerHTML=profiles.map(function(profile){ return '<option value="'+escapeHtml(profile.id)+'">'+escapeHtml(profile.nickname||'Пользователь')+(profile.role==='admin'?' — Администратор':'')+'</option>'; }).join(''); }
-  const value=state.editor.authorId||selectedId||state.user?.id||'';
-  if(value && [...select.options].some(option=>option.value===value)) select.value=value;
+  const options=profiles.map(profile=>({id:profile.id,label:(profile.nickname||'Пользователь')+(profile.role==='admin'?' — Администратор':'')}));
+  menu.innerHTML=options.length?options.map(option=>'<button type="button" class="editor-select-option" data-editor-option="author" data-value="'+escapeHtml(option.id)+'" role="option">'+escapeHtml(option.label)+'</button>').join(''):'<div class="editor-select-empty">Нет доступных авторов</div>';
+  const preferred=state.editor.authorId||selectedId||state.user?.id||'';
+  const selected=options.find(option=>option.id===preferred)||options[0];
+  if(selected){ input.value=selected.id; state.editor.authorId=selected.id; valueNode.textContent=selected.label; }
+  else{ input.value=''; valueNode.textContent='Редакция'; }
+  menu.querySelectorAll('.editor-select-option').forEach(option=>option.classList.toggle('is-selected',option.dataset.value===input.value));
 }
 async function loadRemoteNews(){
   if(!state.supabase) return;
@@ -684,7 +690,7 @@ async function loadRemoteNews(){
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
   const mobile=window.matchMedia?.('(max-width: 860px)').matches;
-  state.editor={ id:id?String(id):null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
+  state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
   openSection('editor');
 }
 
@@ -696,8 +702,16 @@ function editorTemplate(news){
       <div class="editor-actions"><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
     </div>
     <div class="editor-meta-grid">
-      <label class="field editor-category-field"><span>Раздел</span><select id="news-category-input" aria-label="Раздел новости">${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select></label>
-      <label class="field editor-author-field"><span>Автор</span><select id="news-author-input" aria-label="Автор новости"><option value="">Загрузка авторов…</option></select></label>
+      <label class="field editor-category-field"><span>Раздел</span><div class="editor-select-control" data-editor-select="category">
+        <input type="hidden" id="news-category-input" value="Политика">
+        <button class="editor-select-button" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="editor-select-value">Политика</span><span class="material-symbols-rounded">expand_more</span></button>
+        <div class="editor-select-menu" role="listbox" aria-label="Раздел новости">${CATEGORIES.map(c=>`<button type="button" class="editor-select-option${c===CATEGORIES[0]?' is-selected':''}" data-editor-option="category" data-value="${escapeHtml(c)}" role="option">${escapeHtml(c)}</button>`).join('')}</div>
+      </div></label>
+      <label class="field editor-author-field"><span>Автор</span><div class="editor-select-control" data-editor-select="author">
+        <input type="hidden" id="news-author-input" value="">
+        <button class="editor-select-button" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="editor-select-value">Загрузка авторов…</span><span class="material-symbols-rounded">expand_more</span></button>
+        <div id="news-author-menu" class="editor-select-menu" role="listbox" aria-label="Автор новости"><div class="editor-select-empty">Загрузка авторов…</div></div>
+      </div></label>
       <label class="editor-summary-field"><span class="editor-field-label">Лид</span><textarea id="news-summary-input" class="editor-summary" maxlength="360" placeholder="Короткое описание или лид. Если оставить пустым, он будет взят из первого абзаца Markdown."></textarea></label>
     </div>
     <div class="editor-cover-row">
@@ -757,12 +771,14 @@ function setupEditor(news){
   syncEditorMode();
   bindEditorEvents();
   loadEditorDraft(news?.id||'new');
+  syncEditorSelect('news-category-input');
+  syncEditorSelect('news-author-input');
   if(news?.palette) renderPaletteSwatches(news.palette);
   else if(news?.image) updateEditorPaletteFromImage(news.image);
 }
 
 function bindEditorEvents(){
-  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'split',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null}; backToNews(); };
+  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null}; backToNews(); };
   $('#admin-save').onclick=saveEditorNews;
   $('#news-body-input').addEventListener('input',()=>{ renderMarkdownPreview(); saveEditorDraft(); });
   $('#news-title-input').addEventListener('input',saveEditorDraft);
@@ -779,8 +795,49 @@ function bindEditorEvents(){
   $('#editor-toolbar').querySelectorAll('[data-md]').forEach(btn=>btn.addEventListener('click',()=>applyMarkdownCommand(btn.dataset.md)));
   $$('.editor-mode').forEach(btn=>btn.addEventListener('click',()=>{state.editor.mode=btn.dataset.editorMode;syncEditorMode();}));
   $('#news-body-input').addEventListener('keydown',handleMarkdownKeydown);
-}
 
+  const editorRoot=$('#editor-page');
+  editorRoot.addEventListener('click',e=>{
+    const option=e.target.closest('[data-editor-option]');
+    const selectButton=e.target.closest('.editor-select-button');
+    if(option){
+      const control=option.closest('.editor-select-control');
+      const input=control?.querySelector('input[type="hidden"]');
+      const valueNode=control?.querySelector('.editor-select-value');
+      const value=option.dataset.value||'';
+      if(!control||!input||!valueNode) return;
+      input.value=value;
+      valueNode.textContent=option.textContent.trim();
+      control.querySelectorAll('.editor-select-option').forEach(item=>item.classList.toggle('is-selected',item===option));
+      control.classList.remove('is-open');
+      control.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+      return;
+    }
+    if(selectButton){
+      const control=selectButton.closest('.editor-select-control');
+      if(!control) return;
+      editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
+        if(item!==control){ item.classList.remove('is-open'); item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false'); }
+      });
+      const open=control.classList.toggle('is-open');
+      selectButton.setAttribute('aria-expanded',String(open));
+      return;
+    }
+    if(!e.target.closest('.editor-select-control')){
+      editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
+        item.classList.remove('is-open'); item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+      });
+    }
+  });
+  editorRoot.addEventListener('keydown',e=>{
+    const button=e.target.closest('.editor-select-button');
+    if(!button) return;
+    const control=button.closest('.editor-select-control');
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); button.click(); }
+    else if(e.key==='Escape'){ control?.classList.remove('is-open'); button.setAttribute('aria-expanded','false'); }
+  });
+}
 function syncEditorMode(){
   $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
   const panes=$('#editor-panes');
@@ -864,6 +921,17 @@ function renderMarkdownPreview(){
   preview.innerHTML=parseMarkdown(markdownValue()||'*Начните писать — предпросмотр появится здесь.*');
 }
 
+function syncEditorSelect(inputId){
+  const input=$('#'+inputId);
+  if(!input) return;
+  const control=input.closest('.editor-select-control');
+  if(!control) return;
+  const options=[...control.querySelectorAll('.editor-select-option')];
+  const option=options.find(item=>item.dataset.value===input.value);
+  const valueNode=control.querySelector('.editor-select-value');
+  if(option&&valueNode) valueNode.textContent=option.textContent.trim();
+  options.forEach(item=>item.classList.toggle('is-selected',item===option));
+}
 function saveEditorDraft(){
   const id=state.editor.id||'new';
   const payload={title:$('#news-title-input')?.value||'',category:$('#news-category-input')?.value||CATEGORIES[0],authorId:$('#news-author-input')?.value||state.editor.authorId||state.user?.id||'',summary:$('#news-summary-input')?.value||'',body:markdownValue(),image:$('#news-image-input')?.value||''};
@@ -875,7 +943,7 @@ function loadEditorDraft(id){
     const raw=localStorage.getItem(`news-editor-draft-${id}`); if(!raw) return;
     const draft=JSON.parse(raw); const isEmpty=!$('#news-title-input').value&&!markdownValue()&&!$('#news-image-input').value;
     if(isEmpty){
-      $('#news-title-input').value=draft.title||''; $('#news-category-input').value=draft.category||CATEGORIES[0]; state.editor.authorId=draft.authorId||state.editor.authorId||state.user?.id||''; $('#news-author-input').value=state.editor.authorId; $('#news-summary-input').value=draft.summary||''; $('#news-body-input').value=draft.body||''; $('#news-image-input').value=draft.image||''; renderMarkdownPreview(); updateEditorCoverPreview();
+      $('#news-title-input').value=draft.title||''; $('#news-category-input').value=draft.category||CATEGORIES[0]; state.editor.authorId=draft.authorId||state.editor.authorId||state.user?.id||''; $('#news-author-input').value=state.editor.authorId; syncEditorSelect('news-category-input'); syncEditorSelect('news-author-input'); $('#news-summary-input').value=draft.summary||''; $('#news-body-input').value=draft.body||''; $('#news-image-input').value=draft.image||''; renderMarkdownPreview(); updateEditorCoverPreview();
       showToast('Черновик восстановлен из локального хранилища');
     }
   }catch(_){ }
