@@ -1081,24 +1081,32 @@ input[type="range"]::-moz-range-thumb {
     padding-right:0;
   }
 
+  /* In the collapsed sidebar show only the 80×80 logo mark.
+     The SVG is intentionally kept at viewBox scale 1:1, so the
+     wordmark beginning at x=104 remains completely outside the clip. */
   .app-nav.is-collapsed .brand-header-logo {
     position:relative;
     width:88px;
     max-width:88px;
-    height:66px;
+    height:88px;
     margin:0;
     padding:0;
     flex:0 0 88px;
     overflow:hidden;
+    display:block;
   }
 
   .app-nav.is-collapsed .brand-header-logo svg {
     position:absolute;
-    left:14px;
-    top:0;
-    width:288px;
+    left:2px;
+    top:2px;
+    width:460px;
     max-width:none;
-    height:75px;
+    height:132px;
     margin:0;
+  }
+
+  .app-nav.is-collapsed .brand-header-logo svg #logo-text {
+    display:none;
   }
 }
