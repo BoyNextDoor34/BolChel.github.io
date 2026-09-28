@@ -1590,7 +1590,7 @@ function initAvatarCrop(){
 }
 
 function initMobileOverlayViewportLock(){
-  const categoryBar=$('#mobile-category-bar');
+  const categoryBar=$('.mobile-category-bar');
   const dock=$('#mobile-dock');
   const viewport=window.visualViewport;
   const mobileQuery=window.matchMedia?.('(max-width: 860px)');
