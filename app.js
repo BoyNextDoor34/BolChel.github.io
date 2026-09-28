@@ -1589,6 +1589,39 @@ function initAvatarCrop(){
   };
 }
 
+function initMobileDockViewportCompensation(){
+  const dock=$('#mobile-dock');
+  const viewport=window.visualViewport;
+  const mobileQuery=window.matchMedia?.('(max-width: 860px)');
+  if(!dock || !viewport || !mobileQuery?.matches) return;
+
+  let baselineBottom=viewport.offsetTop + viewport.height;
+  let frame=0;
+
+  const update=()=>{
+    if(frame) return;
+    frame=requestAnimationFrame(()=>{
+      frame=0;
+      if(!mobileQuery.matches) return;
+      const currentBottom=viewport.offsetTop + viewport.height;
+      const shift=baselineBottom-currentBottom;
+      dock.style.setProperty('--mobile-dock-vv-shift',`${Math.round(shift)}px`);
+    });
+  };
+
+  setTimeout(()=>{
+    baselineBottom=viewport.offsetTop + viewport.height;
+    update();
+  },120);
+
+  viewport.addEventListener('resize',update,{passive:true});
+  window.addEventListener('orientationchange',()=>{
+    setTimeout(()=>{
+      baselineBottom=viewport.offsetTop + viewport.height;
+      update();
+    },300);
+  },{passive:true});
+}
 function bindGlobalEvents(){
   const bind=(selector,event,handler)=>{
     const el=$(selector);
@@ -1609,6 +1642,7 @@ function bindGlobalEvents(){
   bind('#avatar-button','click',()=>openSection('profile'));
   bind('#mobile-menu','click',onMobileMenu);
   bind('#mobile-scrim','click',closeMobileMenu);
+  initMobileDockViewportCompensation();
   bind('#random-news','click',randomNews);
   bind('#clear-news-state','click',clearNewsState);
   bind('#news-search','input',e=>searchNews(e.target.value));
