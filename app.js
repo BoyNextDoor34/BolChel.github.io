@@ -1691,7 +1691,7 @@ function bindGlobalEvents(){
     const btn=e.target.closest('[data-section]');
     if(btn){
       openSection(btn.dataset.section);
-      window.scrollTo({top:0,behavior:'smooth'});
+      scrollMainToTop();
     }
   });
 
