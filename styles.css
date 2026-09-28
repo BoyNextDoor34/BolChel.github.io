@@ -1131,9 +1131,10 @@ input[type="range"]::-moz-range-thumb {
 }
 
 
-/* Stable mobile viewport anchoring.
-   The dock position is locked in JS once per viewport/orientation instead of
-   being recomputed from dynamic viewport units while the browser chrome moves. */
+/* Stable mobile dock.
+   Keep the dock in the layout viewport and counter the document scroll in a
+   compositor-friendly transform. This avoids jumps when the mobile browser
+   expands/collapses its URL bar and changes the visual viewport height. */
 @media (max-width:860px) {
   html,
   body {
@@ -1141,9 +1142,12 @@ input[type="range"]::-moz-range-thumb {
   }
 
   .mobile-dock {
-    top:calc(var(--mobile-dock-top, calc(100svh - 94px)) - env(safe-area-inset-bottom)) !important;
+    position:absolute !important;
+    top:calc(var(--mobile-dock-base-top, 0px) - env(safe-area-inset-bottom)) !important;
     bottom:auto !important;
-    transform:translateZ(0) !important;
-    will-change:auto;
+    transform:translate3d(0, var(--mobile-dock-scroll, 0px), 0) !important;
+    will-change:transform;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
   }
 }
