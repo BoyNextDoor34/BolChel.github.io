@@ -98,8 +98,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-header-logo { display:block; width:100%; max-width:258px; line-height:0; color:inherit; }
 .brand-header-logo svg { display:block; width:100%; height:auto; overflow:visible; }
 .app-nav.is-collapsed .brand-lockup { padding-top:8px; }
-.app-nav.is-collapsed .brand-header-logo { width:58px; max-width:58px; margin-inline:auto; }
-.app-nav.is-collapsed .brand-header-logo svg { width:58px; height:64px; }
+.app-nav.is-collapsed .brand-header-logo { width:58px; max-width:58px; height:64px; overflow:hidden; margin-inline:auto; }
+.app-nav.is-collapsed .brand-header-logo svg { width:258px; max-width:none; height:72px; }
 .app-nav.is-collapsed .brand-lockup { padding-bottom:20px; }
 .nav-list { display:flex; flex-direction:column; gap:5px; }
 .nav-list.compact { gap:2px; max-height:48vh; overflow:auto; }
