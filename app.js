@@ -1603,8 +1603,8 @@ function initMobileDockViewportLock(){
     frame=requestAnimationFrame(()=>{
       frame=0;
       if(!mobileQuery.matches){
-        dock.style.removeProperty('top');
-        dock.style.removeProperty('bottom');
+        dock.style.removeProperty('--mobile-dock-top');
+        dock.style.removeProperty('--mobile-dock-bottom');
         baselineY=null;
         return;
       }
@@ -1616,8 +1616,8 @@ function initMobileDockViewportLock(){
       }
 
       const top=baselineY-viewport.offsetTop;
-      dock.style.setProperty('top',`${Math.round(top)}px`);
-      dock.style.setProperty('bottom','auto');
+      dock.style.setProperty('--mobile-dock-top',`${Math.round(top)}px`);
+      dock.style.setProperty('--mobile-dock-bottom','auto');
     });
   };
 
