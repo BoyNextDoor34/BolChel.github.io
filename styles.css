@@ -1173,3 +1173,9 @@ input[type="range"]::-moz-range-thumb {
     contain:layout paint;
   }
 }
+
+@media (max-width:640px) {
+  .mobile-category-bar {
+    top:var(--mobile-category-top, 70px) !important;
+  }
+}
