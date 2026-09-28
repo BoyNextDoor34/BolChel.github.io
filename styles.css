@@ -26,6 +26,10 @@
   --radius-sm: 12px;
   --desktop-side: 288px;
   --help-side: 0px;
+  --logo-mark-bg: var(--md-sys-color-surface-container-highest);
+  --logo-secondary: var(--md-sys-color-secondary);
+  --logo-tertiary: var(--md-sys-color-tertiary);
+  --logo-document-line: var(--md-sys-color-on-tertiary, var(--md-sys-color-on-surface));
 }
 
 html[data-theme="dark"] {
@@ -49,6 +53,9 @@ html[data-theme="dark"] {
   --md-sys-color-outline: #6f7176;
   --md-sys-color-outline-variant: #3b3d42;
   --md-sys-color-error: #ffb4ab;
+  --logo-secondary: color-mix(in srgb, var(--md-sys-color-secondary) 44%, var(--md-sys-color-surface) 56%);
+  --logo-tertiary: color-mix(in srgb, var(--md-sys-color-tertiary) 82%, var(--md-sys-color-surface) 18%);
+  --logo-document-line: var(--md-sys-color-on-surface);
 }
 
 * { box-sizing: border-box; }
@@ -97,9 +104,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-lockup { display:flex; align-items:center; padding:6px 0 20px; min-width:0; }
 .brand-header-logo {
   display:block;
-  width:100%;
+  width:calc(100% - 16px);
   max-width:260px;
   min-width:0;
+  margin-left:16px;
   line-height:0;
   color:inherit;
 }
@@ -107,7 +115,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   display:block;
   width:100%;
   height:auto;
-  max-width:260px;
+  max-width:100%;
   overflow:visible;
 }
 .app-nav.is-collapsed .brand-lockup {
@@ -119,7 +127,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   max-width:64px;
   height:66px;
   overflow:hidden;
-  margin-inline:auto;
+  margin-left:auto;
+  margin-right:auto;
   flex:0 0 64px;
 }
 .app-nav.is-collapsed .brand-header-logo svg {
