@@ -12,7 +12,7 @@ const state = {
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
-  pendingAvatarBlob:null, sitePalette:null
+  pendingAvatarBlob:null, sitePalette:null, authorProfiles:{}
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -251,7 +251,9 @@ function mapRemoteNews(row) {
   if(typeof palette==='string'){ try{palette=JSON.parse(palette);}catch(_){palette=null;} }
   if(!palette?.source || palette.source!=='image' || palette.generator!=='sung-tonal-spot-v1' || !palette.light?.primary || !palette.dark?.primary) palette=null;
   const fallbackImage='https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1100&q=82';
-  return { id:row.id, category:row.category, title:row.title, summary:row.summary||'', body:row.body||'', date:dt.date, time:dt.time, author:'Редакция', image:row.image_url||fallbackImage, accent:palette?.light?.primary||null, palette, authorId:row.author_id, published_at:row.published_at };
+  const authorProfile=state.authorProfiles?.[row.author_id];
+  const fallbackAuthor=(row.author_id&&state.user?.id===row.author_id)?(state.user.profile?.nickname||state.user.email?.split('@')[0]||'Редакция'):'Редакция';
+  return { id:row.id, category:row.category, title:row.title, summary:row.summary||'', body:row.body||'', date:dt.date, time:dt.time, author:authorProfile?.nickname||fallbackAuthor, image:row.image_url||fallbackImage, accent:palette?.light?.primary||null, palette, authorId:row.author_id, published_at:row.published_at };
 }
 
 function parseMarkdown(markdown='') {
@@ -644,9 +646,33 @@ async function initSupabase(){
   }
 }
 
+async function loadAuthorProfiles(){
+  if(!state.supabase) return;
+  try{
+    const result=await state.supabase.from('profiles').select('id,nickname,role').order('nickname',{ascending:true});
+    if(result.error) throw result.error;
+    const next={};
+    (result.data||[]).forEach(profile=>{ if(profile?.id) next[profile.id]=profile; });
+    if(state.user?.id && state.user.profile && !next[state.user.id]) next[state.user.id]={id:state.user.id,nickname:state.user.profile.nickname||state.user.email?.split('@')[0]||'Пользователь',role:state.user.profile.role||'reader'};
+    state.authorProfiles=next;
+  }catch(error){ console.warn('Author profiles load failed:',error); }
+}
+
+async function loadEditorAuthors(selectedId=''){
+  const select=$('#news-author-input');
+  if(!select) return;
+  await loadAuthorProfiles();
+  const profiles=Object.values(state.authorProfiles||{}).sort((a,b)=>String(a.nickname||'').localeCompare(String(b.nickname||''),'ru'));
+  if(state.user?.id && !profiles.some(p=>p.id===state.user.id)) profiles.unshift({id:state.user.id,nickname:state.user.profile?.nickname||state.user.email?.split('@')[0]||'Пользователь',role:state.user.profile?.role||'admin'});
+  if(!profiles.length){ select.innerHTML='<option value="">Редакция</option>'; }
+  else { select.innerHTML=profiles.map(function(profile){ return '<option value="'+escapeHtml(profile.id)+'">'+escapeHtml(profile.nickname||'Пользователь')+(profile.role==='admin'?' — Администратор':'')+'</option>'; }).join(''); }
+  const value=selectedId||state.editor.authorId||state.user?.id||'';
+  if(value && [...select.options].some(option=>option.value===value)) select.value=value;
+}
 async function loadRemoteNews(){
   if(!state.supabase) return;
   try{
+    await loadAuthorProfiles();
     const {data,error}=await state.supabase.from('news').select('id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at').order('published_at',{ascending:false});
     if(error) throw error;
     if(data?.length) state.news=data.map(mapRemoteNews);
@@ -658,7 +684,7 @@ async function loadRemoteNews(){
 function openEditor(id){
   if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
   const mobile=window.matchMedia?.('(max-width: 860px)').matches;
-  state.editor={ id:id?String(id):null, mode:mobile?'edit':'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null };
+  state.editor={ id:id?String(id):null, mode:mobile?'edit':'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
   openSection('editor');
 }
 
@@ -670,7 +696,8 @@ function editorTemplate(news){
       <div class="editor-actions"><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
     </div>
     <div class="editor-meta-grid">
-      <label class="editor-category-field"><span class="editor-field-label">Раздел</span><span class="editor-select-wrap"><select id="news-category-input" aria-label="Раздел новости">${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select><span class="material-symbols-rounded editor-select-icon" aria-hidden="true">expand_more</span></span></label>
+      <label class="field editor-category-field"><span>Раздел</span><select id="news-category-input" aria-label="Раздел новости">${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select></label>
+      <label class="field editor-author-field"><span>Автор</span><select id="news-author-input" aria-label="Автор новости"><option value="">Загрузка авторов…</option></select></label>
       <label class="editor-summary-field"><span class="editor-field-label">Лид</span><textarea id="news-summary-input" class="editor-summary" maxlength="360" placeholder="Короткое описание или лид. Если оставить пустым, он будет взят из первого абзаца Markdown."></textarea></label>
     </div>
     <div class="editor-cover-row">
@@ -717,7 +744,9 @@ function setupEditor(news){
   const root=$('#editor-page');
   root.innerHTML=editorTemplate(news);
   $('#news-title-input').value=news?.title||'';
+  state.editor.authorId=news?.authorId||state.user?.id||'';
   $('#news-category-input').value=news?.category||CATEGORIES[0];
+  loadEditorAuthors(state.editor.authorId);
   $('#news-summary-input').value=news?.summary||'';
   $('#news-body-input').value=news?.body||'';
   $('#news-image-input').value=news?.image||'';
@@ -733,12 +762,13 @@ function setupEditor(news){
 }
 
 function bindEditorEvents(){
-  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'split',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null}; backToNews(); };
+  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'split',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null}; backToNews(); };
   $('#admin-save').onclick=saveEditorNews;
   $('#news-body-input').addEventListener('input',()=>{ renderMarkdownPreview(); saveEditorDraft(); });
   $('#news-title-input').addEventListener('input',saveEditorDraft);
   $('#news-summary-input').addEventListener('input',saveEditorDraft);
   $('#news-category-input').addEventListener('change',saveEditorDraft);
+  $('#news-author-input').addEventListener('change',e=>{state.editor.authorId=e.target.value||null;saveEditorDraft();});
   $('#news-image-input').addEventListener('input',()=>{ updateEditorCoverPreview(); saveEditorDraft(); });
   $('#editor-upload-image').onclick=()=>$('#editor-image-file').click();
   $('#editor-crop-image').onclick=()=>openNewsCoverCrop();
@@ -836,7 +866,7 @@ function renderMarkdownPreview(){
 
 function saveEditorDraft(){
   const id=state.editor.id||'new';
-  const payload={title:$('#news-title-input')?.value||'',category:$('#news-category-input')?.value||CATEGORIES[0],summary:$('#news-summary-input')?.value||'',body:markdownValue(),image:$('#news-image-input')?.value||''};
+  const payload={title:$('#news-title-input')?.value||'',category:$('#news-category-input')?.value||CATEGORIES[0],authorId:$('#news-author-input')?.value||state.editor.authorId||state.user?.id||'',summary:$('#news-summary-input')?.value||'',body:markdownValue(),image:$('#news-image-input')?.value||''};
   try{localStorage.setItem(`news-editor-draft-${id}`,JSON.stringify(payload));}catch(_){ }
 }
 function loadEditorDraft(id){
@@ -845,7 +875,7 @@ function loadEditorDraft(id){
     const raw=localStorage.getItem(`news-editor-draft-${id}`); if(!raw) return;
     const draft=JSON.parse(raw); const isEmpty=!$('#news-title-input').value&&!markdownValue()&&!$('#news-image-input').value;
     if(isEmpty){
-      $('#news-title-input').value=draft.title||''; $('#news-category-input').value=draft.category||CATEGORIES[0]; $('#news-summary-input').value=draft.summary||''; $('#news-body-input').value=draft.body||''; $('#news-image-input').value=draft.image||''; renderMarkdownPreview(); updateEditorCoverPreview();
+      $('#news-title-input').value=draft.title||''; $('#news-category-input').value=draft.category||CATEGORIES[0]; state.editor.authorId=draft.authorId||state.editor.authorId||state.user?.id||''; $('#news-author-input').value=state.editor.authorId; $('#news-summary-input').value=draft.summary||''; $('#news-body-input').value=draft.body||''; $('#news-image-input').value=draft.image||''; renderMarkdownPreview(); updateEditorCoverPreview();
       showToast('Черновик восстановлен из локального хранилища');
     }
   }catch(_){ }
@@ -1032,10 +1062,11 @@ async function saveEditorNews(){
       const firstPlain=(body.replace(/^#{1,6}\s+/gm,'').replace(/[*_`>#-]/g,'').split(/\n\s*\n/).find(Boolean)||'').trim();
       summary=firstPlain.slice(0,360);
     }
-    const payload={category,title,summary,body,image_url:imageUrl,accent_hex:palette.light.primary,palette};
+    const authorId=$('#news-author-input')?.value||state.editor.authorId||state.user.id;
+    const payload={category,title,summary,body,image_url:imageUrl,author_id:authorId,accent_hex:palette.light.primary,palette};
     const query=state.editor.id
       ? state.supabase.from('news').update(payload).eq('id',state.editor.id).select('id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at').single()
-      : state.supabase.from('news').insert({...payload,author_id:state.user.id}).select('id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at').single();
+      : state.supabase.from('news').insert(payload).select('id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at').single();
     const {data,error}=await query;
     if(error) throw error;
     const mapped=mapRemoteNews(data);
