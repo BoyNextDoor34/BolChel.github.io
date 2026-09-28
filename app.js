@@ -12,7 +12,7 @@ const state = {
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
-  pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0, authorProfiles:{}
+  pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0, authorProfiles:{}, supabaseInitPromise:null, supabaseError:null
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -580,8 +580,18 @@ async function signOut(){ if(state.supabase) await state.supabase.auth.signOut()
 
 async function submitAuth(){
   const email=$('#auth-email').value.trim(), password=$('#auth-password').value, nickname=$('#auth-nickname').value.trim(), msg=$('#auth-message');
-  if(!state.supabase){ msg.textContent='Supabase ещё не подключён. Проверьте supabase-config.js.'; return; }
   msg.textContent='';
+
+  if(!state.supabase){
+    msg.textContent='Подключаем Supabase…';
+    const client=await initSupabase();
+    if(!client){
+      const detail=state.supabaseError?.message||'неизвестная ошибка';
+      msg.textContent='Не удалось подключиться к Supabase: '+detail;
+      return;
+    }
+  }
+
   try{
     if(state.authMode==='signup'){
       const {data,error}=await state.supabase.auth.signUp({email,password,options:{data:{nickname}}});
@@ -592,8 +602,11 @@ async function submitAuth(){
       if(error) throw error;
       $('#auth-dialog').close();
     }
-  }catch(error){ msg.textContent=error.message||'Не удалось выполнить запрос.'; }
+  }catch(error){
+    msg.textContent=error.message||'Не удалось выполнить запрос.';
+  }
 }
+
 
 function updateAuthUI(){
   const authBtn=$('#auth-button'), avatarBtn=$('#avatar-button');
@@ -633,37 +646,90 @@ async function handleSession(session){
 
 async function loadSupabaseClientScript(){
   if(window.supabase?.createClient) return window.supabase;
-  await new Promise((resolve,reject)=>{
-    const script=document.createElement('script');
-    script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-    script.async=true;
-    script.onload=()=>resolve();
-    script.onerror=()=>reject(new Error('Не удалось загрузить Supabase SDK.'));
-    document.head.appendChild(script);
-  });
-  if(!window.supabase?.createClient) throw new Error('Supabase SDK не предоставил createClient.');
-  return window.supabase;
+
+  const sources=[
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+    'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'
+  ];
+
+  let lastError=null;
+  for(const src of sources){
+    try{
+      await new Promise((resolve,reject)=>{
+        const script=document.createElement('script');
+        script.src=src;
+        script.async=true;
+        script.crossOrigin='anonymous';
+        const timer=setTimeout(()=>{cleanup();reject(new Error('Таймаут загрузки Supabase SDK.'));},12000);
+        const cleanup=()=>{
+          clearTimeout(timer);
+          script.onload=null;
+          script.onerror=null;
+        };
+        script.onload=()=>{cleanup();resolve();};
+        script.onerror=()=>{cleanup();reject(new Error('Не удалось загрузить Supabase SDK: '+src));};
+        document.head.appendChild(script);
+      });
+      if(window.supabase?.createClient) return window.supabase;
+    }catch(error){
+      lastError=error;
+    }
+  }
+  throw lastError||new Error('Supabase SDK недоступен.');
 }
 
+
 async function initSupabase(){
+  if(state.supabase) return state.supabase;
+  if(state.supabaseInitPromise) return state.supabaseInitPromise;
+
   const cfg=window.SUPABASE_CONFIG;
-  if(!cfg?.url || !cfg?.anonKey) return;
+  if(!cfg?.url || !cfg?.anonKey){
+    state.supabaseError=new Error('В SUPABASE_CONFIG отсутствуют url или anonKey.');
+    return null;
+  }
   if(/^https:\/\/YOUR-PROJECT-REF\.supabase\.co/i.test(String(cfg.url)) || String(cfg.anonKey).includes('YOUR-ANON-PUBLIC-KEY')){
-    console.warn('Supabase config still contains placeholders; remote data is disabled.');
-    return;
+    state.supabaseError=new Error('В supabase-config.js остались демонстрационные значения.');
+    return null;
   }
-  try{
-    const sdk=await loadSupabaseClientScript();
-    state.supabase=sdk.createClient(cfg.url,cfg.anonKey);
-    const {data:{session}}=await state.supabase.auth.getSession();
-    await handleSession(session);
-    state.supabase.auth.onAuthStateChange((_event,nextSession)=>setTimeout(async()=>{ await handleSession(nextSession); await loadRemoteNews(); },0));
-    await loadRemoteNews();
-  }catch(error){
-    console.warn('Supabase unavailable',error);
-    showToast('Supabase сейчас недоступен. Можно просматривать пустую ленту.');
-  }
+
+  state.supabaseInitPromise=(async()=>{
+    try{
+      const sdk=await loadSupabaseClientScript();
+      state.supabase=sdk.createClient(String(cfg.url).trim(),String(cfg.anonKey).trim());
+      state.supabaseError=null;
+
+      const {data:{session},error:sessionError}=await state.supabase.auth.getSession();
+      if(sessionError) throw sessionError;
+
+      await handleSession(session);
+      state.supabase.auth.onAuthStateChange((_event,nextSession)=>{
+        setTimeout(async()=>{
+          try{
+            await handleSession(nextSession);
+            await loadRemoteNews();
+          }catch(error){
+            console.warn('Supabase auth refresh failed',error);
+          }
+        },0);
+      });
+
+      await loadRemoteNews();
+      return state.supabase;
+    }catch(error){
+      state.supabase=null;
+      state.supabaseError=error;
+      console.error('Supabase initialization failed:',error);
+      showToast('Не удалось подключить Supabase. Повторите попытку позже.');
+      return null;
+    }finally{
+      state.supabaseInitPromise=null;
+    }
+  })();
+
+  return state.supabaseInitPromise;
 }
+
 
 async function loadAuthorProfiles(){
   if(!state.supabase) return;
