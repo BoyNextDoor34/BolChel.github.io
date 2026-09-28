@@ -676,7 +676,7 @@ function editorTemplate(news){
     <div class="editor-cover-row">
       <div class="editor-cover-panel">
         <img id="editor-cover-preview" class="editor-cover-preview" src="${escapeHtml(news?.image||'')}" alt="Предпросмотр обложки">
-        <div class="editor-cover-controls"><button id="editor-upload-image" class="tonal-button" type="button"><span class="material-symbols-rounded">upload</span>Загрузить изображение</button><input id="editor-image-file" type="file" accept="image/*" class="visually-hidden"><button id="editor-use-markdown-image" class="text-button" type="button">Взять первую картинку из Markdown</button></div>
+        <div class="editor-cover-controls"><button id="editor-upload-image" class="tonal-button" type="button"><span class="material-symbols-rounded">upload</span>Загрузить изображение</button><button id="editor-crop-image" class="tonal-button" type="button" disabled><span class="material-symbols-rounded">crop</span>Обрезать</button><input id="editor-image-file" type="file" accept="image/*" class="visually-hidden"><button id="editor-use-markdown-image" class="text-button" type="button">Взять первую картинку из Markdown</button></div>
         <div class="editor-status" id="editor-image-status">Палитра будет сгенерирована автоматически из цветов обложки. Ручного Accent HEX нет.</div>
       </div>
       <div class="editor-cover-panel"><label class="field"><span>URL обложки</span><input id="news-image-input" class="editor-cover-url" type="url" placeholder="https://..."></label><div id="editor-palette-swatches" class="palette-swatches"></div><p class="media-note">Изображение является единственным источником цветовой палитры.</p></div>
@@ -741,7 +741,10 @@ function bindEditorEvents(){
   $('#news-category-input').addEventListener('change',saveEditorDraft);
   $('#news-image-input').addEventListener('input',()=>{ updateEditorCoverPreview(); saveEditorDraft(); });
   $('#editor-upload-image').onclick=()=>$('#editor-image-file').click();
+  $('#editor-crop-image').onclick=()=>openNewsCoverCrop();
   $('#editor-image-file').addEventListener('change',handleNewsImageUpload);
+  const hasPendingCover=!!state.editor.pendingCoverFile;
+  $('#editor-crop-image').disabled=!hasPendingCover;
   $('#editor-use-markdown-image').onclick=useFirstMarkdownImageAsCover;
   $('#editor-toolbar').querySelectorAll('[data-md]').forEach(btn=>btn.addEventListener('click',()=>applyMarkdownCommand(btn.dataset.md)));
   $$('.editor-mode').forEach(btn=>btn.addEventListener('click',()=>{state.editor.mode=btn.dataset.editorMode;syncEditorMode();}));
@@ -884,13 +887,103 @@ async function handleNewsImageUpload(){
   $('#news-image-input').value='';
   $('#editor-cover-preview').src=localUrl; $('#editor-cover-preview').style.opacity='1';
   state.editor.imageObjectUrl=localUrl;
+  state.editor.pendingCoverFile=file;
+  $('#editor-crop-image').disabled=false;
   try{
     const seed=await extractSeedFromImage(localUrl); // local object URLs are same-origin to the browser.
     state.editor.generatedPalette=generatePaletteFromSeed(seed); renderPaletteSwatches(state.editor.generatedPalette);
-    $('#editor-image-status').textContent=`Изображение готово. Палитра извлечена из файла; загружать в Supabase можно через публикацию.`;
-    state.editor.pendingCoverFile=file;
+    $('#editor-image-status').textContent=`Изображение готово. Можно обрезать его перед публикацией; палитра извлечена из исходного файла.`;
   }catch(error){ $('#editor-image-status').textContent=error.message; }
   saveEditorDraft();
+}
+
+function openNewsCoverCrop(){
+  const dialog=$('#news-cover-crop-dialog'), canvas=$('#news-cover-crop-canvas');
+  if(!dialog||!canvas) return;
+  const file=state.editor.pendingCoverFile;
+  if(!file){ showToast('Сначала загрузите изображение с компьютера.'); return; }
+  const url=state.editor.imageObjectUrl||URL.createObjectURL(file);
+  const img=new Image();
+  img.onload=()=>{
+    state.newsCoverCrop={file,img,objectUrl:url,zoom:1,rotation:0,x:0,y:0,dragging:false,lastX:0,lastY:0};
+    $('#news-cover-zoom').value='1';
+    renderNewsCoverCrop();
+    dialog.showModal();
+  };
+  img.onerror=()=>showToast('Не удалось открыть изображение для обрезки.');
+  img.src=url;
+}
+
+function renderNewsCoverCrop(showGuide=true){
+  const canvas=$('#news-cover-crop-canvas'), ctx=canvas?.getContext('2d'), c=state.newsCoverCrop;
+  if(!canvas||!ctx||!c?.img)return;
+  const w=canvas.width,h=canvas.height, rotatedQuarter=(Math.abs(c.rotation)%180)!==0;
+  const imgW=rotatedQuarter?c.img.naturalHeight:c.img.naturalWidth;
+  const imgH=rotatedQuarter?c.img.naturalWidth:c.img.naturalHeight;
+  const base=Math.max(w/imgW,h/imgH), scale=base*c.zoom;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#111';ctx.fillRect(0,0,w,h);
+  ctx.save();
+  ctx.translate(w/2+c.x,h/2+c.y);
+  ctx.rotate(c.rotation*Math.PI/180);
+  ctx.drawImage(c.img,-c.img.naturalWidth*scale/2,-c.img.naturalHeight*scale/2,c.img.naturalWidth*scale,c.img.naturalHeight*scale);
+  ctx.restore();
+  if(showGuide){
+    ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=3;ctx.strokeRect(1.5,1.5,w-3,h-3);
+    ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(w/3,0);ctx.lineTo(w/3,h);ctx.moveTo((w/3)*2,0);ctx.lineTo((w/3)*2,h);ctx.moveTo(0,h/3);ctx.lineTo(w,h/3);ctx.moveTo(0,(h/3)*2);ctx.lineTo(w,(h/3)*2);ctx.stroke();
+  }
+}
+
+function closeNewsCoverCrop(){
+  $('#news-cover-crop-dialog')?.close();
+  const c=state.newsCoverCrop;
+  if(c?.objectUrl && c.objectUrl!==state.editor.imageObjectUrl) URL.revokeObjectURL(c.objectUrl);
+  state.newsCoverCrop=null;
+}
+
+function initNewsCoverCrop(){
+  const canvas=$('#news-cover-crop-canvas');
+  if(!canvas)return;
+  canvas.addEventListener('pointerdown',e=>{
+    const c=state.newsCoverCrop;if(!c)return;
+    c.dragging=true;c.lastX=e.clientX;c.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove',e=>{
+    const c=state.newsCoverCrop;if(!c?.dragging)return;
+    c.x+=e.clientX-c.lastX;c.y+=e.clientY-c.lastY;c.lastX=e.clientX;c.lastY=e.clientY;renderNewsCoverCrop();
+  });
+  const stop=()=>{if(state.newsCoverCrop)state.newsCoverCrop.dragging=false;};
+  canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);
+  $('#news-cover-zoom').addEventListener('input',e=>{if(state.newsCoverCrop){state.newsCoverCrop.zoom=Number(e.target.value);renderNewsCoverCrop();}});
+  $('#news-cover-rotate-left').onclick=()=>{if(state.newsCoverCrop){state.newsCoverCrop.rotation-=90;renderNewsCoverCrop();}};
+  $('#news-cover-rotate-right').onclick=()=>{if(state.newsCoverCrop){state.newsCoverCrop.rotation+=90;renderNewsCoverCrop();}};
+  $('#news-cover-crop-reset').onclick=()=>{const c=state.newsCoverCrop;if(!c)return;c.zoom=1;c.rotation=0;c.x=0;c.y=0;$('#news-cover-zoom').value='1';renderNewsCoverCrop();};
+  $('#news-cover-crop-close').onclick=closeNewsCoverCrop;
+  $('#news-cover-crop-cancel').onclick=closeNewsCoverCrop;
+  $('#news-cover-crop-apply').onclick=()=>{
+    const canvas=$('#news-cover-crop-canvas'), c=state.newsCoverCrop;
+    if(!canvas||!c)return;
+    renderNewsCoverCrop(false);
+    canvas.toBlob(blob=>{
+      if(!blob){renderNewsCoverCrop(true);showToast('Не удалось подготовить обрезанное изображение.');return;}
+      const baseName=(c.file.name||'news-image').replace(/\.[^.]+$/,'');
+      const croppedFile=new File([blob],`${baseName}-cropped.webp`,{type:'image/webp',lastModified:Date.now()});
+      const newUrl=URL.createObjectURL(blob);
+      if(state.editor.imageObjectUrl) URL.revokeObjectURL(state.editor.imageObjectUrl);
+      state.editor.imageObjectUrl=newUrl;
+      state.editor.pendingCoverFile=croppedFile;
+      $('#editor-crop-image').disabled=false;
+      $('#news-image-input').value='';
+      const preview=$('#editor-cover-preview'); if(preview){preview.src=newUrl;preview.style.opacity='1';}
+      $('#editor-image-status').textContent='Обрезка применена. В публикацию будет загружена обрезанная копия изображения.';
+      updateEditorPaletteFromImage(newUrl);
+      saveEditorDraft();
+      $('#news-cover-crop-dialog').close();
+      state.newsCoverCrop=null;
+    },'image/webp',.92);
+  };
+  $('#news-cover-crop-dialog').addEventListener('close',()=>{if(state.newsCoverCrop)state.newsCoverCrop=null;});
 }
 
 function extractFirstImageFromMarkdown(markdown){
@@ -1267,6 +1360,12 @@ function bindGlobalEvents(){
     initAvatarCrop();
   }catch(error){
     console.error('Avatar crop initialization failed:',error);
+  }
+
+  try{
+    initNewsCoverCrop();
+  }catch(error){
+    console.error('News cover crop initialization failed:',error);
   }
 
   try{
