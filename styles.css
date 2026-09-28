@@ -1144,13 +1144,10 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* Mobile overlays: fixed directly to the visible browser viewport.
-   No dynamic viewport units and no JavaScript position adjustments are used,
-   so document scrolling cannot move the controls. */
+/* Mobile viewport compensation: only the dock is adjusted for browser chrome.
+   The page scroll itself is never observed or used. */
 @media (max-width:860px) {
-  html, body {
-    overscroll-behavior-y:none;
-  }
+  html, body { overscroll-behavior-y:none; }
 
   .mobile-category-bar {
     position:fixed !important;
@@ -1159,7 +1156,6 @@ input[type="range"]::-moz-range-thumb {
     top:78px !important;
     width:100vw !important;
     max-width:100vw !important;
-    height:auto;
     margin:0 !important;
     z-index:30;
     box-sizing:border-box;
@@ -1170,7 +1166,7 @@ input[type="range"]::-moz-range-thumb {
     left:12px !important;
     right:12px !important;
     top:auto !important;
-    bottom:max(12px, env(safe-area-inset-bottom)) !important;
+    bottom:calc(max(12px, env(safe-area-inset-bottom)) + var(--mobile-dock-vv-shift, 0px)) !important;
     transform:none !important;
     will-change:auto;
     backface-visibility:hidden;
@@ -1180,7 +1176,5 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (max-width:640px) {
-  .mobile-category-bar {
-    top:70px !important;
-  }
+  .mobile-category-bar { top:70px !important; }
 }
