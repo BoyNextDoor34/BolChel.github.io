@@ -10,7 +10,7 @@ const state = {
   section:'news', previousSection:'news', category:null, search:'', news:[],
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
-  editor:{ id:null, mode:'split', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
+  editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, authorProfiles:{}
 };
@@ -789,15 +789,45 @@ function bindEditorEvents(){
   $('#editor-upload-image').onclick=()=>$('#editor-image-file').click();
   $('#editor-crop-image').onclick=()=>openNewsCoverCrop();
   $('#editor-image-file').addEventListener('change',handleNewsImageUpload);
-  const hasPendingCover=!!state.editor.pendingCoverFile;
-  $('#editor-crop-image').disabled=!hasPendingCover;
+  $('#editor-crop-image').disabled=!state.editor.pendingCoverFile;
   $('#editor-use-markdown-image').onclick=useFirstMarkdownImageAsCover;
-  $('#editor-toolbar').querySelectorAll('[data-md]').forEach(btn=>btn.addEventListener('click',()=>applyMarkdownCommand(btn.dataset.md)));
-  $$('.editor-mode').forEach(btn=>btn.addEventListener('click',()=>{state.editor.mode=btn.dataset.editorMode;syncEditorMode();}));
   $('#news-body-input').addEventListener('keydown',handleMarkdownKeydown);
 
   const editorRoot=$('#editor-page');
-  editorRoot.addEventListener('click',e=>{
+  const toolbar=$('#editor-toolbar');
+  const modeSwitch=editorRoot?.querySelector('.editor-mode-switch');
+
+  // One delegated handler keeps toolbar controls reliable on touch devices and
+  // survives any re-render of the editor markup.
+  toolbar?.addEventListener('click',e=>{
+    const mdButton=e.target.closest('[data-md]');
+    if(mdButton && toolbar.contains(mdButton)){
+      e.preventDefault();
+      applyMarkdownCommand(mdButton.dataset.md);
+      return;
+    }
+  });
+  toolbar?.addEventListener('pointerup',e=>{
+    const mdButton=e.target.closest('[data-md]');
+    if(mdButton && toolbar.contains(mdButton)){
+      e.preventDefault();
+      applyMarkdownCommand(mdButton.dataset.md);
+    }
+  });
+
+  modeSwitch?.querySelectorAll('.editor-mode').forEach(btn=>{
+    const selectMode=()=>{
+      state.editor.mode=btn.dataset.editorMode;
+      syncEditorMode();
+    };
+    btn.addEventListener('click',selectMode);
+    btn.addEventListener('pointerup',e=>{
+      e.preventDefault();
+      selectMode();
+    });
+  });
+
+  editorRoot?.addEventListener('click',e=>{
     const option=e.target.closest('[data-editor-option]');
     const selectButton=e.target.closest('.editor-select-button');
     if(option){
@@ -818,7 +848,10 @@ function bindEditorEvents(){
       const control=selectButton.closest('.editor-select-control');
       if(!control) return;
       editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
-        if(item!==control){ item.classList.remove('is-open'); item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false'); }
+        if(item!==control){
+          item.classList.remove('is-open');
+          item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+        }
       });
       const open=control.classList.toggle('is-open');
       selectButton.setAttribute('aria-expanded',String(open));
@@ -826,20 +859,14 @@ function bindEditorEvents(){
     }
     if(!e.target.closest('.editor-select-control')){
       editorRoot.querySelectorAll('.editor-select-control.is-open').forEach(item=>{
-        item.classList.remove('is-open'); item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
+        item.classList.remove('is-open');
+        item.querySelector('.editor-select-button')?.setAttribute('aria-expanded','false');
       });
     }
   });
-  editorRoot.addEventListener('keydown',e=>{
-    const button=e.target.closest('.editor-select-button');
-    if(!button) return;
-    const control=button.closest('.editor-select-control');
-    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); button.click(); }
-    else if(e.key==='Escape'){ control?.classList.remove('is-open'); button.setAttribute('aria-expanded','false'); }
-  });
 }
 function syncEditorMode(){
-  $('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
+  $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
   const panes=$('#editor-panes');
   if(!panes) return;
   panes.dataset.editorMode=state.editor.mode;
@@ -847,7 +874,6 @@ function syncEditorMode(){
   $('.editor-pane-input').classList.toggle('hidden',state.editor.mode==='preview');
   $('.editor-pane-preview').classList.toggle('hidden',state.editor.mode==='edit');
 }
-
 function markdownValue(){ return $('#news-body-input')?.value||''; }
 function setTextareaSelection(start,end){ const el=$('#news-body-input'); el.focus(); el.setSelectionRange(start,end); }
 function wrapSelection(before,after=before,placeholder='текст'){
