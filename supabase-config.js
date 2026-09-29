@@ -140,6 +140,16 @@ window.SUPABASE_CONFIG = {
         text-align: center !important;
       }
     }
+
+    /* Keep the News navigation item selected while a news article is open.
+       The article has its own section state, but it still belongs to News. */
+    body:has(#section-article.is-visible) #main-nav .nav-item[data-section="news"],
+    body:has(#section-article.is-visible) #mobile-dock .mobile-dock-item[data-section="news"] {
+      background: var(--md-sys-color-primary-container) !important;
+      color: var(--md-sys-color-on-primary-container) !important;
+      border-color: var(--md-sys-color-outline-variant) !important;
+      font-weight: 800 !important;
+    }
   `;
   document.head.appendChild(style);
 })();
