@@ -1268,3 +1268,49 @@ input[type="range"]::-moz-range-thumb {
     gap:5px !important;
   }
 }
+
+/* Reader news proposals / admin review */
+.admin-suggestions { margin-top:18px; }
+.admin-suggestions-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.admin-suggestions-heading h3 { margin:0; }
+.suggestion-count {
+  min-width:28px;
+  height:28px;
+  padding:0 8px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--md-sys-color-primary-container);
+  color:var(--md-sys-color-on-primary-container);
+  font-weight:700;
+  font-size:12px;
+}
+.admin-suggestions-list { margin-top:12px; display:grid; gap:9px; }
+.admin-suggestion-row {
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  justify-content:space-between;
+  padding:12px;
+  border:1px solid var(--md-sys-color-outline-variant);
+  border-radius:16px;
+  background:var(--md-sys-color-surface);
+}
+.suggestion-author { margin-top:3px; }
+.admin-suggestion-actions {
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  flex-shrink:0;
+}
+.admin-suggestion-actions .tonal-button,
+.admin-suggestion-actions .text-button {
+  min-height:36px;
+  padding:0 12px;
+}
+@media (max-width:860px) {
+  .admin-suggestion-row { flex-direction:column; }
+  .admin-suggestion-actions { width:100%; justify-content:flex-start; }
+}
