@@ -87,13 +87,30 @@
   function findHeading(root,text){return [...root.querySelectorAll('h2,h3,h4')].find(x=>x.textContent.trim()===text);}
 
   function hideInlineBlock(node,heading,root){
-    // Hide only the panel that directly contains the manager. Do not walk
-    // up to the profile-layout itself: that also contains the right-hand
-    // profile tools and would make the entire side panel disappear.
     const panel=node?.parentElement;
     const target=panel && panel!==root ? panel : node;
     target.hidden=true;
     target.setAttribute('aria-hidden','true');
+  }
+
+  // The current suggestion workflow already provides the right-hand profile
+  // buttons and its own management page. The old manager panels rendered by
+  // the profile are therefore duplicates. Remove only those panels that are
+  // outside the profile side tools; never touch the profile layout itself.
+  function removeBottomManagerDuplicates(){
+    const section=document.getElementById('section-profile');
+    if(!section)return;
+    section.querySelectorAll('.admin-news-list,.admin-suggestions,.reader-suggestions').forEach(node=>{
+      if(node.closest('.profile-side') || node.closest('.profile-management-page') || node.closest('.profile-subpage'))return;
+      const parent=node.parentElement;
+      if(parent && parent!==section && !parent.closest('.profile-layout')){
+        parent.remove();
+      }else if(parent && parent!==section && parent.classList.contains('profile-layout')){
+        node.remove();
+      }else{
+        node.remove();
+      }
+    });
   }
 
   function addTool(container,kind,title,description,icon,count){
@@ -131,6 +148,7 @@
 
   function sync(){
     ensureStyles();
+    removeBottomManagerDuplicates();
     const root=document.getElementById('profile-card');
     if(!root)return;
     let tools=root.querySelector('.profile-tools');
