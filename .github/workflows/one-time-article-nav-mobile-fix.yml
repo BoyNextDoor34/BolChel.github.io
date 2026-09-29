@@ -1,0 +1,94 @@
+name: One-time mobile article navigation fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message != 'Fix mobile article navigation layout'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply mobile navigation CSS
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('styles.css')
+          css = path.read_text(encoding='utf-8')
+          marker = '/* Final mobile article navigation layout */'
+
+          if marker not in css:
+              css += r'''
+
+/* Final mobile article navigation layout */
+@media (max-width:860px) {
+  .article-reading > .article-toolbar {
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:center;
+    gap:10px !important;
+    width:100%;
+  }
+
+  .article-reading > .article-toolbar > .article-toolbar-left {
+    display:flex !important;
+    flex:1 1 100% !important;
+    width:100%;
+    min-width:0;
+    gap:10px !important;
+  }
+
+  .article-reading > .article-toolbar > .article-toolbar-left > .tonal-button {
+    flex:1 1 0 !important;
+    min-width:0 !important;
+    width:50%;
+    min-height:48px;
+    padding:0 14px !important;
+    gap:7px !important;
+    justify-content:center;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+
+  .article-reading > .article-toolbar > .article-toolbar-left > .tonal-button .material-symbols-rounded {
+    flex:0 0 auto;
+  }
+
+  .article-reading > .article-toolbar > .text-button {
+    flex:1 1 100% !important;
+    width:100%;
+    min-height:44px;
+    padding:0 14px !important;
+    justify-content:center;
+    white-space:nowrap;
+  }
+}
+
+@media (max-width:380px) {
+  .article-reading > .article-toolbar > .article-toolbar-left {
+    gap:8px !important;
+  }
+
+  .article-reading > .article-toolbar > .article-toolbar-left > .tonal-button {
+    padding:0 9px !important;
+    font-size:11px;
+    gap:5px !important;
+  }
+}
+'''
+              path.write_text(css, encoding='utf-8')
+
+      - name: Commit CSS fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add styles.css
+          git diff --cached --quiet || git commit -m 'Fix mobile article navigation layout'
+          git push
