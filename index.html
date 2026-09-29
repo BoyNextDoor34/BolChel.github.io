@@ -26,71 +26,99 @@
 
   <aside class="app-nav" aria-label="Основная навигация">
     <div class="brand-lockup">
-<div class="brand-header-logo" aria-label="Большое человеческое" style="display: inline-flex; align-items: center; text-decoration: none;">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 132" width="230" height="66" fill="none" role="img" aria-label="Большое человеческое">
-    <style>
-      .m3-primary { fill: var(--md-sys-color-primary, #6750A4); }
-      .m3-primary-container { fill: var(--md-sys-color-primary-container, #EADDFF); }
-      .m3-secondary { fill: var(--logo-secondary, var(--md-sys-color-secondary, #625B71)); }
-      .m3-secondary-container { fill: var(--md-sys-color-secondary-container, #E8DEF8); }
-      .m3-tertiary { fill: var(--logo-tertiary, var(--md-sys-color-tertiary, #7D5260)); }
-      .m3-tertiary-container { fill: var(--md-sys-color-tertiary-container, #FFD8E4); }
-      .m3-on-primary { fill: var(--md-sys-color-on-primary, #FFFFFF); }
-      .m3-on-secondary { fill: var(--md-sys-color-on-secondary-container, #1D192B); }
-      .m3-on-tertiary { fill: var(--md-sys-color-on-tertiary, #FFFFFF); }
-      .m3-logo-secondary { fill: var(--logo-secondary, var(--md-sys-color-secondary, #625B71)); }
-      .m3-logo-tertiary { fill: var(--logo-tertiary, var(--md-sys-color-tertiary, #7D5260)); }
-      .m3-logo-bg { fill: var(--logo-mark-bg, var(--md-sys-color-surface-container-highest, #E6E0E9)); }
-      .m3-logo-line { fill: var(--logo-document-line, var(--md-sys-color-on-surface, #1D1B20)); }
-      .m3-on-surface { fill: var(--md-sys-color-on-surface, #1D1B20); }
-      .m3-on-surface-variant { fill: var(--md-sys-color-on-surface-variant, #49454F); }
-
-      .m3-title {
-        font-family: 'Roboto Flex', 'Google Sans', system-ui, -apple-system, sans-serif;
-        font-size: 42px;
-        font-weight: 750;
-        letter-spacing: 0.005em;
-        fill: var(--md-sys-color-primary, #6750A4);
-      }
-
-      .m3-subtitle {
-        font-family: 'Roboto Flex', 'Google Sans', system-ui, -apple-system, sans-serif;
-        font-size: 18px;
-        font-weight: 650;
-        letter-spacing: 0.075em;
-        fill: var(--md-sys-color-on-surface-variant, #49454F);
-      }
-    </style>
-<g id="logo-mark" transform="translate(3, 4) scale(1.06)">
-    <rect x="2" y="2" width="80" height="80" rx="24"
-          fill="var(--logo-mark-bg, var(--md-sys-color-surface-container-highest, #E6E0E9))"
-          stroke="var(--md-sys-color-outline-variant, #CAC4D0)" stroke-width="1.5"/>
-    <rect x="14" y="46" width="22" height="26" rx="7"
-          fill="var(--logo-secondary, var(--md-sys-color-secondary, #625B71))"/>
-    <path d="M 44,34 H 58 A 8,8 0 0 1 66,42 V 60 A 10,10 0 0 1 56,70 H 46 A 8,8 0 0 1 38,62 V 40 A 6,6 0 0 1 44,34 Z"
-          fill="var(--logo-tertiary, var(--md-sys-color-tertiary, #7D5260))"/>
-    <rect x="44" y="40" width="14" height="4" rx="2"
-          fill="var(--logo-document-line, var(--md-sys-color-on-tertiary, #FFFFFF))"/>
-    <rect x="44" y="47" width="10" height="4" rx="2"
-          fill="var(--logo-document-line, var(--md-sys-color-on-surface, #1D1B20))"/>
-    <circle cx="38" cy="22" r="6.5" fill="var(--md-sys-color-primary, currentColor)"/>
-    <path d="M 35,33 C 27,32 19,27 14,22 C 12.5,20.5 15,18.5 17,20 C 22,24 28,27 36,28 Z" 
-          fill="var(--md-sys-color-primary, currentColor)"/>
-    <path d="M 36,28 C 43,28 47,33 44,43 C 41,53 43,62 50,65 C 52.5,66 51.5,70 49,70 C 38,70 34,57 37,46 C 39,39 37,34 32,34 C 30.5,34 30.5,31 32,30 C 33.3,29.3 34.7,28.6 36,28 Z" 
-          fill="var(--md-sys-color-primary, currentColor)"/>
-    <path d="M 42,37 C 49,37 55,41 59,48 C 60.5,50.5 57.5,52.5 56,50 C 53,45 48,41 42,41 Z" 
-          fill="var(--md-sys-color-primary, currentColor)"/>
-    <path d="M 70,10 C 70,14.5 67.5,17 63,17 C 67.5,17 70,19.5 70,24 C 70,19.5 72.5,17 77,17 C 72.5,17 70,14.5 70,10 Z" 
-          fill="var(--md-sys-color-tertiary, currentColor)"/>
-</g>
+<div class="bolchel-logo-container" style="
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  background: transparent;
+  font-family: 'Google Sans', 'Roboto', system-ui, -apple-system, sans-serif;
+  user-select: none;
+">
+  <div style="display: flex; align-items: center; gap: 14px;">
     
-<g id="logo-text">
-    <text x="104" y="43" class="m3-title">БОЛЬШОЕ</text>
-    <text x="104" y="79" class="m3-title">ЧЕЛОВЕЧЕСКОЕ</text>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="64" height="64" fill="none" style="flex-shrink: 0;">
+      <defs>
+        <linearGradient id="bolchel-m3-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="var(--md-sys-color-primary-container, #EADDFF)" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="var(--md-sys-color-tertiary-container, #FFD8E4)" stop-opacity="0.45"/>
+        </linearGradient>
+        
+        <linearGradient id="bolchel-pod-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="var(--md-sys-color-primary, #6750A4)"/>
+          <stop offset="100%" stop-color="var(--md-sys-color-secondary, #625B71)"/>
+        </linearGradient>
+      </defs>
+      
+      <rect x="4" y="4" width="92" height="92" rx="28" fill="url(#bolchel-m3-bg)" />
 
-    <text x="104" y="100" class="m3-subtitle">Новостное издание</text>
-    <text x="104" y="120" class="m3-subtitle">нового поколения!</text>
-</g>  </svg>
+      <path d="M 20 22 L 36 22 L 40 26 L 40 54 L 36 58 L 20 58 L 16 54 L 16 26 Z" 
+            fill="url(#bolchel-pod-grad)" />
+      
+      <rect x="25" y="16" width="6" height="6" rx="1.5" fill="var(--md-sys-color-tertiary, #7D5260)" />
+      <circle cx="28" cy="13" r="2" fill="var(--md-sys-color-error, #B3261E)" />
+
+      <rect x="20" y="28" width="16" height="10" rx="3" fill="var(--md-sys-color-on-primary, #FFFFFF)" opacity="0.95" />
+      <circle cx="25" cy="33" r="2.5" fill="var(--md-sys-color-primary, #6750A4)" />
+      <circle cx="31" cy="33" r="2" fill="var(--md-sys-color-tertiary, #7D5260)" />
+
+      <rect x="21" y="58" width="14" height="6" rx="2" fill="var(--md-sys-color-outline, #79747E)" />
+      <path d="M 32 62 L 42 66 L 48 62" 
+            stroke="var(--md-sys-color-primary, #6750A4)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="48" cy="62" r="2" fill="var(--md-sys-color-tertiary, #7D5260)" />
+
+      <g transform="translate(42, 38) rotate(-10)">
+        <rect x="0" y="0" width="16" height="22" rx="3" 
+              fill="var(--md-sys-color-surface, #FEF7FF)" 
+              stroke="var(--md-sys-color-outline-variant, #CAC4D0)" stroke-width="1.2" />
+        <line x1="3" y1="5" x2="11" y2="5" stroke="var(--md-sys-color-primary, #6750A4)" stroke-width="2" stroke-linecap="round" />
+        <line x1="3" y1="9" x2="13" y2="9" stroke="var(--md-sys-color-on-surface-variant, #49454F)" stroke-width="1" stroke-linecap="round" />
+        <line x1="3" y1="13" x2="13" y2="13" stroke="var(--md-sys-color-on-surface-variant, #49454F)" stroke-width="1" stroke-linecap="round" />
+        <line x1="3" y1="17" x2="9" y2="17" stroke="var(--md-sys-color-on-surface-variant, #49454F)" stroke-width="1" stroke-linecap="round" />
+      </g>
+
+      <circle cx="76" cy="32" r="8" fill="var(--md-sys-color-primary, #6750A4)" />
+      
+      <path d="M 76 43 C 67 43 62 51 62 62 L 62 82 C 62 84 64 86 66 86 L 70 86 C 72 86 74 84 74 82 L 74 68 L 78 68 L 78 82 C 78 84 80 86 82 86 L 86 86 C 88 86 90 84 90 82 L 90 62 C 90 51 85 43 76 43 Z" 
+            fill="var(--md-sys-color-primary, #6750A4)" />
+
+      <path d="M 68 49 L 58 55 L 54 52" 
+            stroke="var(--md-sys-color-primary, #6750A4)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+      <circle cx="52" cy="34" r="1.5" fill="var(--md-sys-color-tertiary, #7D5260)" />
+      <circle cx="48" cy="70" r="1.5" fill="var(--md-sys-color-primary, #6750A4)" />
+      <circle cx="64" cy="26" r="1" fill="var(--md-sys-color-secondary, #625B71)" />
+    </svg>
+
+    <div style="display: flex; flex-direction: column; justify-content: center; line-height: 1.1;">
+      <span style="
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: var(--md-sys-color-on-surface, #1C1B1F);
+        text-transform: uppercase;
+      ">БОЛЬШОЕ</span>
+      <span style="
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: var(--md-sys-color-primary, #6750A4);
+        text-transform: uppercase;
+      ">ЧЕЛОВЕЧЕСКОЕ</span>
+    </div>
+  </div>
+
+  <div style="
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--md-sys-color-on-surface-variant, #49454F);
+    padding-left: 2px;
+    opacity: 0.9;
+  ">
+    Новостное издание нового поколения!
+  </div>
+</div>
 </div>
       </div>
     </div>
