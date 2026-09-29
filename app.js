@@ -10,7 +10,8 @@ const state = {
   section:'news', previousSection:'news', category:null, search:'', news:[],
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
-  editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null },
+  editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null },
+  newsSuggestions:[],
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0, authorProfiles:{}, supabaseInitPromise:null, supabaseError:null
 };
@@ -594,23 +595,122 @@ function renderProfile(){
   $('#edit-profile').onclick=()=>openEditProfile(p);
   $('#signout').onclick=signOut;
   if($('#create-news')) $('#create-news').onclick=()=>openEditor(null);
+  if(!state.admin){
+    const side=$('.profile-side',root);
+    if(side){
+      const button=document.createElement('button');
+      button.id='suggest-news';
+      button.className='filled-button';
+      button.style.cssText='width:100%;margin-top:14px';
+      button.innerHTML='<span class="material-symbols-rounded">send</span>Предложить новость';
+      button.onclick=()=>openEditor(null,'suggest');
+      side.appendChild(button);
+    }
+  }
   if(state.admin) renderAdminNewsManager(root);
 }
 
-function renderAdminNewsManager(root){
+async function loadNewsSuggestions(){
+  if(!state.supabase||!state.admin) return [];
+  try{
+    await loadAuthorProfiles();
+    const {data,error}=await state.supabase.from('news_submissions')
+      .select('id,author_id,category,title,summary,body,image_url,palette,status,created_at')
+      .eq('status','pending')
+      .order('created_at',{ascending:false});
+    if(error) throw error;
+    state.newsSuggestions=data||[];
+    return state.newsSuggestions;
+  }catch(error){
+    state.newsSuggestions=[];
+    console.warn('News suggestions load failed:',error);
+    return [];
+  }
+}
+
+async function approveNewsSuggestion(id){
+  if(!state.supabase||!state.admin||!state.user) return;
+  const item=state.newsSuggestions.find(s=>String(s.id)===String(id));
+  if(!item) return;
+  if(!window.confirm('Опубликовать предложение «'+item.title+'»?')) return;
+  try{
+    let palette=item.palette||null;
+    if(typeof palette==='string'){try{palette=JSON.parse(palette);}catch(_){palette=null;}}
+    const payload={
+      category:item.category,
+      title:item.title,
+      summary:item.summary||'',
+      body:item.body||'',
+      image_url:item.image_url||'',
+      author_id:item.author_id,
+      accent_hex:palette?.light?.primary||null,
+      palette
+    };
+    const inserted=await state.supabase.from('news').insert(payload);
+    if(inserted.error) throw inserted.error;
+    const updated=await state.supabase.from('news_submissions').update({
+      status:'approved',
+      reviewed_at:new Date().toISOString(),
+      reviewed_by:state.user.id
+    }).eq('id',id).eq('status','pending');
+    if(updated.error) throw updated.error;
+    await loadRemoteNews();
+    showToast('Предложение опубликовано');
+    renderProfile();
+  }catch(error){
+    showToast(error.message||'Не удалось опубликовать предложение.');
+  }
+}
+
+async function rejectNewsSuggestion(id){
+  if(!state.supabase||!state.admin||!state.user) return;
+  const item=state.newsSuggestions.find(s=>String(s.id)===String(id));
+  if(!item) return;
+  if(!window.confirm('Отклонить предложение «'+item.title+'»?')) return;
+  try{
+    const updated=await state.supabase.from('news_submissions').update({
+      status:'rejected',
+      reviewed_at:new Date().toISOString(),
+      reviewed_by:state.user.id
+    }).eq('id',id).eq('status','pending');
+    if(updated.error) throw updated.error;
+    showToast('Предложение отклонено');
+    renderProfile();
+  }catch(error){
+    showToast(error.message||'Не удалось отклонить предложение.');
+  }
+}
+
+async function renderAdminNewsManager(root){
   const side=$('.profile-side',root);
+  if(!side) return;
+
   const container=document.createElement('div');
   container.className='admin-news-list';
   const remote=state.news.filter(n=>!String(n.id).startsWith('demo-'));
-  if(!remote.length){
-    container.innerHTML='<div class="media-note">Пока нет опубликованных материалов из Supabase.</div>';
-  }else{
-    container.innerHTML=remote.map(n=>`<div class="admin-news-row" data-admin-news="${escapeHtml(n.id)}"><div class="admin-news-main"><strong>${escapeHtml(n.title)}</strong><span>${escapeHtml(n.category)} · ${escapeHtml(n.date)}</span></div><div class="admin-news-actions"><button class="icon-button small" data-edit-news="${escapeHtml(n.id)}" aria-label="Редактировать"><span class="material-symbols-rounded">edit</span></button><button class="icon-button small" data-delete-news="${escapeHtml(n.id)}" aria-label="Удалить"><span class="material-symbols-rounded">delete</span></button></div></div>`).join('');
-  }
+  container.innerHTML=remote.length
+    ? remote.map(n=>'<div class="admin-news-row" data-admin-news="'+escapeHtml(n.id)+'"><div class="admin-news-main"><strong>'+escapeHtml(n.title)+'</strong><span>'+escapeHtml(n.category)+' · '+escapeHtml(n.date)+'</span></div><div class="admin-news-actions"><button class="icon-button small" data-edit-news="'+escapeHtml(n.id)+'" aria-label="Редактировать"><span class="material-symbols-rounded">edit</span></button><button class="icon-button small" data-delete-news="'+escapeHtml(n.id)+'" aria-label="Удалить"><span class="material-symbols-rounded">delete</span></button></div></div>').join('')
+    : '<div class="media-note">Пока нет опубликованных материалов из Supabase.</div>';
   side.insertAdjacentHTML('beforeend','<div class="nav-divider"></div><h3 style="margin-top:16px">Управление новостями</h3>');
   side.appendChild(container);
   container.querySelectorAll('[data-edit-news]').forEach(btn=>btn.onclick=()=>openEditor(btn.dataset.editNews));
   container.querySelectorAll('[data-delete-news]').forEach(btn=>btn.onclick=()=>deleteNews(btn.dataset.deleteNews));
+
+  const suggestionsBox=document.createElement('section');
+  suggestionsBox.className='admin-suggestions';
+  suggestionsBox.innerHTML='<div class="nav-divider"></div><div class="admin-suggestions-heading"><h3>Предложенные новости</h3><span class="suggestion-count">Загрузка…</span></div><div class="admin-suggestions-list"></div>';
+  side.appendChild(suggestionsBox);
+  const list=suggestionsBox.querySelector('.admin-suggestions-list');
+  const count=suggestionsBox.querySelector('.suggestion-count');
+  const suggestions=await loadNewsSuggestions();
+  count.textContent=String(suggestions.length);
+  if(!suggestions.length){
+    list.innerHTML='<div class="media-note">Новых предложений пока нет.</div>';
+    return;
+  }
+  list.innerHTML=suggestions.map(s=>'<div class="admin-suggestion-row" data-suggestion-id="'+escapeHtml(s.id)+'"><div class="admin-news-main"><strong>'+escapeHtml(s.title)+'</strong><span>'+escapeHtml(s.category)+' · '+escapeHtml(new Date(s.created_at).toLocaleDateString('ru-RU'))+'</span><span class="suggestion-author">Автор: '+escapeHtml(state.authorProfiles?.[s.author_id]?.nickname||'Пользователь')+'</span></div><div class="admin-suggestion-actions"><button class="tonal-button suggestion-publish" data-approve-suggestion="'+escapeHtml(s.id)+'" type="button"><span class="material-symbols-rounded">publish</span>Опубликовать</button><button class="text-button suggestion-reject" data-reject-suggestion="'+escapeHtml(s.id)+'" type="button">Отклонить</button></div></div>').join('');
+  list.querySelectorAll('[data-approve-suggestion]').forEach(btn=>btn.onclick=()=>approveNewsSuggestion(btn.dataset.approveSuggestion));
+  list.querySelectorAll('[data-reject-suggestion]').forEach(btn=>btn.onclick=()=>rejectNewsSuggestion(btn.dataset.rejectSuggestion));
 }
 
 function openEditProfile(p){
@@ -860,9 +960,15 @@ async function loadRemoteNews(){
 }
 
 
-function openEditor(id){
-  if(!state.admin){ showToast('Редактор доступен только администраторам'); return; }
-  state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null };
+function openEditor(id,mode='edit'){
+  const suggestionMode=mode==='suggest';
+  if(suggestionMode){
+    if(!state.user){ showToast('Сначала войдите в аккаунт'); return; }
+  }else if(!state.admin){
+    showToast('Редактор доступен только администраторам');
+    return;
+  }
+  state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode, submissionId:null };
   openSection('editor');
 }
 
@@ -914,9 +1020,9 @@ function editorTemplate(news){
 }
 
 function renderEditor(){
-  if(!state.admin){
+  if(!state.user || (!state.admin && !state.editor.suggestionMode)){
     state.section='news';
-    showToast('Редактор доступен только администраторам.');
+    showToast('Редактор доступен только авторизованным пользователям.');
     openSection('news');
     return;
   }
@@ -929,6 +1035,23 @@ function renderEditor(){
 function setupEditor(news){
   const root=$('#editor-page');
   root.innerHTML=editorTemplate(news);
+  if(state.editor.suggestionMode){
+    const eyebrow=$('.editor-title-wrap .eyebrow');
+    if(eyebrow) eyebrow.textContent='Предложение';
+    const saveButton=$('#admin-save');
+    if(saveButton){
+      const icon=saveButton.querySelector('.material-symbols-rounded');
+      if(icon) icon.textContent='send';
+      const label=saveButton.querySelector('span:last-child');
+      if(label) label.textContent='Предложить';
+    }
+    const authorField=$('.editor-author-field');
+    const authorId=state.user?.id||'';
+    if(authorField && authorId){
+      const nickname=state.user?.profile?.nickname||state.user?.email?.split('@')[0]||'Пользователь';
+      authorField.innerHTML='<span>Автор</span><div class="editor-author-readonly"><input type="hidden" id="news-author-input" value="'+escapeHtml(authorId)+'"><span class="editor-author-name">'+escapeHtml(nickname)+'</span></div>';
+    }
+  }
   $('#news-title-input').value=news?.title||'';
   state.editor.authorId=news?.authorId||state.user?.id||'';
   $('#news-category-input').value=news?.category||CATEGORIES[0];
@@ -951,7 +1074,7 @@ function setupEditor(news){
 }
 
 function bindEditorEvents(){
-  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null}; backToNews(); };
+  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null}; backToNews(); };
   $('#admin-save').onclick=saveEditorNews;
   $('#news-body-input').addEventListener('input',()=>{ renderMarkdownPreview(); saveEditorDraft(); });
   $('#news-title-input').addEventListener('input',saveEditorDraft);
@@ -1306,16 +1429,64 @@ function useFirstMarkdownImageAsCover(){
   $('#news-image-input').value=url; updateEditorCoverPreview(); showToast('Первая картинка назначена обложкой');
 }
 
-async function uploadNewsImage(file){
+async function uploadNewsImage(file,scope='news'){
   if(!state.supabase||!state.user) throw new Error('Supabase не подключён.');
   const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const path=`news/${state.user.id}/${Date.now()}-${safe}`;
+  const root=scope==='suggestion'?'suggestions':'news';
+  const path=`${root}/${state.user.id}/${Date.now()}-${safe}`;
   const {error}=await state.supabase.storage.from('news-images').upload(path,file,{upsert:false,contentType:file.type,cacheControl:'3600'});
   if(error) throw error;
   return state.supabase.storage.from('news-images').getPublicUrl(path).data.publicUrl;
 }
 
+
+async function saveNewsSuggestion(){
+  if(!state.supabase||!state.user){showToast('Нужен аккаунт.');return;}
+  const msg=$('#admin-message');
+  if(msg) msg.textContent='';
+  const title=$('#news-title-input').value.trim();
+  const category=$('#news-category-input').value;
+  const body=markdownValue().trim();
+  let summary=$('#news-summary-input').value.trim();
+  let imageUrl=$('#news-image-input').value.trim();
+  if(!title){if(msg) msg.textContent='Укажите заголовок.';return;}
+  if(!body){if(msg) msg.textContent='Введите текст новости в Markdown.';return;}
+  try{
+    if(state.editor.pendingCoverFile){
+      if(msg) msg.textContent='Загружаем обложку…';
+      imageUrl=await uploadNewsImage(state.editor.pendingCoverFile,'suggestion');
+      $('#news-image-input').value=imageUrl;
+      state.editor.pendingCoverFile=null;
+    }
+    if(!imageUrl){
+      imageUrl=extractFirstImageFromMarkdown(body)||'';
+      $('#news-image-input').value=imageUrl;
+    }
+    if(!imageUrl){if(msg) msg.textContent='Нужно добавить изображение: палитра строится только из цветов изображения новости.';return;}
+    if(msg) msg.textContent='Генерируем M3 Content-палитру из изображения…';
+    const palette=state.editor.generatedPalette?.generator==='m3-content-v1'
+      ? state.editor.generatedPalette
+      : await generateM3ContentPaletteFromImage(imageUrl);
+    state.editor.generatedPalette=palette;
+    if(!summary){
+      const firstPlain=(body.replace(/^#{1,6}\s+/gm,'').replace(/[*_#>-]/g,'').split(/\n\s*\n/).find(Boolean)||'').trim();
+      summary=firstPlain.slice(0,360);
+    }
+    const payload={category,title,summary,body,image_url:imageUrl,author_id:state.user.id,palette,status:'pending'};
+    const {error}=await state.supabase.from('news_submissions').insert(payload);
+    if(error) throw error;
+    try{localStorage.removeItem('news-editor-draft-new');}catch(_){}
+    state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null};
+    showToast('Предложение отправлено редактору');
+    openSection('profile');
+    renderProfile();
+  }catch(error){
+    if(msg) msg.textContent=error.message||'Не удалось отправить предложение.';
+  }
+}
+
 async function saveEditorNews(){
+  if(state.editor.suggestionMode && !state.admin) return saveNewsSuggestion();
   if(!state.supabase||!state.user||!state.admin){showToast('Нужен аккаунт администратора.');return;}
   const msg=$('#admin-message'); msg.textContent='';
   const title=$('#news-title-input').value.trim(), category=$('#news-category-input').value, body=markdownValue().trim();
