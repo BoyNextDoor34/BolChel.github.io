@@ -86,22 +86,12 @@
 
   function findHeading(root,text){return [...root.querySelectorAll('h2,h3,h4')].find(x=>x.textContent.trim()===text);}
 
-  function commonAncestor(a,b,root){
-    if(!a||!b)return null;
-    const ancestors=new Set();
-    let node=a;
-    while(node&&node!==root){ancestors.add(node);node=node.parentElement;}
-    node=b;
-    while(node&&node!==root){if(ancestors.has(node))return node;node=node.parentElement;}
-    return null;
-  }
-
   function hideInlineBlock(node,heading,root){
-    // The old profile implementation wraps the manager/list in a larger
-    // card. Hiding only the list leaves the card header visible, which is
-    // what caused the duplicate panels at the bottom of the profile.
-    const wrapper=commonAncestor(node,heading,root);
-    const target=wrapper && wrapper!==root ? wrapper : node;
+    // Hide only the panel that directly contains the manager. Do not walk
+    // up to the profile-layout itself: that also contains the right-hand
+    // profile tools and would make the entire side panel disappear.
+    const panel=node?.parentElement;
+    const target=panel && panel!==root ? panel : node;
     target.hidden=true;
     target.setAttribute('aria-hidden','true');
   }
