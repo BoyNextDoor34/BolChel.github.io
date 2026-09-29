@@ -937,9 +937,9 @@ input[type="range"]::-moz-range-thumb {
   }
 
   .editor-toolbar {
-    position:sticky !important;
-    top:70px !important;
-    z-index:24;
+    position:static !important;
+    top:auto !important;
+    z-index:auto;
     flex-wrap:wrap !important;
     overflow:visible !important;
     overflow-x:visible !important;
@@ -1064,6 +1064,34 @@ input[type="range"]::-moz-range-thumb {
 
   .article-toolbar-actions .text-button {
     justify-self:stretch;
+  }
+
+  /* Bottom article navigation: keep previous/next buttons side-by-side
+     without the desktop/mobile grid making them overlap. */
+  .article-reading > .article-toolbar {
+    display:flex;
+    align-items:center;
+    flex-wrap:nowrap;
+    gap:8px;
+    white-space:nowrap;
+  }
+
+  .article-reading > .article-toolbar .article-toolbar-left {
+    display:flex;
+    flex:1 1 auto;
+    min-width:0;
+    gap:8px;
+  }
+
+  .article-reading > .article-toolbar .article-toolbar-left .tonal-button {
+    flex:1 1 0;
+    min-width:0;
+    justify-content:center;
+  }
+
+  .article-reading > .article-toolbar > .text-button {
+    flex:0 0 auto;
+    min-width:max-content;
   }
 }
 
