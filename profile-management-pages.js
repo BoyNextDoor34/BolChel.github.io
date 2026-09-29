@@ -69,12 +69,12 @@
     if(kind==='news-management'){
       const list=profile?.querySelector('.admin-news-list');
       content.replaceChildren();
-      if(list){list.style.display='';content.appendChild(list);}
+      if(list){list.hidden=false;content.appendChild(list);}
       else content.innerHTML='<div class="surface-card media-note">Управление новостями пока недоступно.</div>';
     }else{
       const box=profile?.querySelector('.admin-suggestions,.reader-suggestions');
       content.replaceChildren();
-      if(box){box.style.display='';content.appendChild(box);}
+      if(box){box.hidden=false;content.appendChild(box);}
       else content.innerHTML='<div class="surface-card media-note">Предложения загружаются…</div>';
     }
     const profileNav=document.querySelector('#main-nav .nav-item[data-section="profile"]');
@@ -108,10 +108,17 @@
       const heading=findHeading(root,'Управление новостями');
       const divider=heading?.previousElementSibling;
       heading?.remove();divider?.remove();
-      managerList.style.display='none';
+      // Keep the existing manager in the DOM as the data source for the
+      // dedicated page, but make it unconditionally non-rendered. Using
+      // the native hidden flag prevents older CSS rules from displaying it.
+      managerList.hidden=true;
+      managerList.setAttribute('aria-hidden','true');
     }
     const suggestion=root.querySelector('.admin-suggestions,.reader-suggestions');
-    if(suggestion)suggestion.style.display='none';
+    if(suggestion){
+      suggestion.hidden=true;
+      suggestion.setAttribute('aria-hidden','true');
+    }
   }
 
   function sync(){
