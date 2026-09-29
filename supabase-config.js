@@ -83,14 +83,61 @@ window.SUPABASE_CONFIG = {
     }
 
     @media (max-width: 860px) {
+      .app-nav .bolchel-logo-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 4px !important;
+        gap: 7px !important;
+      }
+
+      .app-nav .bolchel-logo-wrapper > div:first-child {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 7px !important;
+      }
+
       .app-nav .bolchel-logo-wrapper > div:first-child > svg {
-        width: 72px !important;
-        height: 72px !important;
-        flex-basis: 72px !important;
+        width: 58px !important;
+        height: 58px !important;
+        flex: 0 0 58px !important;
+      }
+
+      .app-nav .bolchel-logo-wrapper > div:first-child > div {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        flex: 0 0 auto !important;
+        overflow: visible !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
       }
 
       .app-nav .bolchel-logo-wrapper > div:first-child > div > span {
-        font-size: 1.35rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 0.98rem !important;
+        line-height: 1.05 !important;
+        letter-spacing: 0.025em !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+        text-align: center !important;
+      }
+
+      .app-nav .bolchel-logo-wrapper > div:last-child {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 0.54rem !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        text-align: center !important;
       }
     }
   `;
