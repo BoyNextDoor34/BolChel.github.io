@@ -69,12 +69,12 @@
     if(kind==='news-management'){
       const list=profile?.querySelector('.admin-news-list');
       content.replaceChildren();
-      if(list){list.hidden=false;content.appendChild(list);}
+      if(list){list.hidden=false;list.removeAttribute('aria-hidden');content.appendChild(list);}
       else content.innerHTML='<div class="surface-card media-note">Управление новостями пока недоступно.</div>';
     }else{
       const box=profile?.querySelector('.admin-suggestions,.reader-suggestions');
       content.replaceChildren();
-      if(box){box.hidden=false;content.appendChild(box);}
+      if(box){box.hidden=false;box.removeAttribute('aria-hidden');content.appendChild(box);}
       else content.innerHTML='<div class="surface-card media-note">Предложения загружаются…</div>';
     }
     const profileNav=document.querySelector('#main-nav .nav-item[data-section="profile"]');
@@ -85,6 +85,26 @@
   }
 
   function findHeading(root,text){return [...root.querySelectorAll('h2,h3,h4')].find(x=>x.textContent.trim()===text);}
+
+  function commonAncestor(a,b,root){
+    if(!a||!b)return null;
+    const ancestors=new Set();
+    let node=a;
+    while(node&&node!==root){ancestors.add(node);node=node.parentElement;}
+    node=b;
+    while(node&&node!==root){if(ancestors.has(node))return node;node=node.parentElement;}
+    return null;
+  }
+
+  function hideInlineBlock(node,heading,root){
+    // The old profile implementation wraps the manager/list in a larger
+    // card. Hiding only the list leaves the card header visible, which is
+    // what caused the duplicate panels at the bottom of the profile.
+    const wrapper=commonAncestor(node,heading,root);
+    const target=wrapper && wrapper!==root ? wrapper : node;
+    target.hidden=true;
+    target.setAttribute('aria-hidden','true');
+  }
 
   function addTool(container,kind,title,description,icon,count){
     let button=container.querySelector('[data-profile-tool="'+kind+'"]');
@@ -107,17 +127,15 @@
     if(managerList){
       const heading=findHeading(root,'Управление новостями');
       const divider=heading?.previousElementSibling;
+      hideInlineBlock(managerList,heading,root);
       heading?.remove();divider?.remove();
-      // Keep the existing manager in the DOM as the data source for the
-      // dedicated page, but make it unconditionally non-rendered. Using
-      // the native hidden flag prevents older CSS rules from displaying it.
-      managerList.hidden=true;
-      managerList.setAttribute('aria-hidden','true');
     }
     const suggestion=root.querySelector('.admin-suggestions,.reader-suggestions');
     if(suggestion){
-      suggestion.hidden=true;
-      suggestion.setAttribute('aria-hidden','true');
+      const heading=findHeading(root,'Предложенные новости');
+      const divider=heading?.previousElementSibling;
+      hideInlineBlock(suggestion,heading,root);
+      heading?.remove();divider?.remove();
     }
   }
 
