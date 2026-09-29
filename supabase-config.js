@@ -230,7 +230,9 @@ window.SUPABASE_CONFIG = {
   const lockAuthorField = (field) => {
     if (!field || field.querySelector('.editor-author-readonly')) return;
     const input = field.querySelector('#news-author-input');
-    if (!input) return;
+    /* setupEditor() creates the hidden input before loadEditorAuthors() fills
+       it asynchronously. Do not lock the empty placeholder as «Редакция». */
+    if (!input?.value) return;
     const name = getAuthorName(input);
     field.innerHTML = `
       <span>Автор</span>
