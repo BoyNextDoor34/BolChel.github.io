@@ -169,6 +169,16 @@ window.SUPABASE_CONFIG = {
       text-overflow: ellipsis !important;
       white-space: nowrap !important;
     }
+
+    @media (max-width: 860px) {
+      /* While the news editor is open, the bottom dock folds away and is inert. */
+      .mobile-dock.is-editor-inactive {
+        transform: translateY(calc(100% + 28px)) !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 
@@ -237,6 +247,35 @@ window.SUPABASE_CONFIG = {
     new MutationObserver(() => {
       scan();
     }).observe(root, {childList:true, subtree:true});
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true});
+  else start();
+})();
+
+/* Fold the mobile dock while the editor page is open. The editor itself
+   remains fully usable; the dock is only restored when leaving the editor. */
+(function () {
+  const syncEditorDock = () => {
+    const dock = document.getElementById('mobile-dock');
+    const editor = document.getElementById('section-editor');
+    if (!dock || !editor) return;
+    const isMobile = window.matchMedia?.('(max-width: 860px)').matches;
+    const inactive = Boolean(isMobile && editor.classList.contains('is-visible'));
+    dock.classList.toggle('is-editor-inactive', inactive);
+    dock.setAttribute('aria-hidden', inactive ? 'true' : 'false');
+  };
+
+  const start = () => {
+    const editor = document.getElementById('section-editor');
+    if (editor) {
+      new MutationObserver(syncEditorDock).observe(editor, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+    window.addEventListener('resize', syncEditorDock, {passive:true});
+    syncEditorDock();
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true});
