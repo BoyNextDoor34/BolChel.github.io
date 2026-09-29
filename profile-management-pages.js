@@ -22,10 +22,10 @@
       .profile-subpage .subpage-header{display:flex;align-items:flex-start;gap:16px;justify-content:space-between;margin-bottom:22px}
       .profile-subpage .subpage-header h1{margin:2px 0 0}
       .profile-subpage .subpage-header .text-button{flex:0 0 auto}
-      .profile-subpage-content{min-width:0}
-      .profile-subpage-content>.admin-news-list,.profile-subpage-content>.admin-suggestions,.profile-subpage-content>.reader-suggestions{width:100%;max-width:none;box-sizing:border-box}
+      .profile-subpage-content{min-width:0;width:100%;box-sizing:border-box}
+      .profile-subpage-content>.admin-news-list,.profile-subpage-content>.admin-suggestions,.profile-subpage-content>.reader-suggestions{width:100%;max-width:none;box-sizing:border-box;min-width:0}
       .profile-subpage-content>.admin-suggestions{overflow:visible}
-      .profile-subpage-content .admin-suggestion-row,.profile-subpage-content .reader-suggestion-row{width:100%;box-sizing:border-box}
+      .profile-subpage-content .admin-suggestion-row,.profile-subpage-content .reader-suggestion-row{width:100%;max-width:100%;box-sizing:border-box;min-width:0}
       @media(max-width:860px){
         .profile-subpage .subpage-header{align-items:stretch;flex-direction:column}
         .profile-subpage .subpage-header .text-button{align-self:flex-start}
@@ -69,15 +69,12 @@
     if(kind==='news-management'){
       const list=profile?.querySelector('.admin-news-list');
       content.replaceChildren();
-      if(list){
-        content.appendChild(list);
-      }else{
-        content.innerHTML='<div class="surface-card media-note">Управление новостями пока недоступно.</div>';
-      }
+      if(list){list.style.display='';content.appendChild(list);}
+      else content.innerHTML='<div class="surface-card media-note">Управление новостями пока недоступно.</div>';
     }else{
       const box=profile?.querySelector('.admin-suggestions,.reader-suggestions');
       content.replaceChildren();
-      if(box){content.appendChild(box);}
+      if(box){box.style.display='';content.appendChild(box);}
       else content.innerHTML='<div class="surface-card media-note">Предложения загружаются…</div>';
     }
     const profileNav=document.querySelector('#main-nav .nav-item[data-section="profile"]');
@@ -87,9 +84,7 @@
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  function findHeading(root,text){
-    return [...root.querySelectorAll('h2,h3,h4')].find(x=>x.textContent.trim()===text);
-  }
+  function findHeading(root,text){return [...root.querySelectorAll('h2,h3,h4')].find(x=>x.textContent.trim()===text);}
 
   function addTool(container,kind,title,description,icon,count){
     let button=container.querySelector('[data-profile-tool="'+kind+'"]');
@@ -102,7 +97,8 @@
       container.appendChild(button);
     }
     const badge=button.querySelector('.profile-tool-count');
-    if(count===null||count===undefined){badge.hidden=true;}else{badge.hidden=false;badge.textContent=String(count);}
+    if(count===null||count===undefined||count===''||count==='0'){badge.hidden=count!=='0';if(count==='0')badge.textContent='0';}
+    else{badge.hidden=false;badge.textContent=String(count);}
     button.onclick=()=>openPage(kind);
   }
 
@@ -115,7 +111,7 @@
       managerList.style.display='none';
     }
     const suggestion=root.querySelector('.admin-suggestions,.reader-suggestions');
-    if(suggestion){suggestion.style.display='none';}
+    if(suggestion)suggestion.style.display='none';
   }
 
   function sync(){
@@ -123,11 +119,7 @@
     const root=document.getElementById('profile-card');
     if(!root)return;
     let tools=root.querySelector('.profile-tools');
-    if(!tools){
-      tools=document.createElement('div');
-      tools.className='profile-tools';
-      root.appendChild(tools);
-    }
+    if(!tools){tools=document.createElement('div');tools.className='profile-tools';root.appendChild(tools);}
     const admin=Boolean(root.querySelector('.admin-news-list'));
     const suggestions=root.querySelector('.admin-suggestions,.reader-suggestions');
     if(admin)addTool(tools,'news-management','Управление новостями','Редактирование, удаление и контроль опубликованных материалов','newspaper',null);
@@ -139,13 +131,14 @@
   function install(){
     if(installed)return;installed=true;ensureStyles();
     const original=window.renderProfile;
-    if(typeof original==='function'){
+    if(typeof original==='function' && !original.__profileManagementWrapped){
       window.renderProfile=function(){
         const result=original.apply(this,arguments);
         setTimeout(sync,80);
         setTimeout(sync,500);
         return result;
       };
+      window.renderProfile.__profileManagementWrapped=true;
     }
     const observer=new MutationObserver(()=>{
       if(document.getElementById('section-profile')?.classList.contains('is-visible'))setTimeout(sync,0);
