@@ -155,10 +155,10 @@ window.SUPABASE_CONFIG = {
     .editor-author-readonly {
       display: flex !important;
       align-items: center !important;
-      min-height: 48px !important;
+      min-height: 56px !important;
       padding: 0 16px !important;
       border: 1px solid var(--md-sys-color-outline) !important;
-      border-radius: 14px !important;
+      border-radius: 16px !important;
       background: var(--md-sys-color-surface-container-low) !important;
       color: var(--md-sys-color-on-surface) !important;
       box-sizing: border-box !important;
@@ -171,6 +171,11 @@ window.SUPABASE_CONFIG = {
     }
 
     @media (max-width: 860px) {
+      /* Keep the author control the same height as the mobile section selector. */
+      .editor-author-readonly {
+        min-height: 52px !important;
+      }
+
       /* While the news editor is open, the bottom dock folds away and is inert. */
       .mobile-dock.is-editor-inactive {
         transform: translateY(calc(100% + 28px)) !important;
