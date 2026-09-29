@@ -152,4 +152,24 @@ window.SUPABASE_CONFIG = {
     }
   `;
   document.head.appendChild(style);
+
+  /* openSection() intentionally marks the article as its own section and
+     therefore removes .is-active from the mobile News item. Keep the
+     visual selection on News while an article is actually visible. */
+  const syncArticleNewsDock = () => {
+    const article = document.getElementById('section-article');
+    const newsDock = document.querySelector('#mobile-dock .mobile-dock-item[data-section="news"]');
+    if (!article || !newsDock) return;
+    newsDock.classList.toggle('is-active', article.classList.contains('is-visible'));
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    syncArticleNewsDock();
+    const article = document.getElementById('section-article');
+    if (!article) return;
+    new MutationObserver(syncArticleNewsDock).observe(article, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  });
 })();
