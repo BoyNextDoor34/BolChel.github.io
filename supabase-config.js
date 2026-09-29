@@ -150,6 +150,25 @@ window.SUPABASE_CONFIG = {
       border-color: var(--md-sys-color-outline-variant) !important;
       font-weight: 800 !important;
     }
+
+    /* The news author is informational, not an editor-controlled field. */
+    .editor-author-readonly {
+      display: flex !important;
+      align-items: center !important;
+      min-height: 48px !important;
+      padding: 0 16px !important;
+      border: 1px solid var(--md-sys-color-outline) !important;
+      border-radius: 14px !important;
+      background: var(--md-sys-color-surface-container-low) !important;
+      color: var(--md-sys-color-on-surface) !important;
+      box-sizing: border-box !important;
+    }
+
+    .editor-author-readonly .editor-author-name {
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
   `;
   document.head.appendChild(style);
 
@@ -172,4 +191,54 @@ window.SUPABASE_CONFIG = {
       attributeFilter: ['class']
     });
   });
+})();
+
+/* Lock the news author in the editor. The hidden author id is preserved so
+   saving existing articles keeps their original author, while new articles
+   use the currently signed-in administrator. The visible control is replaced
+   with plain text, so there is no author picker and no role label. */
+(function () {
+  const getAuthorName = (input) => {
+    const id = input?.value || '';
+    try {
+      if (typeof state !== 'undefined') {
+        const profile = state.authorProfiles?.[id];
+        if (profile?.nickname) return profile.nickname;
+        if (state.user?.id === id) {
+          return state.user.profile?.nickname || state.user.email?.split('@')[0] || 'Пользователь';
+        }
+      }
+    } catch (_) {}
+    return 'Редакция';
+  };
+
+  const lockAuthorField = (field) => {
+    if (!field || field.querySelector('.editor-author-readonly')) return;
+    const input = field.querySelector('#news-author-input');
+    if (!input) return;
+    const name = getAuthorName(input);
+    field.innerHTML = `
+      <span>Автор</span>
+      <div class="editor-author-readonly">
+        <input type="hidden" id="news-author-input" value="${String(input.value || '').replace(/"/g, '&quot;')}">
+        <span class="editor-author-name">${String(name).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}</span>
+      </div>
+    `;
+  };
+
+  const scan = () => {
+    document.querySelectorAll('.editor-author-field').forEach(lockAuthorField);
+  };
+
+  const start = () => {
+    scan();
+    const root = document.getElementById('editor-page');
+    if (!root) return;
+    new MutationObserver(() => {
+      scan();
+    }).observe(root, {childList:true, subtree:true});
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true});
+  else start();
 })();
