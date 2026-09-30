@@ -364,7 +364,7 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 .markdown-preview { min-height:540px; padding:20px; overflow:auto; background:var(--md-sys-color-surface); }
 .markdown-preview p { color:var(--md-sys-color-on-surface); }
 .markdown-preview h1, .markdown-preview h2, .markdown-preview h3 { margin:1.2em 0 .55em; }
-.markdown-preview blockquote { margin:1em 0; padding:9px 16px; border-left:4px solid var(--md-sys-color-primary); background:var(--md-sys-color-primary-container); border-radius:0 14px 14px 0; color:var(--md-sys-color-on-primary-container); }
+.markdown-preview blockquote { margin:1em 0; padding:9px 16px; border-left:4px solid var(--md-sys-color-primary); background:var(--md-sys-color-surface-container-high); border-radius:0 14px 14px 0; color:var(--md-sys-color-on-surface); }
 .markdown-preview code { background:var(--md-sys-color-surface-container-high); padding:2px 5px; border-radius:6px; }
 .markdown-preview pre { padding:15px; border-radius:16px; background:#18161b; color:#f4eef7; overflow:auto; }
 .markdown-preview pre code { padding:0; background:transparent; }
@@ -441,7 +441,7 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
   .mobile-category-scroll .mobile-cat.is-active { background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-primary); border-color:var(--md-sys-color-outline-variant); font-weight:800; }
   .mobile-dock { position:fixed; left:12px; right:12px; bottom:12px; z-index:80; display:grid; grid-template-columns:repeat(3,1fr); gap:5px; padding:6px; background:color-mix(in srgb, var(--md-sys-color-surface-container-high) 95%, transparent); border:1px solid var(--md-sys-color-outline-variant); border-radius:22px; backdrop-filter:blur(18px); }
   .mobile-dock-item { border:0; background:transparent; min-height:58px; border-radius:17px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--md-sys-color-on-surface-variant); cursor:pointer; font-size:11px; font-weight:600; }
-  .mobile-dock-item.is-active { background:var(--md-sys-color-primary-container); color:var(--md-sys-color-on-primary-container); border:1px solid var(--md-sys-color-outline-variant); font-weight:800; }
+  .mobile-dock-item.is-active { background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-primary); border:1px solid var(--md-sys-color-outline-variant); font-weight:800; }
   .mobile-dock-item .material-symbols-rounded { font-size:22px; }
   .topbar-actions .filled-button { padding:0 14px; }
   .about-grid { grid-template-columns:1fr; }
