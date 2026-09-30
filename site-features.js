@@ -82,9 +82,11 @@
     return {
       isDelete,
       isPublish,
-      message:isPublish?'Опубликовать эту версию новости?':(title?`Удалить новость «${title}»? Это действие необратимо.`:'Удалить новость? Это действие необратимо.'),
+      message:isPublish
+        ?'После публикации материал станет доступен читателям. Перед подтверждением проверьте заголовок, раздел и обложку.'
+        :(title?`Удалить новость «${title}»? Это действие необратимо.`:'Удалить новость? Это действие необратимо.'),
       eyebrow:isPublish?'Публикация':'Удаление',
-      title:isPublish?'Опубликовать эту версию новости?':'Удалить новость?',
+      title:isPublish?'Опубликовать новость?':'Удалить новость?',
       confirmLabel:isPublish?'Опубликовать':'Удалить'
     };
   }
@@ -176,6 +178,10 @@
     if(typeof state!=='undefined'){
       state.editor.generatedPalette=savedPalette||null;
       state.editor.pendingCoverFile=null;
+      if(savedPalette){
+        state.paletteContext='editor';
+        window.applySitePalette?.(savedPalette);
+      }
     }
     window.syncEditorSelect?.('news-category-input');
     window.updateEditorCoverPreview?.({generatePalette:false});
@@ -500,8 +506,12 @@
     $('#news-body-input')?.dispatchEvent(new Event('input',{bubbles:true}));
     state.editor.generatedPalette=draft.palette||null;
     if(draft.image_url){
+      if(draft.palette){
+        state.paletteContext='editor';
+        window.applySitePalette?.(draft.palette);
+        renderPaletteSwatches(draft.palette);
+      }
       updateEditorCoverPreview({generatePalette:!draft.palette});
-      if(draft.palette)renderPaletteSwatches(draft.palette);
     }
     window.showToast?.('Черновик открыт');
   }
