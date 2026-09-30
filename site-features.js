@@ -193,21 +193,27 @@
     page.dataset.suggestionId=sourceItem.id;
     page.dataset.suggestionMode=mode;
 
-    const pending=mode==='published-edit'||mode==='admin-review-update'||sourceItem.status==='pending_update';
-    const hasPendingVersion=pending && [
-      sourceItem.pending_title,sourceItem.pending_category,sourceItem.pending_summary,
-      sourceItem.pending_body,sourceItem.pending_image_url,sourceItem.pending_palette
-    ].some(value=>value!==null&&value!==undefined&&String(value)!=='');
-    const src=hasPendingVersion
-      ?{title:sourceItem.pending_title??sourceItem.title,category:sourceItem.pending_category??sourceItem.category,summary:sourceItem.pending_summary??sourceItem.summary,body:sourceItem.pending_body??sourceItem.body,image:sourceItem.pending_image_url??sourceItem.image_url}
-      :{title:sourceItem.title,category:sourceItem.category,summary:sourceItem.summary,body:sourceItem.body,image:sourceItem.image_url};
+    const pendingMode=mode==='published-edit'||mode==='admin-review-update'||sourceItem.status==='pending_update';
+    const pendingValue=(pendingKey,baseKey)=>{
+      const value=sourceItem[pendingKey];
+      return pendingMode && value!==null && value!==undefined ? value : sourceItem[baseKey];
+    };
+    const src={
+      title:pendingValue('pending_title','title'),
+      category:pendingValue('pending_category','category'),
+      summary:pendingValue('pending_summary','summary'),
+      body:pendingValue('pending_body','body'),
+      image:pendingValue('pending_image_url','image_url')
+    };
     $('#news-title-input').value=src.title||'';
     $('#news-category-input').value=src.category||'Политика';
     $('#news-summary-input').value=src.summary||'';
     $('#news-body-input').value=src.body||'';
     $('#news-image-input').value=src.image||'';
 
-    let savedPalette=pending?sourceItem.pending_palette:sourceItem.palette;
+    let savedPalette=pendingMode && sourceItem.pending_palette!==null && sourceItem.pending_palette!==undefined
+      ?sourceItem.pending_palette
+      :sourceItem.palette;
     if(typeof savedPalette==='string'){try{savedPalette=JSON.parse(savedPalette)}catch(_){savedPalette=null}}
     if(typeof state!=='undefined'){
       state.editor.generatedPalette=savedPalette||null;
@@ -302,10 +308,76 @@
     window.showToast?.('Предложение удалено');renderManagementPage();
   }
 
-  async function publishSuggestion(id){const sb=await getClient();if(!sb||!isAdmin())return;const {data:item,error}=await sb.from('news_submissions').select('*').eq('id',id).single();if(error||!item)return;if(!confirm('Опубликовать эту версию новости?'))return;const update=item.status==='pending_update'&&item.news_id;let p=item.palette;if(update)p=item.pending_palette;if(typeof p==='string'){try{p=JSON.parse(p)}catch(_){p=null}}const src=update?{category:item.pending_category,title:item.pending_title,summary:item.pending_summary,body:item.pending_body,image_url:item.pending_image_url}:{category:item.category,title:item.title,summary:item.summary,body:item.body,image_url:item.image_url};const payload={category:src.category,title:src.title,summary:src.summary||'',body:src.body||'',image_url:src.image_url||'',author_id:item.author_id,palette:p,accent_hex:p?.light?.primary||null};let newsId=item.news_id;let r;if(update)r=await sb.from('news').update(payload).eq('id',newsId);else{r=await sb.from('news').insert(payload).select('id').single();newsId=r.data?.id;}if(r.error)return window.showToast?.(r.error.message);const u=await sb.from('news_submissions').update({status:'approved',news_id:newsId,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id,pending_category:null,pending_title:null,pending_summary:null,pending_body:null,pending_image_url:null,pending_palette:null,updated_at:new Date().toISOString()}).eq('id',id);if(u.error)return window.showToast?.(u.error.message);await window.loadRemoteNews?.();window.showToast?.(update?'Изменения опубликованы':'Предложение опубликовано');backProfile();}
+  async function publishSuggestion(id){
+    const sb=await getClient();
+    if(!sb||!isAdmin())return;
+    const {data:item,error}=await sb.from('news_submissions').select('*').eq('id',id).single();
+    if(error||!item)return;
+    if(!confirm('Опубликовать эту версию новости?'))return;
+
+    const update=item.status==='pending_update'&&item.news_id;
+    const pendingValue=(pendingKey,baseKey)=>{
+      const value=item[pendingKey];
+      return update && value!==null && value!==undefined ? value : item[baseKey];
+    };
+
+    let p=update&&item.pending_palette!==null&&item.pending_palette!==undefined
+      ?item.pending_palette
+      :item.palette;
+    if(typeof p==='string'){try{p=JSON.parse(p)}catch(_){p=null}}
+
+    const src={
+      category:pendingValue('pending_category','category'),
+      title:pendingValue('pending_title','title'),
+      summary:pendingValue('pending_summary','summary'),
+      body:pendingValue('pending_body','body'),
+      image_url:pendingValue('pending_image_url','image_url')
+    };
+
+    const payload={
+      category:src.category,
+      title:src.title,
+      summary:src.summary||'',
+      body:src.body||'',
+      image_url:src.image_url||'',
+      author_id:item.author_id,
+      palette:p,
+      accent_hex:p?.light?.primary||null
+    };
+
+    let newsId=item.news_id;
+    let result;
+    if(update)result=await sb.from('news').update(payload).eq('id',newsId);
+    else{
+      result=await sb.from('news').insert(payload).select('id').single();
+      newsId=result.data?.id;
+    }
+    if(result.error)return window.showToast?.(result.error.message);
+
+    const u=await sb.from('news_submissions').update({
+      status:'approved',
+      news_id:newsId,
+      reviewed_at:new Date().toISOString(),
+      reviewed_by:currentUser.id,
+      pending_category:null,
+      pending_title:null,
+      pending_summary:null,
+      pending_body:null,
+      pending_image_url:null,
+      pending_palette:null,
+      updated_at:new Date().toISOString()
+    }).eq('id',id);
+    if(u.error)return window.showToast?.(u.error.message);
+    await window.loadRemoteNews?.();
+    window.showToast?.(update?'Изменения опубликованы':'Предложение опубликовано');
+    backProfile();
+  }
   async function rejectSuggestion(id){const sb=await getClient();if(!sb||!isAdmin())return;const r=await sb.from('news_submissions').update({status:'rejected',pending_category:null,pending_title:null,pending_summary:null,pending_body:null,pending_image_url:null,pending_palette:null,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq('id',id);if(r.error)return window.showToast?.(r.error.message);window.showToast?.('Предложение отклонено');renderManagementPage();}
 
-  async function renderSuggestionsPage(c){await refreshIdentity();if(!currentUser){c.innerHTML='<div class="media-note">Войдите в аккаунт, чтобы просматривать предложения.</div>';return;}const items=isAdmin()?await fetchPending():await fetchOwn();c.innerHTML='';const toolbar=document.createElement('div');toolbar.className='management-toolbar';toolbar.innerHTML='<h3>'+ (isAdmin()?'Предложения на проверке':'Мои предложения') +'</h3><span class="management-count">'+items.length+'</span>';c.appendChild(toolbar);const list=document.createElement('div');list.style.cssText='display:grid;gap:12px;width:100%;min-width:0';c.appendChild(list);if(!items.length){list.innerHTML='<div class="media-note">'+(isAdmin()?'Новых предложений и изменений на проверке нет.':'Вы ещё не предлагали новости.')+'</div>';return;}list.innerHTML=items.map(s=>{const pending=s.status==='pending_update';const src=pending?{title:s.pending_title,category:s.pending_category}:{title:s.title,category:s.category};const author=isAdmin()?'<span>Автор: '+esc(authorCache[s.author_id]||'Пользователь')+'</span>':'';let actions='';if(isAdmin())actions='<button class="tonal-button" data-review="'+esc(s.id)+'"><span class="material-symbols-rounded">edit</span>Просмотреть и изменить</button><button class="filled-button" data-publish="'+esc(s.id)+'"><span class="material-symbols-rounded">publish</span>Опубликовать</button><button class="text-button" data-reject="'+esc(s.id)+'">Отклонить</button>';else { if(['pending','approved','pending_update','rejected'].includes(s.status))actions='<button class="tonal-button" data-user-edit="'+esc(s.id)+'"><span class="material-symbols-rounded">edit</span>Редактировать</button>'; if(['pending','rejected'].includes(s.status))actions+='<button class="text-button" data-user-delete="'+esc(s.id)+'"><span class="material-symbols-rounded">delete</span>Удалить</button>'; }return '<article class="management-suggestion"><div class="management-suggestion-main"><div class="management-suggestion-title">'+esc(src.title)+'</div><div class="management-suggestion-meta"><span>'+esc(src.category||'')+'</span><span>'+esc(new Date(s.created_at).toLocaleDateString('ru-RU'))+'</span>'+author+'</div><div class="management-suggestion-status">'+esc(statusText(s.status))+'</div></div><div class="management-suggestion-actions">'+actions+'</div></article>';}).join('');list.querySelectorAll('[data-review]').forEach(b=>b.onclick=async()=>{const a=items.find(x=>String(x.id)===String(b.dataset.review));if(a)openSuggestionEditor(a,a.status==='pending_update'?'admin-review-update':'admin-review');});list.querySelectorAll('[data-user-edit]').forEach(b=>b.onclick=async()=>{const a=items.find(x=>String(x.id)===String(b.dataset.userEdit));if(a)openSuggestionEditor(a,a.status==='approved'?'published-edit':'pending-edit');});list.querySelectorAll('[data-user-delete]').forEach(b=>b.onclick=()=>deleteOwnSuggestion(b.dataset.userDelete));list.querySelectorAll('[data-publish]').forEach(b=>b.onclick=()=>publishSuggestion(b.dataset.publish));list.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>rejectSuggestion(b.dataset.reject));}
+  async function renderSuggestionsPage(c){await refreshIdentity();if(!currentUser){c.innerHTML='<div class="media-note">Войдите в аккаунт, чтобы просматривать предложения.</div>';return;}const items=isAdmin()?await fetchPending():await fetchOwn();c.innerHTML='';const toolbar=document.createElement('div');toolbar.className='management-toolbar';toolbar.innerHTML='<h3>'+ (isAdmin()?'Предложения на проверке':'Мои предложения') +'</h3><span class="management-count">'+items.length+'</span>';c.appendChild(toolbar);const list=document.createElement('div');list.style.cssText='display:grid;gap:12px;width:100%;min-width:0';c.appendChild(list);if(!items.length){list.innerHTML='<div class="media-note">'+(isAdmin()?'Новых предложений и изменений на проверке нет.':'Вы ещё не предлагали новости.')+'</div>';return;}list.innerHTML=items.map(s=>{const pending=s.status==='pending_update';const src={
+      title:pending&&s.pending_title!==null&&s.pending_title!==undefined?s.pending_title:s.title,
+      category:pending&&s.pending_category!==null&&s.pending_category!==undefined?s.pending_category:s.category
+    };const author=isAdmin()?'<span>Автор: '+esc(authorCache[s.author_id]||'Пользователь')+'</span>':'';let actions='';if(isAdmin())actions='<button class="tonal-button" data-review="'+esc(s.id)+'"><span class="material-symbols-rounded">edit</span>Просмотреть и изменить</button><button class="filled-button" data-publish="'+esc(s.id)+'"><span class="material-symbols-rounded">publish</span>Опубликовать</button><button class="text-button" data-reject="'+esc(s.id)+'">Отклонить</button>';else { if(['pending','approved','pending_update','rejected'].includes(s.status))actions='<button class="tonal-button" data-user-edit="'+esc(s.id)+'"><span class="material-symbols-rounded">edit</span>Редактировать</button>'; if(['pending','rejected'].includes(s.status))actions+='<button class="text-button" data-user-delete="'+esc(s.id)+'"><span class="material-symbols-rounded">delete</span>Удалить</button>'; }return '<article class="management-suggestion"><div class="management-suggestion-main"><div class="management-suggestion-title">'+esc(src.title)+'</div><div class="management-suggestion-meta"><span>'+esc(src.category||'')+'</span><span>'+esc(new Date(s.created_at).toLocaleDateString('ru-RU'))+'</span>'+author+'</div><div class="management-suggestion-status">'+esc(statusText(s.status))+'</div></div><div class="management-suggestion-actions">'+actions+'</div></article>';}).join('');list.querySelectorAll('[data-review]').forEach(b=>b.onclick=async()=>{const a=items.find(x=>String(x.id)===String(b.dataset.review));if(a)openSuggestionEditor(a,a.status==='pending_update'?'admin-review-update':'admin-review');});list.querySelectorAll('[data-user-edit]').forEach(b=>b.onclick=async()=>{const a=items.find(x=>String(x.id)===String(b.dataset.userEdit));if(a)openSuggestionEditor(a,a.status==='approved'?'published-edit':'pending-edit');});list.querySelectorAll('[data-user-delete]').forEach(b=>b.onclick=()=>deleteOwnSuggestion(b.dataset.userDelete));list.querySelectorAll('[data-publish]').forEach(b=>b.onclick=()=>publishSuggestion(b.dataset.publish));list.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>rejectSuggestion(b.dataset.reject));}
 
   function install(){if(installed)return;installed=true;ensureStyles();const op=window.renderProfile;if(typeof op==='function')window.renderProfile=function(){const r=op.apply(this,arguments);requestAnimationFrame(()=>replaceProfilePanels($('#profile-card')));return r;};const os=window.openSection;if(typeof os==='function')window.openSection=function(section){if(section==='profile-management')ensureManagementSection();const r=os.apply(this,arguments);if(section==='profile-management')requestAnimationFrame(renderManagementPage);return r;};
     document.addEventListener('click',e=>{
