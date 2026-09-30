@@ -897,8 +897,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .editor-select-option.is-selected {
-  background:var(--md-sys-color-primary-container);
-  color:var(--md-sys-color-on-primary-container);
+  background:var(--md-sys-color-surface-container-high);
+   color:var(--md-sys-color-primary);
   font-weight:700;
 }
 
@@ -1281,8 +1281,8 @@ input[type="range"]::-moz-range-thumb {
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  background:var(--md-sys-color-primary-container);
-  color:var(--md-sys-color-on-primary-container);
+  background:var(--md-sys-color-surface-container-high);
+  color:var(--md-sys-color-primary);
   font-weight:700;
   font-size:12px;
 }
