@@ -64,7 +64,7 @@
   function addSuggestionDeleteButtons(){
     if(typeof state==='undefined'||state.admin||!state.user)return;
     document.querySelectorAll('.management-suggestion').forEach(card=>{
-      if(card.querySelector('[data-user-delete-suggestion]'))return;
+      if(card.querySelector('[data-user-delete-suggestion],[data-user-delete]'))return;
       const edit=card.querySelector('[data-user-edit]');
       if(!edit)return;
       const status=(card.querySelector('.management-suggestion-status')?.textContent||'').trim();
