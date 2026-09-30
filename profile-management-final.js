@@ -60,11 +60,7 @@
         <h2>Навигация без мыши</h2>
         <p>На ПК поддерживается управление исключительно с клавиатуры, вдохновленное Neovim/Helix.</p>
       </article>
-      <div class="surface-card about-tech">
-        <h2>Стек</h2>
-        <div class="chip-row"><span class="chip">HTML</span><span class="chip">CSS</span><span class="chip">JavaScript</span><span class="chip">Supabase</span><span class="chip">GitHub Pages</span><span class="chip">Markdown</span><span class="chip">Matugen-ready</span></div>
-        <p class="muted">Статьи хранятся в Supabase, Markdown рендерится на клиенте через Marked и очищается DOMPurify перед вставкой в DOM.</p>
-      </div>`;
+`;
   }
 
   function isolateSuggestionSaveButton(){
@@ -79,7 +75,7 @@
     replacement.addEventListener('click',e=>{
       e.preventDefault();
       e.stopPropagation();
-      if(typeof window.saveSuggestionEditorWorkflow==='function')window.saveSuggestionEditorWorkflow();else if(typeof window.saveSuggestionEditorReliable==='function')window.saveSuggestionEditorReliable();
+      if(typeof window.saveSuggestionEditorReliable==='function')window.saveSuggestionEditorReliable();else if(typeof window.saveSuggestionEditorWorkflow==='function')window.saveSuggestionEditorWorkflow();
     });
     old.replaceWith(replacement);
   }
