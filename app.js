@@ -1283,23 +1283,11 @@ function syncEditorSelect(inputId){
   options.forEach(item=>item.classList.toggle('is-selected',item===option));
 }
 function saveEditorDraft(){
-  const id=state.editor.id||'new';
-  const payload={title:$('#news-title-input')?.value||'',category:$('#news-category-input')?.value||CATEGORIES[0],authorId:$('#news-author-input')?.value||state.editor.authorId||state.user?.id||'',summary:$('#news-summary-input')?.value||'',body:markdownValue(),image:$('#news-image-input')?.value||''};
-  try{localStorage.setItem(`news-editor-draft-${id}`,JSON.stringify(payload));}catch(_){ }
+  // Drafts are saved explicitly to Supabase by drafts-workflow.js.
+  // The editor no longer writes article content to browser-local storage.
 }
-function loadEditorDraft(id){
-  // New documents must always open empty. Saved drafts are opened explicitly
-  // from the profile's "Сохраненные черновики" page.
-  if(id==='new') return;
-  if(id!=='new' && state.editor.id) return;
-  try{
-    const raw=localStorage.getItem(`news-editor-draft-${id}`); if(!raw) return;
-    const draft=JSON.parse(raw); const isEmpty=!$('#news-title-input').value&&!markdownValue()&&!$('#news-image-input').value;
-    if(isEmpty){
-      $('#news-title-input').value=draft.title||''; $('#news-category-input').value=draft.category||CATEGORIES[0]; state.editor.authorId=draft.authorId||state.editor.authorId||state.user?.id||''; $('#news-author-input').value=state.editor.authorId; syncEditorSelect('news-category-input'); syncEditorSelect('news-author-input'); $('#news-summary-input').value=draft.summary||''; $('#news-body-input').value=draft.body||''; $('#news-image-input').value=draft.image||''; renderMarkdownPreview(); updateEditorCoverPreview();
-      showToast('Черновик восстановлен из локального хранилища');
-    }
-  }catch(_){ }
+function loadEditorDraft(){
+  // Server-side saved drafts are opened explicitly from the profile.
 }
 
 function updateEditorCoverPreview(){
