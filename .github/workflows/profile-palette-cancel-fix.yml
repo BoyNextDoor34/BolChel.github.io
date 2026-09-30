@@ -1,0 +1,42 @@
+name: One-time profile palette cancel fix
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Patch cancel navigation
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('suggestions-workflow.js')
+          s = p.read_text(encoding='utf-8')
+          old = "window.openSection?.(target);\n      if(target==='news')window.renderNews?.();"
+          new = "if(target==='profile-management'){\n        window.openSection?.('profile');\n        setTimeout(()=>window.openSection?.('profile-management'),0);\n        return;\n      }\n      window.openSection?.(target);\n      if(target==='news')window.renderNews?.();"
+          if old not in s:
+              raise SystemExit('Expected cancel-navigation block was not found; refusing to modify the file.')
+          if "if(target==='profile-management'){" in s:
+              raise SystemExit('Fix already present; nothing to do.')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+      - name: Commit patch and remove one-time workflow
+        shell: bash
+        run: |
+          rm -f .github/workflows/profile-palette-cancel-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add suggestions-workflow.js .github/workflows/profile-palette-cancel-fix.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Restore profile palette after editor cancel"
+          git push origin main
