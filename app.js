@@ -326,7 +326,7 @@ async function activateProfilePalette(){
   const avatarUrl=state.user.profile?.avatar_url||DEFAULT_AVATAR;
   try{
     const palette=await generateM3ContentPaletteFromImage(avatarUrl);
-    if(requestId!==state.paletteRequestId || !['profile','profile-management'].includes(state.section)) return;
+    if(requestId!==state.paletteRequestId || !['profile','profile-management','saved-drafts'].includes(state.section)) return;
     applySitePalette(palette);
   }catch(error){
     if(requestId===state.paletteRequestId) activateNeutralPalette();
