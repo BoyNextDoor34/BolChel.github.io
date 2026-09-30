@@ -85,6 +85,14 @@ function hslToRgb([h,s,l]) {
   const q=l<.5?l*(1+s):l+s-l*s, p=2*l-q;
   return [hue2rgb(p,q,h+1/3)*255,hue2rgb(p,q,h)*255,hue2rgb(p,q,h-1/3)*255];
 }
+function pluralNews(total){
+  const n=Math.abs(Number(total)||0)%100;
+  const n1=n%10;
+  if(n>=11&&n<=14)return 'новостей';
+  if(n1===1)return 'новость';
+  if(n1>=2&&n1<=4)return 'новости';
+  return 'новостей';
+}
 function relativeLuma(rgb) {
   const s=rgb.map(v=>v/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));
   return .2126*s[0]+.7152*s[1]+.0722*s[2];
