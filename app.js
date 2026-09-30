@@ -2048,8 +2048,8 @@ function bootstrap(){
   safeRun('renderNews',renderNews);
   safeRun('renderProfile',renderProfile);
   safeRun('setTheme',()=>setTheme(document.documentElement.dataset.theme||'light'));
-  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
-  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
 
   // Supabase is intentionally non-blocking for the static frontend.
   Promise.resolve(initSupabase())
