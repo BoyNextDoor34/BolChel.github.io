@@ -236,7 +236,9 @@ begin
   if me is null then raise exception 'Требуется авторизация.'; end if;
   select role into me_role from public.profiles where id=me;
   if old.role='owner' and old.id<>me then raise exception 'Профиль владельца защищён.'; end if;
-  if new.role<>old.role then raise exception 'Роль изменяется только штатным механизмом владельца.'; end if;
+  if new.role<>old.role and coalesce(current_setting('app.community_role_change',true),'')<>'1' then
+    raise exception 'Роль изменяется только штатным механизмом владельца.';
+  end if;
   if (new.is_banned is distinct from old.is_banned or new.ban_reason is distinct from old.ban_reason or new.banned_at is distinct from old.banned_at or new.banned_by is distinct from old.banned_by)
      and not (select public.community_can_manage_user(old.id)) then
     raise exception 'Недостаточно прав для модерации этого пользователя.';
@@ -302,6 +304,7 @@ begin
   select role into old_role from public.profiles where id=p_user_id;
   if old_role is null then raise exception 'Пользователь не найден.'; end if;
   if old_role='owner' then raise exception 'Роль владельца нельзя изменить.'; end if;
+  perform set_config('app.community_role_change','1',true);
   update public.profiles set role=p_role where id=p_user_id;
   return true;
 end $$;
