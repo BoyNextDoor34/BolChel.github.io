@@ -1496,7 +1496,7 @@ async function saveNewsSuggestion(){
     if(error) throw error;
     try{localStorage.removeItem('news-editor-draft-new');}catch(_){}
     window.removeSavedDraft?.(state.editor.draftId);
-    state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null};
+    state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null,draftId:null};
     showToast('Предложение отправлено редактору');
     openSection('profile');
     renderProfile();
