@@ -194,8 +194,12 @@
     page.dataset.suggestionMode=mode;
 
     const pending=mode==='published-edit'||mode==='admin-review-update'||sourceItem.status==='pending_update';
-    const src=pending&&sourceItem.pending_title
-      ?{title:sourceItem.pending_title,category:sourceItem.pending_category,summary:sourceItem.pending_summary,body:sourceItem.pending_body,image:sourceItem.pending_image_url}
+    const hasPendingVersion=pending && [
+      sourceItem.pending_title,sourceItem.pending_category,sourceItem.pending_summary,
+      sourceItem.pending_body,sourceItem.pending_image_url,sourceItem.pending_palette
+    ].some(value=>value!==null&&value!==undefined&&String(value)!=='');
+    const src=hasPendingVersion
+      ?{title:sourceItem.pending_title??sourceItem.title,category:sourceItem.pending_category??sourceItem.category,summary:sourceItem.pending_summary??sourceItem.summary,body:sourceItem.pending_body??sourceItem.body,image:sourceItem.pending_image_url??sourceItem.image_url}
       :{title:sourceItem.title,category:sourceItem.category,summary:sourceItem.summary,body:sourceItem.body,image:sourceItem.image_url};
     $('#news-title-input').value=src.title||'';
     $('#news-category-input').value=src.category||'Политика';
