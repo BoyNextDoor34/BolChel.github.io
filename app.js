@@ -526,6 +526,7 @@ function renderNews(){
   state.selectedNewsIndex=clamp(state.selectedNewsIndex,0,items.length-1);
   updateSelectedCard();
 }
+  window.__communityEnhanceNewsCards?.(root);
 function updateSelectedCard() {
   const cards=visibleNewsCards();
   cards.forEach((card,i)=>card.classList.toggle('is-selected',i===state.selectedNewsIndex));
@@ -601,6 +602,7 @@ function renderArticle() {
   if($('#article-edit')) $('#article-edit').onclick=()=>openEditor(n.id);
   if($('#article-delete')) $('#article-delete').onclick=()=>deleteNews(n.id);
   root.querySelectorAll('[data-article-nav]').forEach(btn=>btn.addEventListener('click',()=>openArticle(btn.dataset.articleNav==='prev'?nav.previous.id:nav.next.id)));
+  window.__communityMountArticle?.(n);
 }
 
 function backToNews() {
@@ -638,12 +640,12 @@ function setAuthMode(mode){
 function renderProfile(){
   const root=$('#profile-card');
   if(!state.user){
-    root.innerHTML=`<article class="surface-card profile-main"><span class="eyebrow">Не авторизован</span><h2 style="margin-top:7px">Создайте профиль читателя</h2><p>Ник, аватар и поле «О себе» сохраняются в Supabase. Публиковать новости могут только администраторы и владелец.</p><div class="profile-actions"><button id="profile-signin" class="filled-button"><span class="material-symbols-rounded">login</span>Войти или зарегистрироваться</button></div></article><aside class="surface-card profile-side"><h3>Что доступно</h3><div class="stat-row"><span>Чтение новостей</span><strong>✓</strong></div><div class="stat-row"><span>Профиль</span><strong>✓</strong></div><div class="stat-row"><span>Публикация</span><strong>Только admin</strong></div></aside>`;
+    root.innerHTML=`<article class="surface-card profile-main"><span class="eyebrow">Не авторизован</span><h2 style="margin-top:7px">Создайте профиль читателя</h2><p>Ник, аватар и поле «О себе» сохраняются в Supabase. Публиковать новости могут только администраторы и владелец.</p><div class="profile-actions"><button id="profile-signin" class="filled-button"><span class="material-symbols-rounded">login</span>Войти или зарегистрироваться</button></div></article><aside class="surface-card profile-side"><h3>Что доступно</h3><div class="stat-row"><span>Чтение новостей</span><strong>✓</strong></div><div class="stat-row"><span>Профиль</span><strong>✓</strong></div><div class="stat-row"><span>Публикация</span><strong>Администратор / владелец</strong></div></aside>`;
     $('#profile-signin').onclick=()=>openAuth('login');
     return;
   }
   const p=state.user.profile||{};
-  root.innerHTML=`<article class="surface-card profile-main"><div class="profile-head"><img class="profile-avatar-large" src="${escapeHtml(p.avatar_url||DEFAULT_AVATAR)}" alt="Аватар"><div><div class="profile-name">${escapeHtml(p.nickname||state.user.email?.split('@')[0]||'Пользователь')}</div><div class="profile-role">${p.role==='owner'?'Владелец':p.role==='admin'?'Администратор':'Читатель'}</div></div></div><p class="profile-bio">${escapeHtml(p.bio||'Пока ничего не рассказано.')}</p><div class="profile-actions"><button id="edit-profile" class="filled-button"><span class="material-symbols-rounded">edit</span>Изменить профиль</button><button id="signout" class="tonal-button"><span class="material-symbols-rounded">logout</span>Выйти</button></div></article><aside class="surface-card profile-side"><h3>Сведения</h3><div class="stat-row"><span>Email</span><strong style="max-width:190px;overflow:hidden;text-overflow:ellipsis">${escapeHtml(state.user.email||'—')}</strong></div><div class="stat-row"><span>Роль</span><strong>${p.role==='owner'?'owner':p.role==='admin'?'admin':'reader'}</strong></div>${p.role==='admin'?`<button id="create-news" class="filled-button" style="width:100%;margin-top:14px"><span class="material-symbols-rounded">edit_note</span>Написать новость</button>`:''}</aside>`;
+  root.innerHTML=`<article class="surface-card profile-main"><div class="profile-head"><img class="profile-avatar-large" src="${escapeHtml(p.avatar_url||DEFAULT_AVATAR)}" alt="Аватар"><div><div class="profile-name">${escapeHtml(p.nickname||state.user.email?.split('@')[0]||'Пользователь')}</div><div class="profile-role">${p.role==='owner'?'Владелец':p.role==='admin'?'Администратор':'Читатель'}</div></div></div><p class="profile-bio">${escapeHtml(p.bio||'Пока ничего не рассказано.')}</p><div class="profile-actions"><button id="edit-profile" class="filled-button"><span class="material-symbols-rounded">edit</span>Изменить профиль</button><button id="signout" class="tonal-button"><span class="material-symbols-rounded">logout</span>Выйти</button></div></article><aside class="surface-card profile-side"><h3>Сведения</h3><div class="stat-row"><span>Email</span><strong style="max-width:190px;overflow:hidden;text-overflow:ellipsis">${escapeHtml(state.user.email||'—')}</strong></div><div class="stat-row"><span>Роль</span><strong>${p.role==='owner'?'owner':p.role==='admin'?'admin':'reader'}</strong></div>${(p.role==='admin'||p.role==='owner')?`<button id="create-news" class="filled-button" style="width:100%;margin-top:14px"><span class="material-symbols-rounded">edit_note</span>Написать новость</button>`:''}</aside>`;
   $('#edit-profile').onclick=()=>openEditProfile(p);
   $('#signout').onclick=signOut;
   if($('#create-news')) $('#create-news').onclick=()=>openEditor(null);
@@ -659,6 +661,7 @@ function renderProfile(){
       side.appendChild(button);
     }
   }
+  window.__communityEnhanceProfile?.(root,p);
 }
 
 async function loadNewsSuggestions(){
@@ -840,6 +843,7 @@ async function handleSession(session){
   }
   updateAuthUI();
   renderProfile();
+  window.__communitySessionChanged?.();
   if(state.section==='profile') activateProfilePalette();
 }
 
@@ -1017,6 +1021,7 @@ function openEditor(id,mode='edit'){
   const suggestionMode=mode==='suggest';
   if(suggestionMode){
     if(!state.user){ showToast('Сначала войдите в аккаунт'); return; }
+    if(state.user.profile?.is_banned){ showToast(state.user.profile?.ban_reason?`Ваш аккаунт заблокирован: ${state.user.profile.ban_reason}`:'Ваш аккаунт заблокирован.'); return; }
   }else if(!state.admin){
     showToast('Редактор доступен только администраторам');
     return;
