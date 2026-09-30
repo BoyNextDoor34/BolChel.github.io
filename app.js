@@ -600,6 +600,12 @@ function backToNews() {
   state.articleId=null;
   openSection('news');
   renderNews();
+  const dock=$('#mobile-dock');
+  if(dock){
+    dock.querySelectorAll('.mobile-dock-item').forEach(btn=>{
+      btn.classList.toggle('is-active',btn.dataset.section==='news');
+    });
+  }
 }
 
 function renderKeyHelp(){
