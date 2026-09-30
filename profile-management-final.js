@@ -84,7 +84,13 @@
     if(document.documentElement.dataset.profileFinalFix==='1')return;
     document.documentElement.dataset.profileFinalFix='1';
     const style=document.createElement('style');
-    style.textContent=`.management-suggestion button.is-disabled,.management-suggestion button:disabled{opacity:.45!important;cursor:not-allowed!important;pointer-events:none!important;filter:saturate(.35)}.nav-item[aria-current="page"],.mobile-dock-item[aria-current="page"]{font-weight:800}`;
+    style.textContent=`
+      .management-suggestion button.is-disabled,.management-suggestion button:disabled{opacity:.45!important;cursor:not-allowed!important;pointer-events:none!important;filter:saturate(.35)}
+      .nav-item[aria-current="page"],.mobile-dock-item[aria-current="page"]{font-weight:800}
+      .editor-panes[data-editor-mode="edit"] .editor-pane-preview{display:none!important}
+      .editor-panes[data-editor-mode="preview"] .editor-pane-input{display:none!important}
+      .editor-panes[data-editor-mode="edit"] .editor-pane-input,.editor-panes[data-editor-mode="preview"] .editor-pane-preview{display:block!important}
+    `;
     document.head.appendChild(style);
 
     document.addEventListener('click',e=>{
