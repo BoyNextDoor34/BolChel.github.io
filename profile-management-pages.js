@@ -15,10 +15,12 @@
   }
   (async()=>{
     try{
-      await load('suggestions-workflow.js?v=20260930-04','data-suggestions-workflow');
-      await load('dialog-theme.js?v=20260930-04','data-dialog-theme');
-      await load('suggestion-save-fix.js?v=20260930-02','data-suggestion-save-fix');
-      await load('management-dialog-fix.js?v=20260930-02','data-management-dialog-fix');
+      await load('suggestions-workflow.js?v=20260930-05','data-suggestions-workflow');
+      await load('dialog-theme.js?v=20260930-05','data-dialog-theme');
+      await load('suggestion-save-fix.js?v=20260930-03','data-suggestion-save-fix');
+      await load('management-dialog-fix.js?v=20260930-03','data-management-dialog-fix');
+      await load('profile-management-fixes.js?v=20260930-02','data-profile-management-fixes');
+      await load('profile-management-final.js?v=20260930-01','data-profile-management-final');
     }catch(error){
       console.error('Profile management extensions failed:',error);
     }
