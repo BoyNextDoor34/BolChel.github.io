@@ -81,12 +81,21 @@
   }
   function openPage(){ensureSection();window.openSection?.('saved-drafts');renderPage();}
 
+  function ensureManagementBox(side){
+    let box=side?.querySelector('.profile-management-links');
+    if(box)return box;
+    if(!side)return null;
+    box=document.createElement('div');
+    box.className='profile-management-links';
+    side.appendChild(box);
+    return box;
+  }
+
   function injectProfileButton(){
     const root=$('#profile-card');const side=$('.profile-side',root);
     if(!side||!state?.user)return;
-    if(side.querySelector('[data-saved-drafts]'))return;
-    const box=side.querySelector('.profile-management-links');
-    if(!box)return;
+    const box=ensureManagementBox(side);
+    if(!box||box.querySelector('[data-saved-drafts]'))return;
     const b=document.createElement('button');b.type='button';b.className='profile-management-link';b.dataset.savedDrafts='1';
     b.innerHTML='<span class="profile-management-link-main"><span class="material-symbols-rounded">draft</span><span><span class="profile-management-link-title">Сохранённые черновики</span><span class="profile-management-link-note">Незавершённые материалы на этом устройстве</span></span></span><span class="material-symbols-rounded">chevron_right</span>';
     b.onclick=openPage;
@@ -151,6 +160,11 @@
       if(save){e.preventDefault();e.stopImmediatePropagation();saveCurrentDraft();return;}
       if(e.target.closest?.('#profile-management-back')&&typeof state!=='undefined'&&state.section==='saved-drafts')setTimeout(()=>window.openSection?.('profile'),0);
     },true);
+    const observer=new MutationObserver(()=>{
+      if(typeof state!=='undefined'&&state.section==='profile')injectProfileButton();
+    });
+    const profileRoot=$('#profile-card');
+    if(profileRoot)observer.observe(profileRoot,{childList:true,subtree:true});
     setTimeout(injectProfileButton,100);
   }
   function boot(){if(!wrapRenderProfile())setTimeout(boot,100);install();}
