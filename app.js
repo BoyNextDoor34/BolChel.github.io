@@ -1135,13 +1135,22 @@ function bindEditorEvents(){
 
 }
 function syncEditorMode(){
-  $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
+  const mode=state.editor.mode==='preview'?'preview':state.editor.mode==='split'?'split':'edit';
+  $('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===mode));
   const panes=$('#editor-panes');
   if(!panes) return;
-  panes.dataset.editorMode=state.editor.mode;
-  panes.style.gridTemplateColumns=state.editor.mode==='split'?'1fr 1fr':'1fr';
-  $('.editor-pane-input').classList.toggle('hidden',state.editor.mode==='preview');
-  $('.editor-pane-preview').classList.toggle('hidden',state.editor.mode==='edit');
+  const inputPane=$('.editor-pane-input',panes);
+  const previewPane=$('.editor-pane-preview',panes);
+  panes.dataset.editorMode=mode;
+  panes.style.gridTemplateColumns=mode==='split'?'1fr 1fr':'1fr';
+  if(inputPane){
+    inputPane.hidden=mode==='preview';
+    inputPane.classList.toggle('hidden',mode==='preview');
+  }
+  if(previewPane){
+    previewPane.hidden=mode==='edit';
+    previewPane.classList.toggle('hidden',mode==='edit');
+  }
 }
 function markdownValue(){ return $('#news-body-input')?.value||''; }
 function setTextareaSelection(start,end){ const el=$('#news-body-input'); el.focus(); el.setSelectionRange(start,end); }
