@@ -4,7 +4,8 @@
 
   const scripts=[
     ['suggestions-workflow.js?v=20260930-17','data-suggestions-workflow'],
-    ['dialog-theme.js?v=20260930-07','data-dialog-theme']
+    ['dialog-theme.js?v=20260930-07','data-dialog-theme'],
+    ['performance-fixes.js?v=20260930-01','data-performance-fixes']
   ];
   const deferredScripts=[
     ['management-dialog-fix.js?v=20260930-13','data-management-dialog-fix'],
@@ -31,18 +32,10 @@
     style.id='editor-mobile-layout-fix';
     style.textContent=`
       @media (max-width:860px){
-        /* The split editor is useful on desktop, but its preview pane becomes
-           an empty grey block below the textarea on narrow screens. */
-        .editor-panes[data-editor-mode="split"]{
-          grid-template-columns:1fr !important;
-        }
-        .editor-panes[data-editor-mode="split"] .editor-pane-preview{
-          display:none !important;
-        }
+        .editor-panes[data-editor-mode="split"]{grid-template-columns:1fr !important;}
+        .editor-panes[data-editor-mode="split"] .editor-pane-preview{display:none !important;}
         .editor-panes[data-editor-mode="edit"] .editor-pane-preview,
-        .editor-panes[data-editor-mode="preview"] .editor-pane-input{
-          display:none !important;
-        }
+        .editor-panes[data-editor-mode="preview"] .editor-pane-input{display:none !important;}
       }
     `;
     document.head.appendChild(style);
