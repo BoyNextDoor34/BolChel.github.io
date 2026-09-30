@@ -111,7 +111,7 @@
 (function(){
   'use strict';
   let currentUser=null,currentProfile=null,installed=false,authorCache={};
-  const $=(s,r=document)=>r.querySelector(s);const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const $=(s,r=document)=>r.querySelector(s);
   const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const isAdmin=()=>currentProfile?.role==='admin';
   const statusText=s=>s==='pending'?'Ожидает проверки':s==='pending_update'?'Изменения ожидают проверки':s==='approved'?'Опубликована':s==='rejected'?'Отклонена':s;
@@ -132,7 +132,7 @@
   async function fetchPending(){const sb=await getClient();if(!sb||!isAdmin())return[];const {data,error}=await sb.from('news_submissions').select('*').in('status',['pending','pending_update']).order('created_at',{ascending:false});if(error){console.warn(error);return[]}const ids=[...new Set((data||[]).map(x=>x.author_id).filter(Boolean))];if(ids.length){const p=await sb.from('profiles').select('id,nickname').in('id',ids);(p.data||[]).forEach(x=>authorCache[x.id]=x.nickname||'Пользователь');}return data||[];}
 
   function ensureManagementSection(){let section=$('#section-profile-management');if(section)return section;const main=$('#main')||document.querySelector('main');if(!main)return null;section=document.createElement('section');section.id='section-profile-management';section.className='page-section';section.setAttribute('aria-labelledby','profile-management-heading');main.appendChild(section);return section;}
-  function openManagement(kind){window.__profileManagementPage=kind;ensureManagementSection();window.openSection?.('profile-management');setTimeout(renderManagementPage,0);}
+  function openManagement(kind){window.__profileManagementPage=kind;ensureManagementSection();window.openSection?.('profile-management');requestAnimationFrame(renderManagementPage);}
   function backProfile(){window.__profileManagementPage=null;window.openSection?.('profile');}
   function replaceProfilePanels(root){
     const side=$('.profile-side',root);
@@ -157,7 +157,6 @@
   async function openSuggestionEditor(item,mode){
     if(typeof window.openEditor!=='function')return;
     window.openEditor(null,'suggest');
-    await sleep(120);
     const page=$('#editor-page');
     if(!page)return;
     page.dataset.suggestionId=item.id;
@@ -502,16 +501,6 @@
     state.editor.generatedPalette=draft.palette||null;
     if(draft.image_url)updateEditorCoverPreview();
     window.showToast?.('Черновик открыт');
-  }
-
-  function ensureManagementBox(side){
-    let box=side?.querySelector('.profile-management-links');
-    if(box)return box;
-    if(!side)return null;
-    box=document.createElement('div');
-    box.className='profile-management-links';
-    side.appendChild(box);
-    return box;
   }
 
   function install(){
