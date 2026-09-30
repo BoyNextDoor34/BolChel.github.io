@@ -85,11 +85,12 @@
     const root=$('#profile-card');const side=$('.profile-side',root);
     if(!side||!state?.user)return;
     if(side.querySelector('[data-saved-drafts]'))return;
-    const box=side.querySelector('.profile-management-links')||side;
+    const box=side.querySelector('.profile-management-links');
+    if(!box)return;
     const b=document.createElement('button');b.type='button';b.className='profile-management-link';b.dataset.savedDrafts='1';
     b.innerHTML='<span class="profile-management-link-main"><span class="material-symbols-rounded">draft</span><span><span class="profile-management-link-title">Сохранённые черновики</span><span class="profile-management-link-note">Незавершённые материалы на этом устройстве</span></span></span><span class="material-symbols-rounded">chevron_right</span>';
     b.onclick=openPage;
-    if(box.classList.contains('profile-management-links'))box.appendChild(b);else{const links=side.querySelector('.profile-management-links');if(links)links.appendChild(b);else side.appendChild(b);}
+    box.prepend(b);
   }
 
   function injectDraftStyles(){
