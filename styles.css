@@ -1420,3 +1420,13 @@ input[type="range"]::-moz-range-thumb {
   }
   .editor-actions-bottom > button { width:100%; }
 }
+
+@media (max-width:860px) {
+  .profile-management-link {
+    height:82px;
+    min-height:82px;
+  }
+  .profile-management-link-main {
+    min-height:0;
+  }
+}
