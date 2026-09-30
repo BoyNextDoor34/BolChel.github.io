@@ -10,7 +10,7 @@ const state = {
   section:'news', previousSection:'news', category:null, search:'', news:[],
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
-  editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null },
+  editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null, draftId:null },
   newsSuggestions:[],
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0, authorProfiles:{}, supabaseInitPromise:null, supabaseError:null
@@ -403,10 +403,11 @@ function scrollElementIntoMain(element,behavior='smooth'){
 function openSection(section) {
   if(state.section!==section) state.previousSection=state.section;
   state.section=section;
-  $$('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
-  $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===section));
-  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===section));
-  const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
+  $('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
+  const navSection=section==='profile-management'||section==='saved-drafts'?'profile':section==='article'?'news':section==='editor'?'':section;
+  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='profile-management'?'Профиль':section==='saved-drafts'?'Профиль':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
   $('#page-title').textContent=title;
   $('#page-category').textContent=section==='news'?(state.category||'Все разделы'):'';
   document.body.classList.toggle('article-mode',section==='article');
@@ -414,7 +415,7 @@ function openSection(section) {
   if(section==='news') activateNeutralPalette();
   if(section==='about') activateNeutralPalette();
   if(section==='profile') { activateNeutralPalette(); renderProfile(); activateProfilePalette(); }
-  if(section==='profile-management') { activateNeutralPalette(); activateProfilePalette(); }
+  if(section==='profile-management'||section==='saved-drafts') { activateNeutralPalette(); activateProfilePalette(); }
   if(section==='article') { activateNeutralPalette(); renderArticle(); const article=state.news.find(item=>String(item.id)===String(state.articleId)); activateArticlePalette(article); }
   if(section==='editor') { activateNeutralPalette(); renderEditor(); state.editor.mode='edit'; requestAnimationFrame(()=>syncEditorMode()); }
   scrollMainToTop();
@@ -983,7 +984,7 @@ function openEditor(id,mode='edit'){
     showToast('Редактор доступен только администраторам');
     return;
   }
-  state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode, submissionId:null };
+  state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode, submissionId:null, draftId:null };
   openSection('editor');
 }
 
@@ -992,7 +993,7 @@ function editorTemplate(news){
   return `<div class="editor-shell">
     <div class="editor-topbar">
       <div class="editor-title-wrap"><span class="eyebrow">${edit?'Редактирование':'Публикация'}</span><input id="news-title-input" class="editor-title-input" maxlength="180" placeholder="Заголовок новости" autocomplete="off"></div>
-      <div class="editor-actions"><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
+      <div class="editor-actions"><button id="editor-save-draft" class="tonal-button" type="button"><span class="material-symbols-rounded">draft</span><span>Сохранить черновик</span></button><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
     </div>
     <div class="editor-meta-grid">
       <div class="field editor-category-field"><span>Раздел</span><div class="editor-select-control" data-editor-select="category">
@@ -1089,7 +1090,7 @@ function setupEditor(news){
 }
 
 function bindEditorEvents(){
-  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null}; backToNews(); };
+  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null,draftId:null}; backToNews(); };
   $('#admin-save').onclick=saveEditorNews;
   $('#news-body-input').addEventListener('input',()=>{ renderMarkdownPreview(); saveEditorDraft(); });
   $('#news-title-input').addEventListener('input',saveEditorDraft);
@@ -1280,6 +1281,9 @@ function saveEditorDraft(){
   try{localStorage.setItem(`news-editor-draft-${id}`,JSON.stringify(payload));}catch(_){ }
 }
 function loadEditorDraft(id){
+  // New documents must always open empty. Saved drafts are opened explicitly
+  // from the profile's "Сохраненные черновики" page.
+  if(id==='new') return;
   if(id!=='new' && state.editor.id) return;
   try{
     const raw=localStorage.getItem(`news-editor-draft-${id}`); if(!raw) return;
@@ -1491,6 +1495,7 @@ async function saveNewsSuggestion(){
     const {error}=await state.supabase.from('news_submissions').insert(payload);
     if(error) throw error;
     try{localStorage.removeItem('news-editor-draft-new');}catch(_){}
+    window.removeSavedDraft?.(state.editor.draftId);
     state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null};
     showToast('Предложение отправлено редактору');
     openSection('profile');
@@ -1542,6 +1547,7 @@ async function saveEditorNews(){
       if(idx>=0) state.news[idx]=mapped;
     }else state.news.unshift(mapped);
     try{localStorage.removeItem(`news-editor-draft-${state.editor.id||'new'}`);}catch(_){ }
+    window.removeSavedDraft?.(state.editor.draftId);
     showToast(state.editor.id?'Новость обновлена':'Новость опубликована');
     state.articleId=mapped.id;
     openSection('article');
@@ -1947,6 +1953,8 @@ function bootstrap(){
   safeRun('renderNews',renderNews);
   safeRun('renderProfile',renderProfile);
   safeRun('setTheme',()=>setTheme(document.documentElement.dataset.theme||'light'));
+  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
 
   // Supabase is intentionally non-blocking for the static frontend.
   Promise.resolve(initSupabase())
