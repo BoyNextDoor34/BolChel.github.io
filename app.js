@@ -431,8 +431,8 @@ function scrollElementIntoMain(element,behavior='smooth'){
 function syncPrimaryNavigation(sectionOverride=null){
   const section=sectionOverride||state.section;
   const navSection=section==='profile-management'||section==='saved-drafts'?'profile':section==='article'?'news':section==='editor'?(state.previousSection==='profile'||state.previousSection==='profile-management'||state.previousSection==='saved-drafts'?'profile':'news'):section;
-  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
-  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  document.querySelectorAll('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  document.querySelectorAll('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
 }
 
 function openSection(section) {
