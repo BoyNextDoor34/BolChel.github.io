@@ -1355,3 +1355,18 @@ input[type="range"]::-moz-range-thumb {
     line-height:1.68;
   }
 }
+
+
+/* Consolidated mobile editor mode rules previously supplied by the runtime loader. */
+@media (max-width:860px) {
+  .editor-panes[data-editor-mode="split"] {
+    grid-template-columns:1fr !important;
+  }
+  .editor-panes[data-editor-mode="split"] .editor-pane-preview {
+    display:none !important;
+  }
+  .editor-panes[data-editor-mode="edit"] .editor-pane-preview,
+  .editor-panes[data-editor-mode="preview"] .editor-pane-input {
+    display:none !important;
+  }
+}
