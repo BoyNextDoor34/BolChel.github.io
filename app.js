@@ -1107,7 +1107,7 @@ function setupEditor(news){
   $('#news-image-input').value=news?.image||'';
   state.editor.originalImageUrl=news?.image||null;
   state.editor.generatedPalette=news?.palette||null;
-  updateEditorCoverPreview();
+  updateEditorCoverPreview({generatePalette:!news?.palette});
   renderMarkdownPreview();
   syncEditorMode();
   bindEditorEvents();
