@@ -67,6 +67,23 @@
       </div>`;
   }
 
+  function isolateSuggestionSaveButton(){
+    const page=$('#editor-page');
+    if(!page?.dataset.suggestionId)return;
+    const old=$('#admin-save',page);
+    if(!old||old.dataset.reliableSuggestionSave==='1')return;
+    const replacement=old.cloneNode(true);
+    replacement.id='admin-save-final';
+    replacement.dataset.reliableSuggestionSave='1';
+    replacement.removeAttribute('onclick');
+    replacement.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      if(typeof window.saveSuggestionEditorReliable==='function')window.saveSuggestionEditorReliable();
+    });
+    old.replaceWith(replacement);
+  }
+
   function install(){
     if(document.documentElement.dataset.profileFinalFix==='1')return;
     document.documentElement.dataset.profileFinalFix='1';
@@ -79,9 +96,17 @@
       if(e.target.closest?.('#profile-management-back'))setTimeout(setProfileActive,0);
     },true);
 
-    const observer=new MutationObserver(()=>{if(typeof state!=='undefined'&&state.section==='profile-management')setProfileActive();refreshDeleteState();restoreAbout();});
+    const observer=new MutationObserver(()=>{
+      if(typeof state!=='undefined'&&state.section==='profile-management')setProfileActive();
+      refreshDeleteState();
+      restoreAbout();
+      isolateSuggestionSaveButton();
+    });
     observer.observe(document.body,{childList:true,subtree:true});
-    [0,100,300,700,1500].forEach(ms=>setTimeout(()=>{if(typeof state!=='undefined'&&state.section==='profile-management')setProfileActive();refreshDeleteState();restoreAbout();},ms));
+    [0,100,300,700,1500].forEach(ms=>setTimeout(()=>{
+      if(typeof state!=='undefined'&&state.section==='profile-management')setProfileActive();
+      refreshDeleteState();restoreAbout();isolateSuggestionSaveButton();
+    },ms));
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
