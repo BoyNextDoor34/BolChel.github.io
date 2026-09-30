@@ -1474,13 +1474,60 @@ async function uploadNewsImage(file,scope='news'){
   return state.supabase.storage.from('news-images').getPublicUrl(path).data.publicUrl;
 }
 
+function readEditorCategoryValue(){
+  const input=$('#news-category-input');
+  const selected=input?.closest('.editor-select-control')?.querySelector('.editor-select-option.is-selected');
+  return String(input?.value||selected?.dataset.value||selected?.textContent||CATEGORIES[0]).trim()||CATEGORIES[0];
+}
+
+async function fileToInlineEditorImage(file){
+  if(!file)return null;
+  return await new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const max=1600;
+        const scale=Math.min(1,max/Math.max(img.naturalWidth||1,img.naturalHeight||1));
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(1,Math.round((img.naturalWidth||1)*scale));
+        canvas.height=Math.max(1,Math.round((img.naturalHeight||1)*scale));
+        const ctx=canvas.getContext('2d');
+        if(!ctx)throw new Error('Canvas недоступен.');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/webp',.82));
+      }catch(error){reject(error)}
+      finally{URL.revokeObjectURL(url)}
+    };
+    img.onerror=()=>{
+      URL.revokeObjectURL(url);
+      reject(new Error('Не удалось подготовить изображение.'));
+    };
+    img.src=url;
+  });
+}
+
+async function resolveSuggestionImage(file,msg){
+  if(!file)return null;
+  try{
+    if(msg)msg.textContent='Загружаем обложку…';
+    return await uploadNewsImage(file,'suggestion');
+  }catch(error){
+    console.warn('Suggestion image upload failed, using inline fallback:',error);
+    if(msg)msg.textContent='Хранилище изображения недоступно, сохраняем обложку внутри предложения…';
+    return await fileToInlineEditorImage(file);
+  }
+}
+
 
 async function saveNewsSuggestion(){
   if(!state.supabase||!state.user){showToast('Нужен аккаунт.');return;}
   const msg=$('#admin-message');
   if(msg) msg.textContent='';
   const title=$('#news-title-input').value.trim();
-  const category=$('#news-category-input').value;
+  const category=readEditorCategoryValue();
+  $('#news-category-input').value=category;
+  syncEditorSelect('news-category-input');
   const body=markdownValue().trim();
   let summary=$('#news-summary-input').value.trim();
   let imageUrl=$('#news-image-input').value.trim();
@@ -1489,9 +1536,8 @@ async function saveNewsSuggestion(){
   try{
     const pendingCoverFile=state.editor.pendingCoverFile || $('#editor-image-file')?.files?.[0] || null;
     if(pendingCoverFile){
-      if(msg) msg.textContent='Загружаем обложку…';
-      imageUrl=await uploadNewsImage(pendingCoverFile,'suggestion');
-      $('#news-image-input').value=imageUrl;
+      imageUrl=await resolveSuggestionImage(pendingCoverFile,msg);
+      if(imageUrl)$('#news-image-input').value=imageUrl;
     }
     if(!imageUrl){
       imageUrl=extractFirstImageFromMarkdown(body)||'';
@@ -1508,8 +1554,9 @@ async function saveNewsSuggestion(){
       summary=firstPlain.slice(0,360);
     }
     const payload={category,title,summary,body,image_url:imageUrl,author_id:state.user.id,palette,status:'pending'};
-    const {error}=await state.supabase.from('news_submissions').insert(payload);
-    if(error) throw error;
+    const inserted=await state.supabase.from('news_submissions').insert(payload).select('id,category,title,image_url,status,created_at').single();
+    if(inserted.error) throw inserted.error;
+    if(!inserted.data) throw new Error('Предложение не вернулось после сохранения.');
     state.editor.pendingCoverFile=null;
     try{localStorage.removeItem('news-editor-draft-new');}catch(_){}
     window.removeSavedDraft?.(state.editor.draftId);
