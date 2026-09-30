@@ -1022,7 +1022,7 @@ function editorTemplate(news){
   return `<div class="editor-shell">
     <div class="editor-topbar">
       <div class="editor-title-wrap"><span class="eyebrow">${edit?'Редактирование':'Публикация'}</span><input id="news-title-input" class="editor-title-input" maxlength="180" placeholder="Заголовок новости" autocomplete="off"></div>
-      <div class="editor-actions"><button id="editor-save-draft" class="tonal-button" type="button"><span class="material-symbols-rounded">draft</span><span>Сохранить черновик</span></button><button id="editor-cancel" class="text-button"><span class="material-symbols-rounded">close</span>Отмена</button><button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button></div>
+      <button id="editor-cancel" class="text-button editor-cancel-top" type="button"><span class="material-symbols-rounded">close</span>Отмена</button>
     </div>
     <div class="editor-meta-grid">
       <div class="field editor-category-field"><span>Раздел</span><div class="editor-select-control" data-editor-select="category">
@@ -1059,6 +1059,10 @@ function editorTemplate(news){
         <section class="editor-pane editor-pane-preview"><div class="editor-pane-label">Предпросмотр</div><div id="markdown-preview" class="markdown-preview"></div></section>
       </div>
       <div class="markdown-help">Поддерживаются <code># заголовки</code>, <code>**bold**</code>, <code>*italic*</code>, <code>~~strike~~</code>, <code>&#96;code&#96;</code>, блоки <code>&#96;&#96;&#96;</code>, цитаты <code>&gt;</code>, списки, <code>[ссылки](url)</code>, <code>![картинки](url)</code>, таблицы и <code>---</code>. Редактор сохраняет черновик локально.</div>
+    </div>
+    <div class="editor-actions editor-actions-bottom">
+      <button id="editor-save-draft" class="tonal-button" type="button"><span class="material-symbols-rounded">draft</span><span>Сохранить черновик</span></button>
+      <button id="admin-save" class="filled-button"><span class="material-symbols-rounded">${edit?'save':'publish'}</span><span>${edit?'Сохранить':'Опубликовать'}</span></button>
     </div>
     <p id="admin-message" class="form-message"></p>
   </div>`;
@@ -1107,6 +1111,10 @@ function setupEditor(news){
   $('#news-image-input').value=news?.image||'';
   state.editor.originalImageUrl=news?.image||null;
   state.editor.generatedPalette=news?.palette||null;
+  if(news?.palette){
+    state.paletteContext='editor';
+    applySitePalette(news.palette);
+  }
   updateEditorCoverPreview({generatePalette:!news?.palette});
   renderMarkdownPreview();
   syncEditorMode();
