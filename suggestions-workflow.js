@@ -46,6 +46,11 @@
       e.stopImmediatePropagation();
       const target=state.previousSection&&state.previousSection!=='editor'?state.previousSection:'news';
       state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null};
+      if(target==='profile-management'){
+        window.openSection?.('profile');
+        setTimeout(()=>window.openSection?.('profile-management'),0);
+        return;
+      }
       window.openSection?.(target);
       if(target==='news')window.renderNews?.();
     },true);
