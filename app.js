@@ -1506,6 +1506,8 @@ async function saveNewsSuggestion(){
 }
 
 async function saveEditorNews(){
+  const suggestionPage=$('#editor-page');
+  if(state.editor.suggestionMode && suggestionPage?.dataset.suggestionId && typeof window.saveSuggestionEditorWorkflow==='function') return window.saveSuggestionEditorWorkflow();
   if(state.editor.suggestionMode && !state.admin) return saveNewsSuggestion();
   if(!state.supabase||!state.user||!state.admin){showToast('Нужен аккаунт администратора.');return;}
   const msg=$('#admin-message'); msg.textContent='';
