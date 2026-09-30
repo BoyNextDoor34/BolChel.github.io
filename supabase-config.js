@@ -78,9 +78,3 @@ window.SUPABASE_CONFIG = {
   const start=()=>{const editor=document.getElementById('section-editor');if(editor)new MutationObserver(sync).observe(editor,{attributes:true,attributeFilter:['class']});window.addEventListener('resize',sync,{passive:true});sync();};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
-
-/* Load the enhanced suggestion workflow after the existing application is ready. */
-(function(){
-  const load=()=>{if(document.querySelector('script[data-suggestions-workflow]'))return;const s=document.createElement('script');s.src='suggestions-workflow.js?v=20260930-07';s.dataset.suggestionsWorkflow='1';s.defer=true;document.head.appendChild(s);};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
-})();
