@@ -631,7 +631,6 @@ function renderProfile(){
       side.appendChild(button);
     }
   }
-  if(state.admin) renderAdminNewsManager(root);
 }
 
 async function loadNewsSuggestions(){
@@ -1479,11 +1478,11 @@ async function saveNewsSuggestion(){
   if(!title){if(msg) msg.textContent='Укажите заголовок.';return;}
   if(!body){if(msg) msg.textContent='Введите текст новости в Markdown.';return;}
   try{
-    if(state.editor.pendingCoverFile){
+    const pendingCoverFile=state.editor.pendingCoverFile || $('#editor-image-file')?.files?.[0] || null;
+    if(pendingCoverFile){
       if(msg) msg.textContent='Загружаем обложку…';
-      imageUrl=await uploadNewsImage(state.editor.pendingCoverFile,'suggestion');
+      imageUrl=await uploadNewsImage(pendingCoverFile,'suggestion');
       $('#news-image-input').value=imageUrl;
-      state.editor.pendingCoverFile=null;
     }
     if(!imageUrl){
       imageUrl=extractFirstImageFromMarkdown(body)||'';
@@ -1502,6 +1501,7 @@ async function saveNewsSuggestion(){
     const payload={category,title,summary,body,image_url:imageUrl,author_id:state.user.id,palette,status:'pending'};
     const {error}=await state.supabase.from('news_submissions').insert(payload);
     if(error) throw error;
+    state.editor.pendingCoverFile=null;
     try{localStorage.removeItem('news-editor-draft-new');}catch(_){}
     window.removeSavedDraft?.(state.editor.draftId);
     state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null,draftId:null};
@@ -1524,11 +1524,11 @@ async function saveEditorNews(){
   if(!title){msg.textContent='Укажите заголовок.';return;}
   if(!body){msg.textContent='Введите текст новости в Markdown.';return;}
   try{
-    if(state.editor.pendingCoverFile){
+    const pendingCoverFile=state.editor.pendingCoverFile || $('#editor-image-file')?.files?.[0] || null;
+    if(pendingCoverFile){
       msg.textContent='Загружаем обложку…';
-      imageUrl=await uploadNewsImage(state.editor.pendingCoverFile);
+      imageUrl=await uploadNewsImage(pendingCoverFile);
       $('#news-image-input').value=imageUrl;
-      state.editor.pendingCoverFile=null;
     }
     if(!imageUrl){
       imageUrl=extractFirstImageFromMarkdown(body)||'';
@@ -1551,6 +1551,7 @@ async function saveEditorNews(){
       : state.supabase.from('news').insert(payload).select('id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at').single();
     const {data,error}=await query;
     if(error) throw error;
+    state.editor.pendingCoverFile=null;
     const mapped=mapRemoteNews(data);
     if(state.editor.id){
       const idx=state.news.findIndex(n=>String(n.id)===String(state.editor.id));
