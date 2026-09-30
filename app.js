@@ -1454,12 +1454,50 @@ async function uploadNewsImage(file,scope='news'){
 }
 
 
+async function prepareSuggestionInlineImage(file){
+  if(!file)return '';
+  return await new Promise((resolve,reject)=>{
+    const objectUrl=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const max=1600;
+        const scale=Math.min(1,max/Math.max(img.naturalWidth||1,img.naturalHeight||1));
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(1,Math.round((img.naturalWidth||1)*scale));
+        canvas.height=Math.max(1,Math.round((img.naturalHeight||1)*scale));
+        const ctx=canvas.getContext('2d');
+        if(!ctx)throw new Error('Canvas недоступен.');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/webp',.82));
+      }catch(error){reject(error)}
+      finally{URL.revokeObjectURL(objectUrl);}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(objectUrl);reject(new Error('Не удалось подготовить изображение.'));};
+    img.src=objectUrl;
+  });
+}
+
+async function uploadSuggestionImage(file,msg){
+  try{
+    if(msg)msg.textContent='Загружаем обложку…';
+    return await uploadNewsImage(file,'suggestion');
+  }catch(error){
+    console.warn('Suggestion image upload failed:',error);
+    if(msg)msg.textContent='Не удалось загрузить обложку в Storage — сохраняем сжатую копию вместе с предложением…';
+    return await prepareSuggestionInlineImage(file);
+  }
+}
+
 async function saveNewsSuggestion(){
   if(!state.supabase||!state.user){showToast('Нужен аккаунт.');return;}
   const msg=$('#admin-message');
   if(msg) msg.textContent='';
   const title=$('#news-title-input').value.trim();
-  const category=$('#news-category-input').value;
+  const categoryInput=$('#news-category-input');
+  const category=String(categoryInput?.value||CATEGORIES[0]).trim()||CATEGORIES[0];
+  if(categoryInput)categoryInput.value=category;
+  syncEditorSelect('news-category-input');
   const body=markdownValue().trim();
   let summary=$('#news-summary-input').value.trim();
   let imageUrl=$('#news-image-input').value.trim();
@@ -1469,8 +1507,8 @@ async function saveNewsSuggestion(){
     const pendingCoverFile=state.editor.pendingCoverFile || $('#editor-image-file')?.files?.[0] || null;
     if(pendingCoverFile){
       if(msg) msg.textContent='Загружаем обложку…';
-      imageUrl=await uploadNewsImage(pendingCoverFile,'suggestion');
-      $('#news-image-input').value=imageUrl;
+      imageUrl=await uploadSuggestionImage(pendingCoverFile,msg);
+      if(imageUrl)$('#news-image-input').value=imageUrl;
     }
     if(!imageUrl){
       imageUrl=extractFirstImageFromMarkdown(body)||'';
