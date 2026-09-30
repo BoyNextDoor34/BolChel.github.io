@@ -8,7 +8,7 @@
   const statusText=s=>s==='pending'?'Ожидает проверки':s==='pending_update'?'Изменения ожидают проверки':s==='approved'?'Опубликована':s==='rejected'?'Отклонена':s;
 
   function ensureStyles(){if($('#suggestions-v2-style'))return;const st=document.createElement('style');st.id='suggestions-v2-style';st.textContent=`
-    .profile-side{min-width:0;overflow:hidden}.profile-management-links{display:grid;gap:10px;margin-top:18px;width:100%;box-sizing:border-box}
+    .profile-side{min-width:0;overflow:hidden}.profile-management-links{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:18px;width:100%;box-sizing:border-box;align-items:stretch}
     .profile-management-link{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--md-sys-color-outline-variant);border-radius:18px;background:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface);cursor:pointer;text-align:left;font:inherit}
     .profile-management-link:hover{background:var(--md-sys-color-surface-container-high)}.profile-management-link-main{min-width:0;display:flex;align-items:center;gap:12px}.profile-management-link-main>span:last-child{min-width:0}.profile-management-link-title{font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-management-link-note{display:block;font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-top:2px}
     .profile-management-page{width:100%;box-sizing:border-box}.profile-management-page-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}.profile-management-page-head h2{margin:0;min-width:0}.profile-management-content{width:100%;min-width:0;box-sizing:border-box;display:grid;gap:12px}.profile-management-card{width:100%;min-width:0;box-sizing:border-box;overflow:hidden;border:1px solid var(--md-sys-color-outline-variant);border-radius:20px;background:var(--md-sys-color-surface-container);padding:16px}.profile-management-card-title{font-weight:650;display:block;overflow-wrap:anywhere}.profile-management-card-meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:5px;color:var(--md-sys-color-on-surface-variant);font-size:13px}.profile-management-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
@@ -45,11 +45,13 @@
       const body=$('#news-body-input')?.value.trim()||'';
       let image=$('#news-image-input')?.value.trim()||'';
       if(!title||!body){if(msg)msg.textContent='Заполните заголовок и текст новости.';return;}
-      if(typeof state!=='undefined'&&state.editor?.pendingCoverFile){
+      const pendingCoverFile=typeof state!=='undefined'
+        ?(state.editor?.pendingCoverFile || $('#editor-image-file')?.files?.[0] || null)
+        :($('#editor-image-file')?.files?.[0] || null);
+      if(pendingCoverFile){
         if(msg)msg.textContent='Загружаем обложку…';
-        image=await uploadNewsImage(state.editor.pendingCoverFile,'suggestion');
+        image=await uploadNewsImage(pendingCoverFile,'suggestion');
         const imageInput=$('#news-image-input');if(imageInput)imageInput.value=image;
-        state.editor.pendingCoverFile=null;
       }
       if(!image)image=extractFirstImageFromMarkdown(body)||'';
       if(!image){if(msg)msg.textContent='Добавьте изображение новости.';return;}
@@ -69,7 +71,10 @@
       const result=await query.select('id,updated_at,status').maybeSingle();
       if(result.error)throw result.error;
       if(!result.data)throw new Error('Предложение не сохранено. Проверьте права доступа или актуальность его статуса.');
-      if(typeof state!=='undefined')state.editor.generatedPalette=palette;
+      if(typeof state!=='undefined'){
+        state.editor.generatedPalette=palette;
+        state.editor.pendingCoverFile=null;
+      }
       window.removeSavedDraft?.(typeof state!=='undefined'?state.editor?.draftId:null);
       window.showToast?.(mode==='published-edit'?'Изменения отправлены администратору':'Предложение сохранено');
       if(typeof state!=='undefined')state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null,draftId:null};
