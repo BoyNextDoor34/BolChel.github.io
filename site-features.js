@@ -222,7 +222,7 @@
 
     let savedPalette=pendingMode && sourceItem.pending_palette!==null && sourceItem.pending_palette!==undefined
       ?sourceItem.pending_palette
-      :sourceItem.palette;
+      :(publishedSource?.palette ?? sourceItem.palette);
     if(typeof savedPalette==='string'){try{savedPalette=JSON.parse(savedPalette)}catch(_){savedPalette=null}}
     if(typeof state!=='undefined'){
       state.editor.generatedPalette=savedPalette||null;
