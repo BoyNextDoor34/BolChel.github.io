@@ -411,10 +411,10 @@ function scrollElementIntoMain(element,behavior='smooth'){
 function openSection(section) {
   if(state.section!==section) state.previousSection=state.section;
   state.section=section;
-  $('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
+  $$('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
   const navSection=section==='profile-management'||section==='saved-drafts'?'profile':section==='article'?'news':section==='editor'?'':section;
-  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
-  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
   const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='profile-management'?'Профиль':section==='saved-drafts'?'Профиль':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
   $('#page-title').textContent=title;
   $('#page-category').textContent=section==='news'?(state.category||'Все разделы'):'';
@@ -1963,8 +1963,8 @@ function bootstrap(){
   safeRun('renderNews',renderNews);
   safeRun('renderProfile',renderProfile);
   safeRun('setTheme',()=>setTheme(document.documentElement.dataset.theme||'light'));
-  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
-  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
 
   // Supabase is intentionally non-blocking for the static frontend.
   Promise.resolve(initSupabase())
