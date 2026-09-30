@@ -133,6 +133,8 @@ const M3_CONTENT_ROLE_MAP={
   outline:'outline', outline_variant:'outlineVariant', error:'error'
 };
 
+const M3_IMAGE_PALETTE_GENERATOR='m3-content-matugen-v1';
+
 function schemeToPalette(scheme,utils){
   const out={};
   for(const [role,token] of Object.entries(M3_CONTENT_ROLE_MAP)){
@@ -142,23 +144,7 @@ function schemeToPalette(scheme,utils){
   return out;
 }
 
-async function generateM3ContentPaletteFromSeed(seedHex){
-  const utils=await loadM3ColorUtilities();
-  const source=utils.argbFromHex(seedHex);
-  const hct=utils.Hct.fromInt(source);
-  const lightScheme=new utils.SchemeContent(hct,false,0.0);
-  const darkScheme=new utils.SchemeContent(hct,true,0.0);
-  return {
-    source:'image',
-    generator:'m3-content-v1',
-    seed:utils.hexFromArgb(source).toLowerCase(),
-    light:schemeToPalette(lightScheme,utils),
-    dark:schemeToPalette(darkScheme,utils)
-  };
-}
-
-async function generateM3ContentPaletteFromImage(imageUrl){
-  const utils=await loadM3ColorUtilities();
+async function loadImageForPalette(imageUrl){
   const img=new Image();
   img.crossOrigin='anonymous';
   await new Promise((resolve,reject)=>{
@@ -166,63 +152,52 @@ async function generateM3ContentPaletteFromImage(imageUrl){
     img.onerror=()=>reject(new Error('Изображение недоступно для анализа цвета.'));
     img.src=imageUrl;
   });
-  let source;
-  try{
-    source=await utils.sourceColorFromImage(img);
-  }catch(_){
-    const seed=await extractSeedFromImage(imageUrl);
-    return generateM3ContentPaletteFromSeed(seed);
+  return img;
+}
+
+async function extractMatugenSourceColorFromImage(imageUrl,utils){
+  const img=await loadImageForPalette(imageUrl);
+  // Mirror matugen's image path: resize to 112×112, quantize to 128 colors,
+  // discard low-chroma colors, then rank the remaining colors with Material
+  // Color Utilities' Score algorithm.
+  const size=112;
+  const canvas=document.createElement('canvas');
+  canvas.width=size; canvas.height=size;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  if(!ctx) throw new Error('Canvas недоступен.');
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(img,0,0,size,size);
+
+  const data=ctx.getImageData(0,0,size,size).data;
+  const pixels=[];
+  for(let i=0;i<data.length;i+=4){
+    if(data[i+3]!==255) continue;
+    pixels.push(utils.argbFromRgb(data[i],data[i+1],data[i+2]));
   }
+  if(!pixels.length) throw new Error('В изображении нет непрозрачных пикселей.');
+
+  const quantized=utils.QuantizerCelebi.quantize(pixels,128);
+  for(const [argb] of [...quantized.entries()]){
+    if(utils.Hct.fromInt(argb).chroma<5) quantized.delete(argb);
+  }
+
+  const ranked=utils.Score.score(quantized);
+  return ranked[0] ?? utils.argbFromHex('#4285f4');
+}
+
+async function generateM3ContentPaletteFromImage(imageUrl){
+  const utils=await loadM3ColorUtilities();
+  const source=await extractMatugenSourceColorFromImage(imageUrl,utils);
   const hct=utils.Hct.fromInt(source);
   const lightScheme=new utils.SchemeContent(hct,false,0.0);
   const darkScheme=new utils.SchemeContent(hct,true,0.0);
   return {
     source:'image',
-    generator:'m3-content-v1',
+    generator:M3_IMAGE_PALETTE_GENERATOR,
     seed:utils.hexFromArgb(source).toLowerCase(),
     light:schemeToPalette(lightScheme,utils),
     dark:schemeToPalette(darkScheme,utils)
   };
-}
-
-async function extractSeedFromImage(imageUrl) {
-  if (!imageUrl) throw new Error('Нет изображения для палитры.');
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  await new Promise((resolve,reject)=>{
-    img.onload=resolve;
-    img.onerror=()=>reject(new Error('Изображение недоступно для анализа цвета.'));
-    img.src=imageUrl;
-  });
-  const canvas=document.createElement('canvas');
-  const size=48;
-  canvas.width=size; canvas.height=size;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  if(!ctx) throw new Error('Canvas недоступен.');
-  const scale=Math.max(size/img.naturalWidth,size/img.naturalHeight);
-  const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
-  ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);
-  let data;
-  try{ data=ctx.getImageData(0,0,size,size).data; }catch(_){ throw new Error('Браузер запретил чтение цветов изображения.'); }
-
-  const buckets=new Map();
-  for(let i=0;i<data.length;i+=4){
-    const a=data[i+3]; if(a<210) continue;
-    const r=data[i],g=data[i+1],b=data[i+2];
-    const [hh,ss,ll]=rgbToHsl([r,g,b]);
-    if(ll>.96 || ll<.035) continue;
-    if(ss<.12 && ll>.14 && ll<.86) continue;
-    const qr=Math.round(r/24)*24,qg=Math.round(g/24)*24,qb=Math.round(b/24)*24;
-    const key=`${qr},${qg},${qb}`;
-    const score=(0.25 + ss) * (1-Math.abs(ll-.52)*.85);
-    buckets.set(key,(buckets.get(key)||0)+score);
-  }
-  let best=[103,80,164], bestScore=-Infinity;
-  for(const [key,score] of buckets.entries()){
-    const rgb=key.split(',').map(Number);
-    if(score>bestScore){best=rgb;bestScore=score;}
-  }
-  return rgbToHex(best);
 }
 
 function applySitePalette(palette){
@@ -261,7 +236,7 @@ async function activateArticlePalette(article){
   if(!article?.image) return;
   try{
     let palette=article.palette;
-    if(!(palette?.generator==='m3-content-v1' && palette.light?.primary && palette.dark?.primary)){
+    if(!(palette?.generator===M3_IMAGE_PALETTE_GENERATOR && palette.light?.primary && palette.dark?.primary)){
       palette=await generateM3ContentPaletteFromImage(article.image);
       article.palette=palette;
       article.accent=palette.light.primary||null;
@@ -304,7 +279,7 @@ function mapRemoteNews(row) {
   const dt=formatDateTime(row.published_at);
   let palette=row.palette||null;
   if(typeof palette==='string'){ try{palette=JSON.parse(palette);}catch(_){palette=null;} }
-  if(!palette?.source || palette.source!=='image' || palette.generator!=='m3-content-v1' || !palette.light?.primary || !palette.dark?.primary) palette=null;
+  if(!palette?.source || palette.source!=='image' || palette.generator!==M3_IMAGE_PALETTE_GENERATOR || !palette.light?.primary || !palette.dark?.primary) palette=null;
   const fallbackImage='https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1100&q=82';
   const authorProfile=state.authorProfiles?.[row.author_id];
   const fallbackAuthor=(row.author_id&&state.user?.id===row.author_id)?(state.user.profile?.nickname||state.user.email?.split('@')[0]||'Редакция'):'Редакция';
@@ -483,7 +458,7 @@ function updateSelectedCard() {
 function visibleNewsCards(){ return $$('.news-card'); }
 
 async function ensureNewsPalette(newsItem){
-  if(newsItem?.palette?.generator==='m3-content-v1' && newsItem.palette.light?.primary) return newsItem.palette;
+  if(newsItem?.palette?.generator===M3_IMAGE_PALETTE_GENERATOR && newsItem.palette.light?.primary) return newsItem.palette;
   if(!newsItem?.image) return NEUTRAL_PALETTE;
   try{
     const palette=await generateM3ContentPaletteFromImage(newsItem.image);
@@ -1465,7 +1440,7 @@ async function saveNewsSuggestion(){
     }
     if(!imageUrl){if(msg) msg.textContent='Нужно добавить изображение: палитра строится только из цветов изображения новости.';return;}
     if(msg) msg.textContent='Генерируем M3 Content-палитру из изображения…';
-    const palette=state.editor.generatedPalette?.generator==='m3-content-v1'
+    const palette=state.editor.generatedPalette?.generator===M3_IMAGE_PALETTE_GENERATOR
       ? state.editor.generatedPalette
       : await generateM3ContentPaletteFromImage(imageUrl);
     state.editor.generatedPalette=palette;
@@ -1507,7 +1482,7 @@ async function saveEditorNews(){
     }
     if(!imageUrl){msg.textContent='Нужно добавить изображение: палитра строится только из цветов изображения новости.';return;}
     msg.textContent='Генерируем M3 Content-палитру из изображения…';
-    const palette=state.editor.generatedPalette?.generator==='m3-content-v1'
+    const palette=state.editor.generatedPalette?.generator===M3_IMAGE_PALETTE_GENERATOR
       ? state.editor.generatedPalette
       : await generateM3ContentPaletteFromImage(imageUrl);
     state.editor.generatedPalette=palette;
