@@ -195,9 +195,48 @@ async function generateM3ContentPaletteFromImage(imageUrl){
     source:'image',
     generator:M3_IMAGE_PALETTE_GENERATOR,
     seed:utils.hexFromArgb(source).toLowerCase(),
-    light:schemeToPalette(lightScheme,utils),
-    dark:schemeToPalette(darkScheme,utils)
+    light:tuneNoctaliaSurfaceRoles(schemeToPalette(lightScheme,utils),hct,utils,false),
+    dark:tuneNoctaliaSurfaceRoles(schemeToPalette(darkScheme,utils),hct,utils,true)
   };
+}
+
+function hctHex(utils,hue,chroma,tone){
+  return utils.hexFromArgb(utils.Hct.from(hue,chroma,tone).toInt()).toLowerCase();
+}
+
+function tuneNoctaliaSurfaceRoles(palette,hct,utils,isDark){
+  // Noctalia exposes a compact role set: accent colors carry emphasis,
+  // while surface/background roles stay low-chroma and only subtly tinted.
+  // Keep the M3 Content accent family, but derive shell surfaces from the
+  // same seed hue with restrained chroma so they never become bright accents.
+  const surfaceChroma=clamp(Math.min(8,hct.chroma*0.12),1.5,8);
+  const surfaceHue=hct.hue;
+  const surfaceTone=isDark?7:98;
+  const variantTone=isDark?13:94;
+  const variantHighTone=isDark?17:91;
+  const highestTone=isDark?21:88;
+  const onSurfaceTone=isDark?92:18;
+  const onVariantTone=isDark?74:38;
+  const outlineTone=isDark?32:52;
+
+  palette.surface=hctHex(utils,surfaceHue,surfaceChroma,surfaceTone);
+  palette.surface_tint=palette.surface;
+  palette.surface_container_low=hctHex(utils,surfaceHue,surfaceChroma,isDark?9:97);
+  palette.surface_container=hctHex(utils,surfaceHue,surfaceChroma,isDark?11:96);
+  palette.surface_container_high=hctHex(utils,surfaceHue,surfaceChroma,variantTone);
+  palette.surface_container_highest=hctHex(utils,surfaceHue,surfaceChroma,variantHighTone);
+  palette.on_surface=hctHex(utils,surfaceHue,Math.min(surfaceChroma,4),onSurfaceTone);
+  palette.on_surface_variant=hctHex(utils,surfaceHue,Math.min(surfaceChroma,5),onVariantTone);
+  palette.outline=hctHex(utils,surfaceHue,Math.min(surfaceChroma,4.5),outlineTone);
+  palette.outline_variant=hctHex(utils,surfaceHue,Math.min(surfaceChroma,3.5),isDark?24:78);
+
+  // Container roles are used by this web UI for selections/tonal controls.
+  // Keep them surface-like instead of turning large UI areas into accent fills.
+  palette.primary_container=hctHex(utils,surfaceHue,surfaceChroma,highestTone);
+  palette.on_primary_container=palette.on_surface;
+  palette.secondary_container=hctHex(utils,surfaceHue,surfaceChroma,variantHighTone);
+  palette.on_secondary_container=palette.on_surface;
+  return palette;
 }
 
 function applySitePalette(palette){
