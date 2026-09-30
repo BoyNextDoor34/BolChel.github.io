@@ -175,22 +175,35 @@
 
   async function openSuggestionEditor(item,mode){
     if(typeof window.openEditor!=='function')return;
+
+    let sourceItem=item;
+    if(!isAdmin()&&currentUser&&item?.id){
+      try{
+        const sb=await getClient();
+        const fresh=await sb?.from('news_submissions').select('*').eq('id',item.id).eq('author_id',currentUser.id).maybeSingle();
+        if(fresh?.data) sourceItem=fresh.data;
+      }catch(error){
+        console.warn('Fresh suggestion read failed:',error);
+      }
+    }
+
     window.openEditor(null,'suggest');
     const page=$('#editor-page');
     if(!page)return;
-    page.dataset.suggestionId=item.id;
+    page.dataset.suggestionId=sourceItem.id;
     page.dataset.suggestionMode=mode;
-    const pending=mode==='published-edit'||mode==='admin-review-update';
-    const src=pending&&item.pending_title
-      ?{title:item.pending_title,category:item.pending_category,summary:item.pending_summary,body:item.pending_body,image:item.pending_image_url}
-      :{title:item.title,category:item.category,summary:item.summary,body:item.body,image:item.image_url};
+
+    const pending=mode==='published-edit'||mode==='admin-review-update'||sourceItem.status==='pending_update';
+    const src=pending&&sourceItem.pending_title
+      ?{title:sourceItem.pending_title,category:sourceItem.pending_category,summary:sourceItem.pending_summary,body:sourceItem.pending_body,image:sourceItem.pending_image_url}
+      :{title:sourceItem.title,category:sourceItem.category,summary:sourceItem.summary,body:sourceItem.body,image:sourceItem.image_url};
     $('#news-title-input').value=src.title||'';
     $('#news-category-input').value=src.category||'Политика';
     $('#news-summary-input').value=src.summary||'';
     $('#news-body-input').value=src.body||'';
     $('#news-image-input').value=src.image||'';
 
-    let savedPalette=pending?item.pending_palette:item.palette;
+    let savedPalette=pending?sourceItem.pending_palette:sourceItem.palette;
     if(typeof savedPalette==='string'){try{savedPalette=JSON.parse(savedPalette)}catch(_){savedPalette=null}}
     if(typeof state!=='undefined'){
       state.editor.generatedPalette=savedPalette||null;
@@ -211,7 +224,7 @@
       if(label)label.textContent=mode==='published-edit'?'Отправить на проверку':'Сохранить изменения';
       b.onclick=()=>saveSuggestionEditor();
     }
-    if(isAdmin()&&(mode==='admin-review'||mode==='admin-review-update'))addPublishButton(item.id);
+    if(isAdmin()&&(mode==='admin-review'||mode==='admin-review-update'))addPublishButton(sourceItem.id);
   }
   function addPublishButton(id){const actions=$('.editor-actions');if(!actions||$('#management-publish'))return;const b=document.createElement('button');b.id='management-publish';b.className='tonal-button';b.type='button';b.innerHTML='<span class="material-symbols-rounded">publish</span><span>Опубликовать</span>';b.onclick=()=>publishSuggestion(id);actions.insertBefore(b,actions.lastElementChild);}
   async function saveSuggestionEditor(){
