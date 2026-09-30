@@ -284,7 +284,7 @@ async function activateProfilePalette(){
   const avatarUrl=state.user.profile?.avatar_url||DEFAULT_AVATAR;
   try{
     const palette=await generateM3ContentPaletteFromImage(avatarUrl);
-    if(requestId!==state.paletteRequestId || state.section!=='profile') return;
+    if(requestId!==state.paletteRequestId || !['profile','profile-management'].includes(state.section)) return;
     applySitePalette(palette);
   }catch(error){
     if(requestId===state.paletteRequestId) activateNeutralPalette();
@@ -400,6 +400,7 @@ function openSection(section) {
   if(section==='news') activateNeutralPalette();
   if(section==='about') activateNeutralPalette();
   if(section==='profile') { activateNeutralPalette(); renderProfile(); activateProfilePalette(); }
+  if(section==='profile-management') { activateNeutralPalette(); activateProfilePalette(); }
   if(section==='article') { activateNeutralPalette(); renderArticle(); const article=state.news.find(item=>String(item.id)===String(state.articleId)); activateArticlePalette(article); }
   if(section==='editor') { activateNeutralPalette(); renderEditor(); state.editor.mode='edit'; requestAnimationFrame(()=>syncEditorMode()); }
   scrollMainToTop();
