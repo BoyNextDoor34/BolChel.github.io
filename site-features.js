@@ -499,7 +499,10 @@
     if(typeof window.syncEditorSelect==='function')window.syncEditorSelect('news-author-input');
     $('#news-body-input')?.dispatchEvent(new Event('input',{bubbles:true}));
     state.editor.generatedPalette=draft.palette||null;
-    if(draft.image_url)updateEditorCoverPreview();
+    if(draft.image_url){
+      updateEditorCoverPreview({generatePalette:!draft.palette});
+      if(draft.palette)renderPaletteSwatches(draft.palette);
+    }
     window.showToast?.('Черновик открыт');
   }
 
