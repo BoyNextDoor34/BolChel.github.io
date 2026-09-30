@@ -177,11 +177,19 @@
     if(typeof window.openEditor!=='function')return;
 
     let sourceItem=item;
+    let publishedSource=null;
     if(!isAdmin()&&currentUser&&item?.id){
       try{
         const sb=await getClient();
         const fresh=await sb?.from('news_submissions').select('*').eq('id',item.id).eq('author_id',currentUser.id).maybeSingle();
         if(fresh?.data) sourceItem=fresh.data;
+        if(sourceItem?.news_id){
+          const published=await sb?.from('news')
+            .select('id,title,category,summary,body,image_url,palette,author_id,updated_at')
+            .eq('id',sourceItem.news_id)
+            .maybeSingle();
+          if(published?.data) publishedSource=published.data;
+        }
       }catch(error){
         console.warn('Fresh suggestion read failed:',error);
       }
@@ -194,9 +202,10 @@
     page.dataset.suggestionMode=mode;
 
     const pendingMode=mode==='published-edit'||mode==='admin-review-update'||sourceItem.status==='pending_update';
+    const baseSource=publishedSource||sourceItem;
     const pendingValue=(pendingKey,baseKey)=>{
       const value=sourceItem[pendingKey];
-      return pendingMode && value!==null && value!==undefined ? value : sourceItem[baseKey];
+      return pendingMode && value!==null && value!==undefined ? value : baseSource[baseKey];
     };
     const src={
       title:pendingValue('pending_title','title'),
@@ -354,7 +363,7 @@
     }
     if(result.error)return window.showToast?.(result.error.message);
 
-    const u=await sb.from('news_submissions').update({
+    const submissionPatch={
       status:'approved',
       news_id:newsId,
       reviewed_at:new Date().toISOString(),
@@ -366,7 +375,16 @@
       pending_image_url:null,
       pending_palette:null,
       updated_at:new Date().toISOString()
-    }).eq('id',id);
+    };
+    if(update){
+      submissionPatch.category=src.category;
+      submissionPatch.title=src.title;
+      submissionPatch.summary=src.summary||'';
+      submissionPatch.body=src.body||'';
+      submissionPatch.image_url=src.image_url||'';
+      submissionPatch.palette=p;
+    }
+    const u=await sb.from('news_submissions').update(submissionPatch).eq('id',id);
     if(u.error)return window.showToast?.(u.error.message);
     await window.loadRemoteNews?.();
     window.showToast?.(update?'Изменения опубликованы':'Предложение опубликовано');
