@@ -3,6 +3,7 @@
   'use strict';
 
   const scripts=[
+    ['suggestion-metadata-guard.js?v=20260930-01','data-suggestion-metadata-guard'],
     ['suggestions-workflow.js?v=20260930-17','data-suggestions-workflow'],
     ['dialog-theme.js?v=20260930-07','data-dialog-theme'],
     ['performance-fixes.js?v=20260930-01','data-performance-fixes']
