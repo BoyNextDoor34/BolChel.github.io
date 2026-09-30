@@ -79,7 +79,7 @@
     replacement.addEventListener('click',e=>{
       e.preventDefault();
       e.stopPropagation();
-      if(typeof window.saveSuggestionEditorReliable==='function')window.saveSuggestionEditorReliable();
+      if(typeof window.saveSuggestionEditorWorkflow==='function')window.saveSuggestionEditorWorkflow();else if(typeof window.saveSuggestionEditorReliable==='function')window.saveSuggestionEditorReliable();
     });
     old.replaceWith(replacement);
   }
