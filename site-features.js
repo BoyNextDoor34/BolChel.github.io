@@ -376,7 +376,7 @@
       pending_palette:null,
       updated_at:new Date().toISOString()
     };
-    if(update){
+    if(item.status==='pending_update'){
       submissionPatch.category=src.category;
       submissionPatch.title=src.title;
       submissionPatch.summary=src.summary||'';
