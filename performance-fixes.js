@@ -33,6 +33,16 @@
         timer=setTimeout(()=>originalPreview(),mode==='split'?120:0);
       };
     }
+
+    const fixDraftLabel=()=>{
+      document.querySelectorAll('.markdown-help').forEach(el=>{
+        if(el.textContent.includes('сохраняет черновик локально')){
+          el.textContent=el.textContent.replace('сохраняет черновик локально','сохраняет черновик в вашем аккаунте');
+        }
+      });
+    };
+    fixDraftLabel();
+    new MutationObserver(fixDraftLabel).observe(document.body,{childList:true,subtree:true});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
