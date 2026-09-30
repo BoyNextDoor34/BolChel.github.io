@@ -428,6 +428,13 @@ function scrollElementIntoMain(element,behavior='smooth'){
   main.scrollTo({top:Math.max(0,target),behavior});
 }
 
+function syncPrimaryNavigation(sectionOverride=null){
+  const section=sectionOverride||state.section;
+  const navSection=section==='profile-management'||section==='saved-drafts'?'profile':section==='article'?'news':section==='editor'?(state.previousSection==='profile'||state.previousSection==='profile-management'||state.previousSection==='saved-drafts'?'profile':'news'):section;
+  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+}
+
 function openSection(section) {
   if(state.section!==section) state.previousSection=state.section;
   state.section=section;
@@ -600,12 +607,7 @@ function backToNews() {
   state.articleId=null;
   openSection('news');
   renderNews();
-  const dock=$('#mobile-dock');
-  if(dock){
-    dock.querySelectorAll('.mobile-dock-item').forEach(btn=>{
-      btn.classList.toggle('is-active',btn.dataset.section==='news');
-    });
-  }
+  requestAnimationFrame(()=>syncPrimaryNavigation('news'));
 }
 
 function renderKeyHelp(){
@@ -1021,6 +1023,7 @@ function openEditor(id,mode='edit'){
   }
   state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode, submissionId:null, draftId:null };
   openSection('editor');
+  requestAnimationFrame(()=>syncPrimaryNavigation(state.previousSection||'news'));
 }
 
 function editorTemplate(news){
