@@ -130,7 +130,24 @@
 
   async function getClient(){return typeof state!=='undefined'&&state.supabase?state.supabase:null;}
   async function refreshIdentity(){currentUser=typeof state!=='undefined'?state.user:null;currentProfile=currentUser?.profile||null;return currentUser;}
-  async function fetchOwn(){const sb=await getClient();if(!sb||!currentUser)return[];const {data,error}=await sb.from('news_submissions').select('*').eq('author_id',currentUser.id).order('created_at',{ascending:false});if(error){console.warn(error);return[]}return data||[];}
+  async function fetchOwn(){
+    const sb=await getClient();
+    if(!sb||!currentUser)return[];
+    const {data,error}=await sb.from('news_submissions').select('*').eq('author_id',currentUser.id).order('created_at',{ascending:false});
+    if(error){console.warn(error);return[];}
+    return (data||[]).map(item=>{
+      if(item.status!=='pending_update') return item;
+      return {
+        ...item,
+        title:item.pending_title ?? item.title,
+        category:item.pending_category ?? item.category,
+        summary:item.pending_summary ?? item.summary,
+        body:item.pending_body ?? item.body,
+        image_url:item.pending_image_url ?? item.image_url,
+        palette:item.pending_palette ?? item.palette
+      };
+    });
+  }
   async function fetchPending(){const sb=await getClient();if(!sb||!isAdmin())return[];const {data,error}=await sb.from('news_submissions').select('*').in('status',['pending','pending_update']).order('created_at',{ascending:false});if(error){console.warn(error);return[]}const ids=[...new Set((data||[]).map(x=>x.author_id).filter(Boolean))];if(ids.length){const p=await sb.from('profiles').select('id,nickname').in('id',ids);(p.data||[]).forEach(x=>authorCache[x.id]=x.nickname||'Пользователь');}return data||[];}
 
   function ensureManagementSection(){let section=$('#section-profile-management');if(section)return section;const main=$('#main')||document.querySelector('main');if(!main)return null;section=document.createElement('section');section.id='section-profile-management';section.className='page-section';section.setAttribute('aria-labelledby','profile-management-heading');main.appendChild(section);return section;}
@@ -163,7 +180,7 @@
     if(!page)return;
     page.dataset.suggestionId=item.id;
     page.dataset.suggestionMode=mode;
-    const pending=item.status==='pending_update'||mode==='published-edit'||mode==='admin-review-update';
+    const pending=mode==='published-edit'||mode==='admin-review-update';
     const src=pending&&item.pending_title
       ?{title:item.pending_title,category:item.pending_category,summary:item.pending_summary,body:item.pending_body,image:item.pending_image_url}
       :{title:item.title,category:item.category,summary:item.summary,body:item.body,image:item.image_url};
