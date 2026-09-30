@@ -30,12 +30,12 @@
       let image=$('#news-image-input')?.value.trim()||'';
       if(!title||!body)throw new Error('Заполните заголовок и текст новости.');
 
-      if(state.editor.pendingCoverFile){
+      const pendingCoverFile=state.editor.pendingCoverFile || $('#editor-image-file')?.files?.[0] || null;
+      if(pendingCoverFile){
         if(msg)msg.textContent='Загружаем обложку…';
-        image=await uploadNewsImage(state.editor.pendingCoverFile,'suggestion');
+        image=await uploadNewsImage(pendingCoverFile,'suggestion');
         const imageInput=$('#news-image-input');
         if(imageInput)imageInput.value=image;
-        state.editor.pendingCoverFile=null;
       }
       if(!image)image=extractFirstImageFromMarkdown(body)||'';
       if(!image)throw new Error('Добавьте изображение новости.');
@@ -60,6 +60,7 @@
       const result=await query.select('id,updated_at,status').maybeSingle();
       if(result.error)throw result.error;
       if(!result.data)throw new Error('Supabase не сохранил изменения. Проверьте права доступа к этому предложению.');
+      state.editor.pendingCoverFile=null;
 
       try{localStorage.removeItem(`news-editor-draft-${id}`);}catch(_){ }
       showToast?.(mode==='published-edit'?'Изменения отправлены администратору':'Предложение сохранено');
