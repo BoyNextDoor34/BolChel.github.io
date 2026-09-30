@@ -13,7 +13,9 @@ const state = {
   editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null, draftId:null },
   newsSuggestions:[],
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
-  pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0, authorProfiles:{}, supabaseInitPromise:null, supabaseError:null
+  pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
+  paletteCache:new Map(), palettePending:new Map(), authorProfiles:{}, authorProfilesLoadedAt:0,
+  supabaseInitPromise:null, supabaseError:null
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -194,18 +196,36 @@ async function extractMatugenSourceColorFromImage(imageUrl,utils){
 }
 
 async function generateM3ContentPaletteFromImage(imageUrl){
-  const utils=await loadM3ColorUtilities();
-  const source=await extractMatugenSourceColorFromImage(imageUrl,utils);
-  const hct=utils.Hct.fromInt(source);
-  const lightScheme=new utils.SchemeContent(hct,false,0.0);
-  const darkScheme=new utils.SchemeContent(hct,true,0.0);
-  return {
-    source:'image',
-    generator:M3_IMAGE_PALETTE_GENERATOR,
-    seed:utils.hexFromArgb(source).toLowerCase(),
-    light:tuneNoctaliaSurfaceRoles(schemeToPalette(lightScheme,utils),hct,utils,false),
-    dark:tuneNoctaliaSurfaceRoles(schemeToPalette(darkScheme,utils),hct,utils,true)
-  };
+  const key=String(imageUrl||'').trim();
+  if(!key) throw new Error('Изображение не указано.');
+  const cacheable=!key.startsWith('blob:');
+  if(cacheable && state.paletteCache.has(key)) return state.paletteCache.get(key);
+  if(state.palettePending.has(key)) return state.palettePending.get(key);
+
+  const pending=(async()=>{
+    const utils=await loadM3ColorUtilities();
+    const source=await extractMatugenSourceColorFromImage(key,utils);
+    const hct=utils.Hct.fromInt(source);
+    const lightScheme=new utils.SchemeContent(hct,false,0.0);
+    const darkScheme=new utils.SchemeContent(hct,true,0.0);
+    const palette={
+      source:'image',
+      generator:M3_IMAGE_PALETTE_GENERATOR,
+      seed:utils.hexFromArgb(source).toLowerCase(),
+      light:tuneNoctaliaSurfaceRoles(schemeToPalette(lightScheme,utils),hct,utils,false),
+      dark:tuneNoctaliaSurfaceRoles(schemeToPalette(darkScheme,utils),hct,utils,true)
+    };
+    if(cacheable){
+      state.paletteCache.delete(key);
+      state.paletteCache.set(key,palette);
+      while(state.paletteCache.size>32) state.paletteCache.delete(state.paletteCache.keys().next().value);
+    }
+    return palette;
+  })();
+
+  state.palettePending.set(key,pending);
+  try{return await pending;}
+  finally{state.palettePending.delete(key);}
 }
 
 function hctHex(utils,hue,chroma,tone){
@@ -891,7 +911,6 @@ async function initSupabase(){
         setTimeout(async()=>{
           try{
             await handleSession(nextSession);
-            await loadRemoteNews();
           }catch(error){
             console.warn('Supabase auth refresh failed',error);
           }
@@ -920,15 +939,18 @@ async function initSupabase(){
 }
 
 
-async function loadAuthorProfiles(){
+async function loadAuthorProfiles(force=false){
   if(!state.supabase) return;
+  const fresh=state.authorProfilesLoadedAt && (Date.now()-state.authorProfilesLoadedAt)<300000 && Object.keys(state.authorProfiles).length>0;
+  if(!force && fresh) return;
   try{
     const result=await state.supabase.from('profiles').select('id,nickname,role').order('nickname',{ascending:true});
     if(result.error) throw result.error;
     const next={};
     (result.data||[]).forEach(profile=>{ if(profile?.id) next[profile.id]=profile; });
-    if(state.user?.id && state.user.profile && !next[state.user.id]) next[state.user.id]={id:state.user.id,nickname:state.user.profile.nickname||state.user.email?.split('@')[0]||'Пользователь',role:state.user.profile.role||'reader'};
+    if(state.user?.id && state.user.profile) next[state.user.id]={id:state.user.id,nickname:state.user.profile.nickname||state.user.email?.split('@')[0]||'Пользователь',role:state.user.profile.role||'reader'};
     state.authorProfiles=next;
+    state.authorProfilesLoadedAt=Date.now();
   }catch(error){ console.warn('Author profiles load failed:',error); }
 }
 
@@ -1096,15 +1118,43 @@ function setupEditor(news){
   else if(news?.image) updateEditorPaletteFromImage(news.image);
 }
 
+let editorPreviewTimer=0;
+let editorPaletteTimer=0;
+
+function scheduleEditorPreview(){
+  clearTimeout(editorPreviewTimer);
+  const delay=state.editor.mode==='split'?120:0;
+  editorPreviewTimer=setTimeout(renderMarkdownPreview,delay);
+}
+
 function bindEditorEvents(){
-  $('#editor-cancel').onclick=()=>{ state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null,draftId:null}; backToNews(); };
+  $('#editor-cancel').onclick=()=>{ clearTimeout(editorPreviewTimer); clearTimeout(editorPaletteTimer); state.editor={id:null,mode:'edit',originalImageUrl:null,generatedPalette:null,imageObjectUrl:null,pendingCoverFile:null,authorId:null,suggestionMode:false,submissionId:null,draftId:null}; backToNews(); };
   $('#admin-save').onclick=saveEditorNews;
-  $('#news-body-input').addEventListener('input',()=>{ renderMarkdownPreview(); saveEditorDraft(); });
+  $('#news-body-input').addEventListener('input',()=>{ scheduleEditorPreview(); saveEditorDraft(); });
   $('#news-title-input').addEventListener('input',saveEditorDraft);
   $('#news-summary-input').addEventListener('input',saveEditorDraft);
   $('#news-category-input').addEventListener('change',saveEditorDraft);
   $('#news-author-input').addEventListener('change',e=>{state.editor.authorId=e.target.value||null;saveEditorDraft();});
-  $('#news-image-input').addEventListener('input',()=>{ updateEditorCoverPreview(); saveEditorDraft(); });
+  $('#news-image-input').addEventListener('input',()=>{
+    updateEditorCoverPreview({generatePalette:false});
+    clearTimeout(editorPaletteTimer);
+    const url=$('#news-image-input')?.value.trim()||'';
+    if(!url){
+      activateNeutralPalette();
+      $('#editor-palette-swatches').innerHTML='';
+      return;
+    }
+    editorPaletteTimer=setTimeout(()=>{
+      const latest=$('#news-image-input')?.value.trim()||'';
+      if(latest===url) updateEditorPaletteFromImage(url);
+    },450);
+    saveEditorDraft();
+  });
+  $('#news-image-input').addEventListener('change',()=>{
+    const url=$('#news-image-input')?.value.trim()||'';
+    clearTimeout(editorPaletteTimer);
+    if(url) updateEditorPaletteFromImage(url);
+  });
   $('#editor-upload-image').onclick=()=>$('#editor-image-file').click();
   $('#editor-crop-image').onclick=()=>openNewsCoverCrop();
   $('#editor-image-file').addEventListener('change',handleNewsImageUpload);
@@ -1290,13 +1340,13 @@ function loadEditorDraft(){
   // Server-side saved drafts are opened explicitly from the profile.
 }
 
-function updateEditorCoverPreview(){
+function updateEditorCoverPreview({generatePalette=true}={}){
   const img=$('#editor-cover-preview'),url=$('#news-image-input')?.value.trim();
   if(!img) return;
   img.src=url||'';
   img.style.opacity=url?'1':'.28';
-  if(url) updateEditorPaletteFromImage(url);
-  else if(state.section==='editor') activateNeutralPalette();
+  if(url && generatePalette) updateEditorPaletteFromImage(url);
+  else if(!url && state.section==='editor') activateNeutralPalette();
 }
 
 async function updateEditorPaletteFromImage(url){
