@@ -163,7 +163,7 @@
     if(!page)return;
     page.dataset.suggestionId=item.id;
     page.dataset.suggestionMode=mode;
-    const pending=mode==='published-edit'||mode==='admin-review-update';
+    const pending=item.status==='pending_update'||mode==='published-edit'||mode==='admin-review-update';
     const src=pending&&item.pending_title
       ?{title:item.pending_title,category:item.pending_category,summary:item.pending_summary,body:item.pending_body,image:item.pending_image_url}
       :{title:item.title,category:item.category,summary:item.summary,body:item.body,image:item.image_url};
