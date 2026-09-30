@@ -20,7 +20,8 @@
       await load('suggestion-save-fix.js?v=20260930-03','data-suggestion-save-fix');
       await load('management-dialog-fix.js?v=20260930-03','data-management-dialog-fix');
       await load('profile-management-fixes.js?v=20260930-02','data-profile-management-fixes');
-      await load('profile-management-final.js?v=20260930-01','data-profile-management-final');
+      await load('profile-management-final.js?v=20260930-02','data-profile-management-final');
+      await load('drafts-workflow.js?v=20260930-01','data-drafts-workflow');
     }catch(error){
       console.error('Profile management extensions failed:',error);
     }
