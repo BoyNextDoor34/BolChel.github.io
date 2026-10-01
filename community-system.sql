@@ -13,15 +13,65 @@ update public.profiles set created_at=now() where created_at is null;
 alter table public.profiles alter column created_at set default now(), alter column created_at set not null;
 alter table public.profiles add column if not exists is_banned boolean not null default false, add column if not exists ban_reason text, add column if not exists banned_at timestamptz, add column if not exists banned_by uuid;
 
+-- Bootstrap exactly one owner without changing or removing the site's existing
+-- role-protection function. The protection trigger is disabled only for this
+-- short, deterministic bootstrap operation and is immediately re-enabled.
 do $$
-declare keep_owner uuid;
+declare
+  keep_owner uuid;
+  trigger_name text;
+  was_enabled boolean;
 begin
-  select id into keep_owner from public.profiles where role='owner' order by created_at asc,id limit 1;
+  select id into keep_owner
+  from public.profiles
+  where role::text='owner'
+  order by created_at asc,id
+  limit 1;
+
   if keep_owner is null then
-    select id into keep_owner from public.profiles where role='admin' order by created_at asc,id limit 1;
-    if keep_owner is not null then update public.profiles set role='owner' where id=keep_owner; end if;
+    select id into keep_owner
+    from public.profiles
+    where role::text='admin'
+    order by created_at asc,id
+    limit 1;
   end if;
-  if keep_owner is not null then update public.profiles set role='admin' where role='owner' and id<>keep_owner; end if;
+
+  if keep_owner is null then
+    raise notice 'No admin account exists yet; owner will be assigned later by the owner-management function.';
+  else
+    for trigger_name, was_enabled in
+      select t.tgname, t.tgenabled <> 'D'
+      from pg_trigger t
+      join pg_class r on r.oid=t.tgrelid
+      join pg_proc f on f.oid=t.tgfoid
+      join pg_namespace n on n.oid=f.pronamespace
+      where r.oid='public.profiles'::regclass
+        and not t.tgisinternal
+        and n.nspname='public'
+        and f.proname='prevent_role_change'
+    loop
+      execute format('alter table public.profiles disable trigger %I',trigger_name);
+    end loop;
+
+    update public.profiles set role='admin' where role::text='owner' and id<>keep_owner;
+    update public.profiles set role='owner' where id=keep_owner;
+
+    for trigger_name, was_enabled in
+      select t.tgname, t.tgenabled <> 'D'
+      from pg_trigger t
+      join pg_class r on r.oid=t.tgrelid
+      join pg_proc f on f.oid=t.tgfoid
+      join pg_namespace n on n.oid=f.pronamespace
+      where r.oid='public.profiles'::regclass
+        and not t.tgisinternal
+        and n.nspname='public'
+        and f.proname='prevent_role_change'
+    loop
+      if was_enabled then
+        execute format('alter table public.profiles enable trigger %I',trigger_name);
+      end if;
+    end loop;
+  end if;
 end $$;
 
 do $$
@@ -127,9 +177,7 @@ returns trigger language plpgsql security definer set search_path=''
 as $$
 declare parent_news text;
 begin
-  if not exists(select 1 from public.news n where n.id::text=new.news_id) then
-    raise exception 'Новость для комментария не найдена.';
-  end if;
+  if not exists(select 1 from public.news n where n.id::text=new.news_id) then raise exception 'Новость для комментария не найдена.'; end if;
   if new.parent_id is not null then
     select news_id into parent_news from public.comments where id=new.parent_id;
     if parent_news is null then raise exception 'Родительский комментарий не найден.'; end if;
@@ -241,13 +289,8 @@ begin
   if me is null then raise exception 'Требуется авторизация.'; end if;
   select role::text into me_role from public.profiles where id=me;
   if old.role::text='owner' and old.id<>me then raise exception 'Профиль владельца защищён.'; end if;
-  if new.role<>old.role and coalesce(current_setting('app.community_role_change',true),'')<>'1' then
-    raise exception 'Роль изменяется только штатным механизмом владельца.';
-  end if;
-  if (new.is_banned is distinct from old.is_banned or new.ban_reason is distinct from old.ban_reason or new.banned_at is distinct from old.banned_at or new.banned_by is distinct from old.banned_by)
-     and not (select public.community_can_manage_user(old.id)) then
-    raise exception 'Недостаточно прав для модерации этого пользователя.';
-  end if;
+  if new.role<>old.role and coalesce(current_setting('app.community_role_change',true),'')<>'1' then raise exception 'Роль изменяется только штатным механизмом владельца.'; end if;
+  if (new.is_banned is distinct from old.is_banned or new.ban_reason is distinct from old.ban_reason or new.banned_at is distinct from old.banned_at or new.banned_by is distinct from old.banned_by) and not (select public.community_can_manage_user(old.id)) then raise exception 'Недостаточно прав для модерации этого пользователя.'; end if;
   if me<>old.id and (new.nickname is distinct from old.nickname or new.avatar_url is distinct from old.avatar_url or new.bio is distinct from old.bio or new.created_at is distinct from old.created_at) then
     if me_role<>'owner' then raise exception 'Нельзя редактировать чужой профиль.'; end if;
   end if;
@@ -310,7 +353,7 @@ begin
   if old_role is null then raise exception 'Пользователь не найден.'; end if;
   if old_role='owner' then raise exception 'Роль владельца нельзя изменить.'; end if;
   perform set_config('app.community_role_change','1',true);
-  update public.profiles set role=p_role::public.user_role where id=p_user_id;
+  update public.profiles set role=p_role where id=p_user_id;
   return true;
 end $$;
 revoke all on function public.community_set_role(uuid,text) from public;
