@@ -29,57 +29,105 @@
       <div class="brand-logo" aria-label="Большое Человеческое">
         <div class="brand-logo-main">
           <svg class="brand-logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
-  <rect x="4.5" y="4.5" width="87" height="87" rx="25" fill="var(--md-sys-color-surface-container-highest)" stroke="var(--md-sys-color-outline-variant)" stroke-width="1.15"/>
+  <!-- Material 3 / anime sci-fi glyph. All accents inherit the site's dynamic palette. -->
+  <rect x="4.5" y="4.5" width="87" height="87" rx="25"
+        fill="var(--md-sys-color-surface-container-highest)"
+        stroke="var(--md-sys-color-outline-variant)" stroke-width="1.15"/>
 
-  <!-- broken orbital frame / editorial motion -->
-  <path d="M13.8 67.5c-3-12.5-.7-26.1 7.1-36.9 7.2-9.9 18.4-16.3 30.5-18.2" fill="none" stroke="var(--md-sys-color-secondary)" stroke-width="1.2" opacity=".62"/>
-  <path d="M19.2 76.1c12.4 7.4 27.5 9.2 41.5 4.4 8.1-2.8 14.5-7.8 18.8-14.3" fill="none" stroke="var(--md-sys-color-tertiary)" stroke-width="1.05" opacity=".72"/>
-  <path d="M17.2 26.1 22.9 21M73.5 14.1l6.3 3.4-5.4 9.4-2.7-1.5z" fill="var(--md-sys-color-tertiary)" opacity=".82"/>
+  <!-- Broken halo / orbital arcs -->
+  <path d="M15.2 60.6c-2.2-11.5 1.1-23.5 9.2-32.2 7-7.5 16.6-12.2 27.3-13.8"
+        fill="none" stroke="var(--md-sys-color-secondary)" stroke-width="1.25"
+        stroke-linecap="round" opacity=".62"/>
+  <path d="M22.4 76.8c9.4 6.8 21.7 9.8 33.2 7.8 8.3-1.4 15.6-5.1 21.1-10.7"
+        fill="none" stroke="var(--md-sys-color-tertiary)" stroke-width="1.05"
+        stroke-linecap="round" opacity=".72"/>
+  <path d="M28.4 17.5 41.6 12.8" stroke="var(--md-sys-color-primary)"
+        stroke-width="1.2" stroke-linecap="round" opacity=".48"/>
+  <path d="M68.8 13.2 75 16.4 69.2 26.1 66.2 24.4z"
+        fill="var(--md-sys-color-tertiary)" opacity=".82"/>
 
-  <!-- abstract humanoid/android silhouette: deliberately non-character-specific -->
+  <!-- Generic futuristic energy blade -->
+  <path d="M76.3 17.2 82 20.1 70.9 70.7 67.2 69.7z"
+        fill="var(--md-sys-color-on-surface)" opacity=".92"/>
+  <path d="M67.2 69.4 70.9 70.5 66.6 78.1 63.7 76.1z"
+        fill="var(--md-sys-color-primary)" opacity=".9"/>
+  <path d="M68.1 39.2h12.6" stroke="var(--md-sys-color-surface)"
+        stroke-width="1.5" stroke-linecap="round" opacity=".88"/>
+  <ellipse cx="69.9" cy="42.7" rx="7.2" ry="2.3"
+           fill="var(--md-sys-color-tertiary)" opacity=".84"/>
+  <path d="M70.9 40.5h-2v10.9h2z" fill="var(--md-sys-color-surface)" opacity=".92"/>
+
+  <!-- Neutral companion pod -->
+  <g transform="translate(11.5 29.2) rotate(-5)">
+    <rect x="0" y="8" width="19.5" height="13" rx="4"
+          fill="var(--md-sys-color-surface-container)"
+          stroke="var(--md-sys-color-secondary)" stroke-width="1.15"/>
+    <rect x="7.2" y="1.2" width="5" height="6" rx="1.6"
+          fill="var(--md-sys-color-secondary)"/>
+    <path d="M9.7 1.2V-1.7" stroke="var(--md-sys-color-on-surface)"
+          stroke-width="1.15" stroke-linecap="round"/>
+    <circle cx="4.8" cy="14.6" r="1.2" fill="var(--md-sys-color-primary)"/>
+    <circle cx="14.7" cy="14.6" r="1.2" fill="var(--md-sys-color-primary)"/>
+    <path d="M2 22.1 6.1 27.6M17.1 22.1l-4 5.7"
+          stroke="var(--md-sys-color-secondary)" stroke-width="1.7"
+          stroke-linecap="round"/>
+    <path d="m6.1 27.6 3 2.3M13.1 27.7l-2.7 2.4"
+          stroke="var(--md-sys-color-secondary)" stroke-width="1.7"
+          stroke-linecap="round"/>
+    <path d="M2.1 23.2.4 25.6 3.2 28M17 23.1l1.6 2.5-2.7 2.5"
+          stroke="var(--md-sys-color-secondary)" stroke-width="1.2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Neutral anime-styled android -->
   <g>
-    <path d="M49 20.2c8.8 0 15.9 6.2 17.4 14.9.9 5.2-.2 10.2-3.3 14.2-3.2 4.2-7.9 6.7-14.2 6.7-7.4 0-12.8-3.4-15.5-9.1-2.2-4.6-2.1-10.2-.3-15.2 2.7-7.4 8.2-11.5 15.9-11.5Z" fill="var(--md-sys-color-primary)" opacity=".95"/>
-    <path d="M33.2 37.1c2.3-8.8 8.1-13.3 15.4-13.3 6.8 0 12.2 2.9 15.7 8.1-3.1-1.2-6.5-1.8-9.8-1.8-7.1 0-13.4 2.6-18.3 7.5Z" fill="var(--md-sys-color-on-surface)" opacity=".88"/>
-    <path d="M36.8 42.6h23.1" stroke="var(--md-sys-color-surface)" stroke-width="2.2" stroke-linecap="round" opacity=".9"/>
-    <path d="M41.2 50.6c2.7 1.8 6.1 2.7 9.6 2.7 2.3 0 4.5-.4 6.7-1.4" fill="none" stroke="var(--md-sys-color-primary-container)" stroke-width="1.2" stroke-linecap="round"/>
-    <path d="M42 56.4 38.3 68.7l6 6.9 5.7-7.4 5.1 7 5.9-7.3-3.1-10.7" fill="var(--md-sys-color-on-surface)" opacity=".93"/>
-    <path d="M39.2 65.4c-4.7 1.4-8.6 4.3-11.4 8.4M62.1 64.9c3.7.9 7.1 2.8 10.1 5.9" fill="none" stroke="var(--md-sys-color-on-surface)" stroke-width="2.1" stroke-linecap="round" opacity=".82"/>
-    <path d="M47.1 58.4c1.4.9 3.1 1.4 4.8 1.4" stroke="var(--md-sys-color-surface)" stroke-width="1.15" stroke-linecap="round" opacity=".9"/>
-    <path d="M41.8 27.7c2.1-1.4 4.4-2.3 6.9-2.6M57.2 26.5c2.2.9 4.1 2.3 5.7 4.1" stroke="var(--md-sys-color-on-surface)" stroke-width="1.4" stroke-linecap="round" opacity=".52"/>
-    <!-- neutral geometric face/visor instead of recognizable anime facial cues -->
-    <path d="M39 40.1h18.7" stroke="var(--md-sys-color-on-surface)" stroke-width="1" opacity=".5"/>
-    <circle cx="43.2" cy="39.1" r=".85" fill="var(--md-sys-color-tertiary)"/>
-    <circle cx="53.8" cy="39.1" r=".85" fill="var(--md-sys-color-tertiary)"/>
+    <!-- Head / helmet: generic silhouette, no recognizable character markers -->
+    <path d="M48.4 20.6c8.8 0 15.9 6.1 17.8 14.8 1.1 5.1.3 10.5-2.6 14.6-3.1 4.5-8.1 6.8-14.8 6.8-7.4 0-12.7-3.1-15.3-8.7-2.1-4.7-2.1-10.8-.2-15.9 2.8-7.5 8.1-11.6 15.1-11.6Z"
+          fill="var(--md-sys-color-primary)" opacity=".94"/>
+    <!-- Short angular hair/helmet fins -->
+    <path d="M34.1 34.3 39 25.5l5.2-4.2 3.7 7.1-5.1 6.2zM54.8 21.2l6.7 4.1 4 6.7-6.3 2.8-4.8-5.6z"
+          fill="var(--md-sys-color-on-surface)" opacity=".9"/>
+    <!-- Neutral visor -->
+    <path d="M37 38.8c3.6-3.1 7.9-4.7 12.8-4.7 4.2 0 8 .9 11.2 2.8"
+          fill="none" stroke="var(--md-sys-color-surface)" stroke-width="2"
+          stroke-linecap="round" opacity=".92"/>
+    <path d="M36.8 42.1h24.6" stroke="var(--md-sys-color-surface)"
+          stroke-width="2.4" stroke-linecap="round" opacity=".96"/>
+    <path d="M46.2 47.1h6.7" stroke="var(--md-sys-color-primary-container)"
+          stroke-width="1.2" stroke-linecap="round" opacity=".8"/>
+    <!-- Neck / torso -->
+    <path d="M43.4 54.1 38.3 65.7 45.5 76l4.9-8.3 5.6 8 6.1-8.2-4.9-13.4"
+          fill="var(--md-sys-color-on-surface)" opacity=".93"/>
+    <path d="M39.3 65.9c-4.5 1-8.4 4.1-11.2 8.7M61.7 65.8c3.7.9 7.2 3 10.2 6.1"
+          fill="none" stroke="var(--md-sys-color-on-surface)" stroke-width="2.15"
+          stroke-linecap="round" opacity=".82"/>
+    <!-- Small chest light, keeping the news/editorial identity -->
+    <rect x="47.1" y="58.1" width="5.7" height="2.8" rx="1.4"
+          fill="var(--md-sys-color-tertiary)" opacity=".9"/>
+    <path d="M45.3 62.9h9.2" stroke="var(--md-sys-color-surface)"
+          stroke-width="1.15" stroke-linecap="round" opacity=".75"/>
   </g>
 
-  <!-- generic hovering companion drone -->
-  <g transform="translate(11 28) rotate(-6)">
-    <rect x="0" y="9" width="19" height="13" rx="4" fill="var(--md-sys-color-surface-container)" stroke="var(--md-sys-color-secondary)" stroke-width="1.15"/>
-    <path d="M4.8 5.3v3M14.2 5.3v3" stroke="var(--md-sys-color-on-surface)" stroke-width="1.2" stroke-linecap="round"/>
-    <rect x="7.4" y="2.1" width="4.3" height="3.1" rx="1" fill="var(--md-sys-color-secondary)"/>
-    <circle cx="4.7" cy="15.2" r="1.25" fill="var(--md-sys-color-primary)"/>
-    <circle cx="14.3" cy="15.2" r="1.25" fill="var(--md-sys-color-primary)"/>
-    <path d="M1.8 23.2 5.6 28.3M17.2 23.2l-3.7 5.1" stroke="var(--md-sys-color-secondary)" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M5.6 28.2 8.4 30.6M13.4 28.2l-2.8 2.4" stroke="var(--md-sys-color-secondary)" stroke-width="1.55" stroke-linecap="round"/>
+  <!-- News card -->
+  <g transform="translate(19.6 65.8)">
+    <rect x="0" y="4" width="45.5" height="21.2" rx="5.2"
+          fill="var(--md-sys-color-surface)"
+          stroke="var(--md-sys-color-on-surface)" stroke-width="1.2"/>
+    <rect x="4.2" y="8.1" width="8.1" height="8.1" rx="1.8"
+          fill="var(--md-sys-color-tertiary-container, var(--md-sys-color-surface-container-high))"
+          stroke="var(--md-sys-color-tertiary)" stroke-width=".8"/>
+    <path d="M17.8 10h15.4M17.8 14.1h11.6M17.8 18.2h8.4"
+          stroke="var(--md-sys-color-primary)" stroke-width="1.35"
+          stroke-linecap="round"/>
   </g>
 
-  <!-- generic energy blade -->
-  <path d="M76.6 16.8 82.1 19.6 70.7 68.6l-3.6-1.1z" fill="var(--md-sys-color-on-surface)" opacity=".9"/>
-  <path d="M67.2 66.9 71 68l-4.1 9.1-2.8-2z" fill="var(--md-sys-color-primary)" opacity=".88"/>
-  <ellipse cx="69.8" cy="43.1" rx="7.4" ry="2.35" fill="var(--md-sys-color-tertiary)" opacity=".84"/>
-  <path d="M69.1 40.8h2.1v9.9h-2.1z" fill="var(--md-sys-color-surface)" opacity=".9"/>
-
-  <!-- editorial/news card -->
-  <g transform="translate(19 65)">
-    <path d="M0 4.2C0 1.7 2.2 0 4.8 0h35.4c2.7 0 4.8 1.7 4.8 4.2v13.4c0 2.5-2.1 4.2-4.8 4.2H4.8C2.2 21.8 0 20.1 0 17.6Z" fill="var(--md-sys-color-surface)" stroke="var(--md-sys-color-on-surface)" stroke-width="1.2"/>
-    <rect x="4.4" y="4.1" width="8.2" height="8.2" rx="1.8" fill="var(--md-sys-color-tertiary)" opacity=".72"/>
-    <path d="M17.8 5.9h15.1M17.8 9.8h12.1M17.8 13.7h8.9" stroke="var(--md-sys-color-primary)" stroke-width="1.3" stroke-linecap="round"/>
-  </g>
-
-  <!-- editorial markers -->
-  <path d="M18.5 19.3h5M21 16.8v5M77.6 56.7l2 3.1 3.1 2-3.1 2-2 3.1-2-3.1-3.1-2 3.1-2z" fill="var(--md-sys-color-tertiary)" opacity=".8"/>
-  <circle cx="79" cy="31.4" r="1.4" fill="var(--md-sys-color-primary)"/>
-  <circle cx="17.1" cy="55.1" r="1.2" fill="var(--md-sys-color-primary)" opacity=".78"/>
+  <!-- Small M3-like geometric accents -->
+  <path d="M19.4 18.8h5M21.9 16.3v5" stroke="var(--md-sys-color-tertiary)"
+        stroke-width="1" stroke-linecap="round" opacity=".78"/>
+  <path d="M77.3 57.2l2 3 3.1 2-3.1 2-2 3-2-3-3.1-2 3.1-2z"
+        fill="var(--md-sys-color-tertiary)" opacity=".8"/>
+  <circle cx="79.5" cy="32.1" r="1.55" fill="var(--md-sys-color-primary)"/>
+  <circle cx="17.4" cy="56.8" r="1.2" fill="var(--md-sys-color-primary)" opacity=".78"/>
 </svg>
           <div class="brand-wordmark">
             <span class="brand-title brand-title-top">БОЛЬШОЕ</span>
