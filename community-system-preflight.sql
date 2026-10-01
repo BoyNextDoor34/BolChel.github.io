@@ -1,45 +1,18 @@
 /*
-  COMMUNITY SYSTEM — ONE-TIME PREFLIGHT
+  COMMUNITY SYSTEM — ONE-TIME ENUM PREFLIGHT
 
-  Run this file FIRST, by itself, in Supabase SQL Editor.
-  Wait until it succeeds/commits, then run community-system.sql.
+  Run this file ALONE in Supabase SQL Editor and wait for it to finish
+  successfully BEFORE running community-system.sql.
 
-  Why this exists:
   The existing profiles.role column uses PostgreSQL enum user_role.
-  PostgreSQL enum values added with ALTER TYPE are not safely usable by
-  the same transaction in which they were added. Supabase SQL Editor may
-  wrap a submitted script in one transaction, which caused 22P02 when the
-  migration tried to use role='owner'.
+  PostgreSQL does not allow a newly-added enum value to be used safely
+  inside the same transaction in which it was added. The previous
+  preflight incorrectly tried to change the type of profiles.role; that
+  cannot work because existing RLS policies depend on that column.
 
-  This preflight removes that dependency completely by converting the
-  application role column to text and preserving the existing values.
+  This file therefore does ONE thing only: add the owner enum value.
+  It must be committed separately. It does not alter profiles.role,
+  policies, users, or any existing data.
 */
 
-begin;
-
-alter table public.profiles
-  alter column role type text
-  using role::text;
-
-do $$
-declare c record;
-begin
-  for c in
-    select con.conname
-    from pg_constraint con
-    join pg_class rel on rel.oid=con.conrelid
-    join pg_namespace nsp on nsp.oid=rel.relnamespace
-    where nsp.nspname='public'
-      and rel.relname='profiles'
-      and con.contype='c'
-      and pg_get_constraintdef(con.oid) ilike '%role%'
-  loop
-    execute format('alter table public.profiles drop constraint if exists %I',c.conname);
-  end loop;
-end $$;
-
-alter table public.profiles
-  add constraint profiles_role_check
-  check(role in('reader','admin','owner'));
-
-commit;
+alter type public.user_role add value if not exists 'owner';
