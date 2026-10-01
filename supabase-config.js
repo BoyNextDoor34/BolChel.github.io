@@ -38,7 +38,7 @@ window.SUPABASE_CONFIG = {
     .app-nav.is-collapsed .bolchel-logo-wrapper > div:first-child > svg { width:56px !important; height:56px !important; flex:0 0 56px !important; }
     .app-nav.is-collapsed .bolchel-logo-wrapper > div:first-child > div,
     .app-nav.is-collapsed .bolchel-logo-wrapper > div:last-child { display:none !important; }
-    @media (max-width:860px) {
+    @media (max-width:720px) {
       .app-nav .bolchel-logo-wrapper { width:100% !important; max-width:100% !important; padding:0 4px !important; gap:7px !important; }
       .app-nav .bolchel-logo-wrapper > div:first-child { width:100% !important; height:auto !important; min-height:0 !important; flex-direction:column !important; align-items:center !important; justify-content:flex-start !important; gap:7px !important; }
       .app-nav .bolchel-logo-wrapper > div:first-child > svg { width:58px !important; height:58px !important; flex:0 0 58px !important; }
@@ -53,9 +53,39 @@ window.SUPABASE_CONFIG = {
     }
     .editor-author-readonly { display:flex !important; align-items:center !important; min-height:56px !important; padding:0 16px !important; border:1px solid var(--md-sys-color-outline) !important; border-radius:16px !important; background:var(--md-sys-color-surface-container-low) !important; color:var(--md-sys-color-on-surface) !important; box-sizing:border-box !important; }
     .editor-author-readonly .editor-author-name { overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; }
-    @media(max-width:860px){
+    @media(max-width:720px){
       .editor-author-readonly{min-height:52px !important;}
       .mobile-dock.is-editor-inactive{transform:translateY(calc(100% + 28px)) !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important;}
+    }
+
+    /* Keep the desktop composition intact while a desktop window is temporarily
+       between 721px and 860px wide. The base stylesheet historically switches to
+       the mobile shell at 860px, which makes normal desktop resizing/zooming jump
+       between two unrelated layouts. The real mobile shell now starts at 720px. */
+    @media (min-width:721px) and (max-width:860px) {
+      html { height:auto !important; min-height:100% !important; overflow:auto !important; }
+      body { height:auto !important; min-height:100vh !important; overflow:visible !important; overscroll-behavior:auto !important; }
+      .app-nav { transform:none !important; width:240px !important; inset:0 auto 0 0 !important; padding:22px 16px !important; }
+      .app-nav.is-collapsed { width:88px !important; }
+      .topbar { left:240px !important; right:0 !important; width:auto !important; height:78px !important; padding:0 18px !important; }
+      body.nav-collapsed .topbar { left:88px !important; width:calc(100vw - 88px) !important; }
+      main { margin-left:240px !important; margin-right:0 !important; width:auto !important; max-width:var(--page-max) !important; padding:112px 22px 72px !important; height:auto !important; min-height:100vh !important; max-height:none !important; overflow:visible !important; }
+      body.nav-collapsed main { margin-left:88px !important; width:auto !important; max-width:var(--page-max) !important; }
+      .topbar-menu-button, .mobile-dock, .mobile-category-bar { display:none !important; }
+      .desktop-help-button, .whichkey-panel, .whichkey-mini { display:flex !important; }
+      .news-card { grid-column:span 6 !important; }
+      .news-card.featured { grid-column:span 12 !important; }
+      .about-grid { grid-template-columns:1fr 1fr !important; }
+      .profile-layout { grid-template-columns:1fr !important; }
+      .hero-copy { display:flex !important; }
+      .hero-actions { justify-content:flex-end !important; }
+      .news-search-row { display:flex !important; }
+      .search-status { margin-top:0 !important; }
+      .article-toolbar { align-items:center !important; }
+      .editor-topbar { display:flex !important; }
+      .editor-actions { margin-top:0 !important; justify-content:flex-end !important; }
+      .editor-meta-grid, .editor-cover-row { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+      .editor-panes { grid-template-columns:1fr 1fr !important; }
     }
   `;
   document.head.appendChild(style);
@@ -74,7 +104,7 @@ window.SUPABASE_CONFIG = {
 
 /* Fold the mobile dock while the editor page is open. */
 (function(){
-  const sync=()=>{const dock=document.getElementById('mobile-dock'),editor=document.getElementById('section-editor');if(!dock||!editor)return;const inactive=Boolean(window.matchMedia?.('(max-width:860px)').matches&&editor.classList.contains('is-visible'));dock.classList.toggle('is-editor-inactive',inactive);dock.setAttribute('aria-hidden',inactive?'true':'false');};
+  const sync=()=>{const dock=document.getElementById('mobile-dock'),editor=document.getElementById('section-editor');if(!dock||!editor)return;const inactive=Boolean(window.matchMedia?.('(max-width:720px)').matches&&editor.classList.contains('is-visible'));dock.classList.toggle('is-editor-inactive',inactive);dock.setAttribute('aria-hidden',inactive?'true':'false');};
   const start=()=>{const editor=document.getElementById('section-editor');if(editor)new MutationObserver(sync).observe(editor,{attributes:true,attributeFilter:['class']});window.addEventListener('resize',sync,{passive:true});sync();};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
