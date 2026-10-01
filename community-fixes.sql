@@ -223,12 +223,14 @@ set search_path=''
 as $$
 declare
   old_role public.user_role;
+  new_role public.user_role;
   trigger_name text;
   enabled_trigger_names text[] := array[]::text[];
 begin
   if (select auth.uid()) is null then raise exception 'Требуется авторизация.'; end if;
   if (select public.community_current_role())<>'owner' then raise exception 'Назначать администраторов может только владелец.'; end if;
   if p_role not in('reader'::public.user_role,'admin'::public.user_role) then raise exception 'Можно назначить только reader или admin.'; end if;
+  new_role:=p_role;
   select p.role into old_role from public.profiles p where p.id=p_user_id;
   if old_role is null then raise exception 'Пользователь не найден.'; end if;
   if old_role='owner'::public.user_role then raise exception 'Роль владельца нельзя изменить.'; end if;
@@ -251,7 +253,7 @@ begin
 
   begin
     perform set_config('app.community_role_change','1',true);
-    update public.profiles set role=p_role::public.user_role where id=p_user_id;
+    update public.profiles set role=new_role where id=p_user_id;
   exception when others then
     foreach trigger_name in array enabled_trigger_names loop
       execute format('alter table public.profiles enable trigger %I',trigger_name);
