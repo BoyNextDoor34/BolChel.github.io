@@ -247,4 +247,18 @@ $$;
 revoke all on function public.community_set_role(uuid,text) from public;
 grant execute on function public.community_set_role(uuid,text) to authenticated;
 
+
+-- Confirm the RPC signatures that the browser calls and force PostgREST
+-- to refresh its schema cache immediately after the DDL above.
+select n.nspname as schema_name,
+       p.proname as function_name,
+       pg_get_function_identity_arguments(p.oid) as arguments
+from pg_proc p
+join pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public'
+  and p.proname in('community_create_comment','community_toggle_comment_reaction','community_get_moderation_user','community_set_role')
+order by p.proname;
+
+notify pgrst, 'reload schema';
+
 commit;
