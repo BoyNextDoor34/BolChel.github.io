@@ -58,5 +58,18 @@ async function banUser(id){const d=ensureBanDialog();const form=d.querySelector(
   '@media(max-width:860px){.community-public-profile-grid{grid-template-columns:1fr}.community-public-publication{grid-template-columns:110px minmax(0,1fr)}.community-public-publication-image{height:88px}.community-login-prompt,.community-ban-prompt{align-items:stretch;flex-direction:column}.community-login-prompt .filled-button{width:100%}.community-comment.is-reply{margin-left:16px}.community-user-management-actions{flex-direction:column}.community-user-management-actions button{width:100%}}@media(max-width:520px){.community-comment{padding:13px}.community-public-publication{grid-template-columns:1fr}.community-public-publication-image{height:150px}.community-comment-actions{gap:4px}}';
   document.head.appendChild(s);}
   function install(){if(document.documentElement.dataset.communitySystem==='1')return;document.documentElement.dataset.communitySystem='1';styles();window.__communityMountArticle=mountArticle;window.__communityEnhanceProfile=ownProfile;window.__communityEnhanceNewsCards=newsCards;window.__communityCanManageNews=canManageNews;window.openCommunityProfile=openPublicProfile;window.__communitySessionChanged=()=>{const m=$('.community-comments');if(m)renderComments(m);if(S()?.section==='profile')ownProfile($('#profile-card'));};document.addEventListener('click',e=>{const el=e.target.closest?.('.community-clickable-byline,.community-inline-profile-link');if(el?.dataset.profileId){e.preventDefault();e.stopPropagation();openPublicProfile(el.dataset.profileId);}},true);document.addEventListener('keydown',e=>{const el=e.target?.closest?.('.community-clickable-byline,.community-inline-profile-link');if(el?.dataset.profileId&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openPublicProfile(el.dataset.profileId);}},true);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+  // This module is loaded at the end of <body>, so the DOM is already available
+  // in normal page execution. Install immediately; waiting for DOMContentLoaded
+  // would put us after app.js bootstrap and miss the first render.
+  install();
+  if(typeof state!=='undefined'){
+    try{
+      if(state.section==='news') window.__communityEnhanceNewsCards?.(document.getElementById('news-grid'));
+      if(state.section==='profile') window.__communityEnhanceProfile?.(document.getElementById('profile-card'));
+      if(state.section==='article' && state.articleId){
+        const article=state.news?.find(n=>String(n.id)===String(state.articleId));
+        if(article) window.__communityMountArticle?.(article);
+      }
+    }catch(error){ console.error('Community initial render enhancement failed:',error); }
+  }
 })();
