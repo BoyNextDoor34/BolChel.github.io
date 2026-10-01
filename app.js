@@ -439,10 +439,10 @@ function openSection(section) {
   if(state.section!==section) state.previousSection=state.section;
   state.section=section;
   $$('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
-  const navSection=section==='profile-management'||section==='saved-drafts'?'profile':section==='article'?'news':section==='editor'?'':section;
+  const navSection=['profile-management','saved-drafts','user-management','public-profile','public-publications'].includes(section)?'profile':section==='article'?'news':section==='editor'?'':section;
   $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
   $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
-  const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='profile-management'?'Профиль':section==='saved-drafts'?'Профиль':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
+  const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='profile-management'?'Профиль':section==='saved-drafts'?'Профиль':section==='user-management'?'Пользователи':section==='public-profile'?'Профиль пользователя':section==='public-publications'?'Все публикации':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
   $('#page-title').textContent=title;
   $('#page-category').textContent=section==='news'?(state.category||'Все разделы'):'';
   document.body.classList.toggle('article-mode',section==='article');
