@@ -2,6 +2,7 @@
    Run once in Supabase SQL Editor after the community tables/functions exist. */
 
 begin;
+alter table public.comments add column if not exists edited_at timestamptz;
 
 -- Public profile data contains only intentionally public fields, so the view must
 -- remain readable even when public.profiles itself is protected by RLS.
@@ -228,7 +229,7 @@ begin
 
   begin
     perform set_config('app.community_role_change','1',true);
-    update public.profiles set role=p_role where id=p_user_id;
+    update public.profiles set role=p_role::public.user_role where id=p_user_id;
   exception when others then
     foreach trigger_name in array enabled_trigger_names loop
       execute format('alter table public.profiles enable trigger %I',trigger_name);
