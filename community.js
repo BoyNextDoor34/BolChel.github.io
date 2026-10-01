@@ -1,4 +1,4 @@
-/* ===== Community system: comments, reactions, public profiles, moderation UI =====
+/* ===== Community system: comments, reactions, public profiles, moderation UI ===== */
 (function(){
   'use strict';
   const S=()=>typeof state!=='undefined'?state:null;
