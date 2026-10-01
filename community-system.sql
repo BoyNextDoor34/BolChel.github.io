@@ -1,5 +1,10 @@
 /* Community system migration for BolChel.github.io
    Run once in Supabase SQL Editor. */
+
+-- The existing profiles.role column uses the user_role enum.
+-- Add owner before the transaction so PostgreSQL can use the new enum value below.
+alter type public.user_role add value if not exists 'owner';
+
 begin;
 
 alter table public.profiles add column if not exists created_at timestamptz;
@@ -39,7 +44,7 @@ create index if not exists profiles_banned_idx on public.profiles(is_banned) whe
 
 create or replace function public.community_current_role()
 returns text language sql stable security definer set search_path=''
-as $$ select p.role from public.profiles p where p.id=(select auth.uid()) $$;
+as $$ select p.role::text from public.profiles p where p.id=(select auth.uid()) $$;
 revoke all on function public.community_current_role() from public;
 grant execute on function public.community_current_role() to anon,authenticated;
 
@@ -55,8 +60,8 @@ as $$
 declare me_role text; target_role text;
 begin
   if (select auth.uid()) is null or p_target_id is null then return false; end if;
-  select role into me_role from public.profiles where id=(select auth.uid());
-  select role into target_role from public.profiles where id=p_target_id;
+  select role::text into me_role from public.profiles where id=(select auth.uid());
+  select role::text into target_role from public.profiles where id=p_target_id;
   if target_role is null or target_role='owner' then return false; end if;
   if me_role='owner' then return true; end if;
   return me_role='admin' and target_role='reader';
@@ -94,7 +99,7 @@ create index if not exists comment_reactions_user_id_idx on public.comment_react
 
 create or replace view public.community_public_profiles
 with(security_invoker=true) as
-select p.id,p.nickname,p.role,p.avatar_url,p.bio,p.created_at,
+select p.id,p.nickname,p.role::text as role,p.avatar_url,p.bio,p.created_at,
 coalesce((select sum(c.score) from public.comments c where c.author_id=p.id),0)::integer as comment_score,
 (select count(*) from public.news n where n.author_id=p.id)::integer as publication_count
 from public.profiles p;
@@ -107,12 +112,12 @@ as $$
 begin
   if (select public.community_current_role())<>'owner' then raise exception 'Только владелец может просматривать список пользователей.'; end if;
   return query
-  select p.id,p.nickname,p.role,p.avatar_url,p.bio,p.created_at,
+  select p.id,p.nickname,p.role::text,p.avatar_url,p.bio,p.created_at,
     coalesce((select sum(c.score) from public.comments c where c.author_id=p.id),0)::integer,
     (select count(*) from public.news n where n.author_id=p.id)::integer,
     p.is_banned,p.ban_reason
   from public.profiles p
-  order by case p.role when 'owner' then 0 when 'admin' then 1 else 2 end,p.nickname;
+  order by case p.role::text when 'owner' then 0 when 'admin' then 1 else 2 end,p.nickname;
 end $$;
 revoke all on function public.community_list_users() from public;
 grant execute on function public.community_list_users() to authenticated;
@@ -185,12 +190,12 @@ as $$
 declare me uuid:=(select auth.uid()); me_role text; old_author_role text;
 begin
   if me is null then raise exception 'Требуется авторизация.'; end if;
-  select role into me_role from public.profiles where id=me;
+  select role::text into me_role from public.profiles where id=me;
   if tg_op='INSERT' then
     if me_role not in('admin','owner') then raise exception 'Публиковать новости могут только администраторы и владелец.'; end if;
     return new;
   end if;
-  select role into old_author_role from public.profiles where id=old.author_id;
+  select role::text into old_author_role from public.profiles where id=old.author_id;
   if me_role='owner' then if tg_op='DELETE' then return old; else return new; end if; end if;
   if me_role='admin' and (old.author_id=me or old_author_role='reader') then
     if tg_op<>'DELETE' and new.author_id is distinct from old.author_id and new.author_id<>me then raise exception 'Администратор не может передавать чужую новость другому пользователю.'; end if;
@@ -207,13 +212,13 @@ as $$
 declare me uuid:=(select auth.uid()); me_role text; old_author_role text;
 begin
   if me is null then raise exception 'Требуется авторизация.'; end if;
-  select role into me_role from public.profiles where id=me;
+  select role::text into me_role from public.profiles where id=me;
   if tg_op='INSERT' then
     if new.author_id<>me then raise exception 'Предложение можно создать только от своего имени.'; end if;
     if exists(select 1 from public.profiles where id=me and is_banned) then raise exception 'Ваш аккаунт заблокирован. Вы не можете отправлять предложения.'; end if;
     return new;
   end if;
-  select role into old_author_role from public.profiles where id=old.author_id;
+  select role::text into old_author_role from public.profiles where id=old.author_id;
   if me_role='owner' then if tg_op='DELETE' then return old; else return new; end if; end if;
   if me_role='admin' and old_author_role='reader' then
     if tg_op<>'DELETE' and new.author_id is distinct from old.author_id then raise exception 'Администратор не может менять автора предложения.'; end if;
@@ -234,8 +239,8 @@ as $$
 declare me uuid:=(select auth.uid()); me_role text;
 begin
   if me is null then raise exception 'Требуется авторизация.'; end if;
-  select role into me_role from public.profiles where id=me;
-  if old.role='owner' and old.id<>me then raise exception 'Профиль владельца защищён.'; end if;
+  select role::text into me_role from public.profiles where id=me;
+  if old.role::text='owner' and old.id<>me then raise exception 'Профиль владельца защищён.'; end if;
   if new.role<>old.role and coalesce(current_setting('app.community_role_change',true),'')<>'1' then
     raise exception 'Роль изменяется только штатным механизмом владельца.';
   end if;
@@ -301,11 +306,11 @@ begin
   if (select auth.uid()) is null then raise exception 'Требуется авторизация.'; end if;
   if (select public.community_current_role())<>'owner' then raise exception 'Назначать администраторов может только владелец.'; end if;
   if p_role not in('reader','admin') then raise exception 'Можно назначить только reader или admin.'; end if;
-  select role into old_role from public.profiles where id=p_user_id;
+  select role::text into old_role from public.profiles where id=p_user_id;
   if old_role is null then raise exception 'Пользователь не найден.'; end if;
   if old_role='owner' then raise exception 'Роль владельца нельзя изменить.'; end if;
   perform set_config('app.community_role_change','1',true);
-  update public.profiles set role=p_role where id=p_user_id;
+  update public.profiles set role=p_role::public.user_role where id=p_user_id;
   return true;
 end $$;
 revoke all on function public.community_set_role(uuid,text) from public;
