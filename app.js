@@ -24,19 +24,22 @@ const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 
 const KEYMAP = [
   {group:'Новости', rows:[
-    [['J / ↓'],'Следующая новость'],[['K / ↑'],'Предыдущая новость'],[['Ctrl+D'],'Прокрутить вниз'],[['Ctrl+U'],'Прокрутить вверх'],[['PageDown'],'Следующий экран'],[['PageUp'],'Предыдущий экран'],[['Home'],'В начало списка'],[['G'],'В конец списка'],[['G','G'],'В начало страницы'],[['Enter / O'],'Открыть выбранную новость'],[['Esc'],'Назад из статьи'],[['[ / ]'],'Предыдущая / следующая статья'],[['R'],'Случайная новость'],[['C'],'Сбросить раздел'],[['X'],'Очистить поиск'],[['N / Shift+N'],'Следующий / предыдущий результат']
+    [['J / ↓'],'Следующая новость'],[['K / ↑'],'Предыдущая новость'],[['Ctrl+D'],'Прокрутить вниз'],[['Ctrl+U'],'Прокрутить вверх'],[['PageDown'],'Следующий экран'],[['PageUp'],'Предыдущий экран'],[['Home'],'В начало списка'],[['Shift+G'],'В конец списка'],[['G','G'],'В начало списка'],[['Enter / O'],'Открыть выбранную новость'],[['Esc'],'Назад из статьи / страницы'],[['[ / ]'],'Предыдущая / следующая статья'],[['R'],'Случайная новость'],[['C'],'Сбросить фильтры'],[['X'],'Очистить поиск'],[['N / Shift+N'],'Следующий / предыдущий результат']
   ]},
   {group:'Разделы и страницы', rows:[
-    [['G','N'],'Новости'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','-'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
+    [['G','N'],'Все новости (сбросить поиск и раздел)'],[['G','P'],'Профиль'],[['G','A'],'О нас'],[['G','1'],'Политика'],[['G','2'],'Экономика'],[['G','3'],'Общество'],[['G','4'],'Технологии и наука'],[['G','5'],'Культура'],[['G','6'],'Спорт'],[['G','7'],'Образование'],[['G','8'],'Семья'],[['G','9'],'Молодежь'],[['G','0'],'Туризм'],[['G','-'],'Военнообязанные'],[['G','E'],'Редактор / создать новость (admin)']
   ]},
   {group:'Поиск и интерфейс', rows:[
-    [['/'],'Фокус поиска'],[['Space','/'],'Открыть расширенную шпаргалку'],[['T'],'Светлая / тёмная тема'],[['Tab / Shift+Tab'],'Переход по интерактивным элементам']
+    [['/'],'Фокус поиска'],[['Space','/'],'Открыть расширенную шпаргалку'],[['T'],'Светлая / тёмная тема'],[['Alt+A'],'Версия для слабовидящих'],[['Tab / Shift+Tab'],'Переход по интерактивным элементам']
   ]},
   {group:'Администрирование', rows:[
-    [['E'],'Открыть редактор новой новости'],[['Ctrl+S'],'Сохранить новость в редакторе'],[['Ctrl+Enter'],'Опубликовать / сохранить'],[['D'],'Удалить текущую новость (admin)'],[['Enter'],'Открыть выбранную новость / подтвердить действие']
+    [['E'],'Открыть редактор новой новости (admin)'],[['Ctrl+S'],'Сохранить новость в редакторе'],[['Ctrl+Enter'],'Опубликовать / сохранить'],[['D'],'Удалить текущую новость (admin)'],[['Enter'],'Подтвердить сфокусированное действие']
   ]},
   {group:'Редактор Markdown', rows:[
-    [['Ctrl+B'],'Жирный текст'],[['Ctrl+I'],'Курсив'],[['Ctrl+K'],'Ссылка'],[['Tab'],'Отступ в Markdown'],[['Shift+Tab'],'Убрать отступ'],[['Ctrl+Shift+7'],'Нумерованный список'],[['Ctrl+Shift+8'],'Маркированный список']
+    [['Ctrl+B'],'Жирный текст'],[['Ctrl+I'],'Курсив'],[['Ctrl+K'],'Ссылка'],[['Ctrl+Shift+7'],'Нумерованный список'],[['Ctrl+Shift+8'],'Маркированный список'],[['Tab'],'Отступ в Markdown'],[['Shift+Tab'],'Убрать отступ'],[['Enter'],'Новый абзац / подтвердить действие'],[['Shift+Enter'],'Принудительный перенос строки']
+  ]},
+  {group:'Мобильные жесты', rows:[
+    [['← / →'],'Переключение между Новости, Профиль и О нас'],[['← / → в статье'],'Следующая / предыдущая статья, как листание книги'],[['↓ от верха'],'Потянуть вниз для обновления']
   ]}
 ];
 
@@ -590,17 +593,23 @@ function parseMarkdown(markdown='') {
   return out.join('');
 }
 
+function getMotionBehavior(requested='smooth'){
+  const reduced=state.accessibility?.enabled===true && state.accessibility?.reduceMotion===true;
+  const systemReduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
+  return requested==='smooth' && (reduced||systemReduced) ? 'auto' : requested;
+}
+
 function isMobileLayout(){ return window.matchMedia?.('(max-width:860px)').matches===true; }
 function getMainScroller(){
   return isMobileLayout() ? $('#main') : (document.scrollingElement || document.documentElement);
 }
 function scrollMainToTop(behavior='smooth'){
   const main=getMainScroller();
-  if(main) main.scrollTo({top:0,behavior});
+  if(main) main.scrollTo({top:0,behavior:getMotionBehavior(behavior)});
 }
 function scrollMainBy(delta,behavior='smooth'){
   const main=getMainScroller();
-  if(main) main.scrollBy({top:delta,behavior});
+  if(main) main.scrollBy({top:delta,behavior:getMotionBehavior(behavior)});
 }
 function scrollElementIntoMain(element,behavior='smooth'){
   if(!element) return;
@@ -616,20 +625,44 @@ function scrollElementIntoMain(element,behavior='smooth'){
   main.scrollTo({top:Math.max(0,target),behavior});
 }
 
+function getPrimaryNavSection(section=state.section){
+  return section==='profile-management'||section==='saved-drafts'||section==='user-management'||section==='public-profile'||section==='public-publications'?'profile':section==='article'?'news':section==='editor'?(state.previousSection==='profile'||state.previousSection==='profile-management'||state.previousSection==='saved-drafts'?'profile':'news'):section;
+}
+
+function scrollActiveNavigationIntoView(sectionOverride=null){
+  const section=sectionOverride||state.section;
+  const navSection=getPrimaryNavSection(section);
+  const behavior=getMotionBehavior();
+  const mainButton=document.querySelector('#main-nav .nav-item[data-section="'+CSS.escape(navSection)+'"]');
+  const dockButton=document.querySelector('#mobile-dock .mobile-dock-item[data-section="'+CSS.escape(navSection)+'"]');
+  mainButton?.scrollIntoView({block:'nearest',inline:'nearest',behavior});
+  dockButton?.scrollIntoView({block:'nearest',inline:'nearest',behavior});
+
+  if(section==='news'){
+    const category=state.category||'';
+    const sideButton=document.querySelector('#category-nav [data-category="'+CSS.escape(category)+'"]');
+    const mobileButton=document.querySelector('#mobile-category-nav [data-category="'+CSS.escape(category)+'"]');
+    sideButton?.scrollIntoView({block:'nearest',inline:'nearest',behavior});
+    mobileButton?.scrollIntoView({block:'nearest',inline:'center',behavior});
+  }
+}
+
 function syncPrimaryNavigation(sectionOverride=null){
   const section=sectionOverride||state.section;
-  const navSection=section==='profile-management'||section==='saved-drafts'?'profile':section==='article'?'news':section==='editor'?(state.previousSection==='profile'||state.previousSection==='profile-management'||state.previousSection==='saved-drafts'?'profile':'news'):section;
+  const navSection=getPrimaryNavSection(section);
   document.querySelectorAll('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
   document.querySelectorAll('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  requestAnimationFrame(()=>scrollActiveNavigationIntoView(section));
 }
 
 function openSection(section) {
   if(state.section!==section) state.previousSection=state.section;
   state.section=section;
   $$('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
-  const navSection=['profile-management','saved-drafts','user-management','public-profile','public-publications'].includes(section)?'profile':section==='article'?'news':section==='editor'?'':section;
+  const navSection=getPrimaryNavSection(section);
   $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
-  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  requestAnimationFrame(()=>scrollActiveNavigationIntoView(section));
   const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='profile-management'?'Профиль':section==='saved-drafts'?'Профиль':section==='user-management'?'Пользователи':section==='public-profile'?'Профиль пользователя':section==='public-publications'?'Все публикации':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
   $('#page-title').textContent=title;
   $('#page-category').textContent=section==='news'?(state.category||'Все разделы'):'';
@@ -670,6 +703,17 @@ function setCategory(category) {
   $('#page-category').textContent=state.category||'Все разделы';
   openSection('news');
   renderNews();
+  requestAnimationFrame(()=>scrollActiveNavigationIntoView('news'));
+}
+
+function openAllNews(){
+  state.search='';
+  state.category=null;
+  state.selectedNewsIndex=0;
+  openSection('news');
+  renderCategoryNav();
+  renderNews();
+  requestAnimationFrame(()=>scrollActiveNavigationIntoView('news'));
 }
 
 function currentVisibleNews() {
@@ -813,7 +857,7 @@ function toggleHelp(expanded=true){
   state.expandedHelp=expanded;
   panel.classList.toggle('is-expanded',expanded);
   panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
-  if(expanded){ panel.scrollTo({top:0,behavior:'smooth'}); $('#close-help')?.focus({preventScroll:true}); }
+  if(expanded){ panel.scrollTo({top:0,behavior:getMotionBehavior()}); $('#close-help')?.focus({preventScroll:true}); }
 }
 
 function openAuth(mode='login'){ setAuthMode(mode); $('#auth-dialog').showModal(); setTimeout(()=>$('#auth-email').focus(),30); }
@@ -1922,152 +1966,111 @@ function randomNews(){ if(!state.news.length)return; const item=state.news[Math.
 function clearSearch(){ state.search=''; $('#news-search').value=''; renderNews(); $('#news-search').focus(); }
 function clearNewsState(){ state.search='';state.category=null;state.selectedNewsIndex=0;renderCategoryNav();renderNews();showToast('Фильтры сброшены'); }
 
+function resetKeySequence(){
+  clearTimeout(state.keySequenceTimer);
+  state.keySequence='';
+  state.leaderHeld='';
+}
+function armKeySequence(sequence,timeout=850){
+  clearTimeout(state.keySequenceTimer);
+  state.keySequence=sequence;
+  state.leaderHeld=sequence;
+  state.keySequenceTimer=setTimeout(resetKeySequence,timeout);
+}
+function handleEditableKeydown(e){
+  const target=e.target;
+  if(e.isComposing)return false;
+  if(e.code==='Enter'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+    if(target.id==='news-search'){
+      e.preventDefault();searchNews(target.value);target.blur();
+      requestAnimationFrame(()=>{const first=visibleNewsCards()[0];if(first){state.selectedNewsIndex=0;updateSelectedCard();scrollElementIntoMain(first);}});
+      return true;
+    }
+    const composer=target.closest?.('[data-community-composer]');
+    if(composer&&target.tagName==='TEXTAREA'&&!e.shiftKey){
+      e.preventDefault();
+      if(typeof composer.requestSubmit==='function')composer.requestSubmit();else composer.querySelector('button[type="submit"]')?.click();
+      return true;
+    }
+    const replyForm=target.closest?.('[data-reply-form]');
+    if(replyForm&&target.tagName==='TEXTAREA'&&!e.shiftKey){e.preventDefault();replyForm.querySelector('[data-reply-submit]')?.click();return true;}
+    const editForm=target.closest?.('[data-comment-edit-form]');
+    if(editForm&&target.tagName==='TEXTAREA'&&!e.shiftKey){e.preventDefault();editForm.querySelector('[data-comment-edit-save]')?.click();return true;}
+    if(target.closest?.('#auth-form')&&target.tagName==='INPUT'){e.preventDefault();$('#auth-submit')?.click();return true;}
+    if(target.closest?.('#profile-form')&&target.tagName==='INPUT'){e.preventDefault();$('#profile-save')?.click();return true;}
+  }
+  return false;
+}
 function handleGlobalKeydown(e){
   const target=e.target;
+  if(e.isComposing)return;
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
-
+  if(isEditable){
+    handleEditableKeydown(e);
+    if(code==='Escape'&&target.id==='news-search'){e.preventDefault();target.blur();}
+    return;
+  }
+  if(e.repeat)return;
   if(e.altKey&&!e.ctrlKey&&!e.metaKey&&code==='KeyA'){e.preventDefault();openAccessibilitySettings();return;}
 
-  const leaderCode = code==='KeyG' || code==='Space';
-  if(e.repeat && (state.keySequence || leaderCode)) return;
-
-  // The help panel owns keyboard scrolling while open.
   if(state.expandedHelp){
-    if(code==='Escape'){
-      e.preventDefault();
-      toggleHelp(false);
-      return;
-    }
-    if(code==='PageDown' || code==='ArrowDown' || code==='KeyJ' || (e.ctrlKey && code==='KeyD')){
-      e.preventDefault();
-      const panel=$('#whichkey-panel');
-      panel?.scrollBy({top:code==='PageDown'?panel.clientHeight*.85:180,behavior:'smooth'});
-      return;
-    }
-    if(code==='PageUp' || code==='ArrowUp' || code==='KeyK' || (e.ctrlKey && code==='KeyU')){
-      e.preventDefault();
-      const panel=$('#whichkey-panel');
-      panel?.scrollBy({top:code==='PageUp'?-panel.clientHeight*.85:-180,behavior:'smooth'});
-      return;
-    }
-    if(code==='Home'){
-      e.preventDefault();
-      const panel=$('#whichkey-panel');
-      if(panel)panel.scrollTo({top:0,behavior:'smooth'});
-      return;
-    }
-    if(code==='End'){
-      e.preventDefault();
-      const panel=$('#whichkey-panel');
-      if(panel)panel.scrollTo({top:panel.scrollHeight,behavior:'smooth'});
-      return;
-    }
+    if(code==='Escape'){e.preventDefault();toggleHelp(false);return;}
+    if(code==='PageDown'||code==='ArrowDown'||code==='KeyJ'||(e.ctrlKey&&code==='KeyD')){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageDown'?panel.clientHeight*.85:180,behavior:getMotionBehavior()});return;}
+    if(code==='PageUp'||code==='ArrowUp'||code==='KeyK'||(e.ctrlKey&&code==='KeyU')){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageUp'?-panel.clientHeight*.85:-180,behavior:getMotionBehavior()});return;}
+    if(code==='Home'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollTo({top:0,behavior:getMotionBehavior()});return;}
+    if(code==='End'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollTo({top:panel.scrollHeight,behavior:getMotionBehavior()});return;}
   }
 
-  if(code==='Escape' && !e.ctrlKey && !e.metaKey){
+  if(code==='Escape'&&!e.ctrlKey&&!e.metaKey){
     if(state.expandedHelp){e.preventDefault();toggleHelp(false);return;}
     if($('#auth-dialog').open){e.preventDefault();$('#auth-dialog').close();return;}
     if($('#edit-profile-dialog').open){e.preventDefault();$('#edit-profile-dialog').close();return;}
     if($('#avatar-crop-dialog').open){e.preventDefault();$('#avatar-crop-dialog').close();return;}
     if(state.section==='article'||state.section==='editor'){e.preventDefault();backToNews();return;}
   }
-  if((e.ctrlKey||e.metaKey) && code==='Enter' && state.section==='editor'){e.preventDefault();saveEditorNews();return;}
-  if((e.ctrlKey||e.metaKey) && code==='KeyS' && state.section==='editor'){e.preventDefault();saveEditorNews();return;}
+  if((e.ctrlKey||e.metaKey)&&code==='Enter'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
+  if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
+  if(e.ctrlKey||e.metaKey){if(code==='KeyD'){e.preventDefault();scrollPage(1);return;}if(code==='KeyU'){e.preventDefault();scrollPage(-1);return;}}
 
-  if(isEditable){
-    if(code==='Escape' && target.id==='news-search'){ target.blur(); return; }
-    return;
-  }
-
-  if(e.ctrlKey || e.metaKey){
-    if(code==='KeyD'){e.preventDefault();scrollPage(1);return;}
-    if(code==='KeyU'){e.preventDefault();scrollPage(-1);return;}
-  }
-
-  if(code==='Escape') return;
-
-  if(code==='Space'){
-    e.preventDefault();
-    state.leaderHeld='SPACE';
-    state.keySequence='SPACE';
-    clearTimeout(state.keySequenceTimer);
-    state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='SPACE') state.keySequence=''; },1200);
-    return;
-  }
-
-  if(state.keySequence==='SPACE' && code==='Slash'){
-    e.preventDefault();
-    clearTimeout(state.keySequenceTimer);
-    toggleHelp(!state.expandedHelp);
-    if(state.leaderHeld==='SPACE'){
-      state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='SPACE') state.keySequence=''; },1200);
-    }else{
-      state.keySequence='';
+  if(state.keySequence==='SPACE'&&code==='Slash'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();toggleHelp(!state.expandedHelp);resetKeySequence();return;}
+  if(state.keySequence==='G'){
+    if(code==='KeyG'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();jumpToEdge(false);resetKeySequence();return;}
+    if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      const commands={
+        KeyN:openAllNews,KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyE:()=>openEditor(null),
+        KeyT:()=>setCategory('Туризм'),Minus:()=>setCategory('Военнообязанные'),
+        Digit1:()=>setCategory(CATEGORIES[0]),Digit2:()=>setCategory(CATEGORIES[1]),Digit3:()=>setCategory(CATEGORIES[2]),
+        Digit4:()=>setCategory(CATEGORIES[3]),Digit5:()=>setCategory(CATEGORIES[4]),Digit6:()=>setCategory(CATEGORIES[5]),
+        Digit7:()=>setCategory(CATEGORIES[6]),Digit8:()=>setCategory(CATEGORIES[7]),Digit9:()=>setCategory(CATEGORIES[8]),Digit0:()=>setCategory(CATEGORIES[9])
+      };
+      const command=commands[code];
+      if(command){e.preventDefault();command();resetKeySequence();return;}
     }
-    return;
+    resetKeySequence();
   }
 
-  if(code==='Slash'){
-    e.preventDefault();
-    if(e.shiftKey){ toggleHelp(!state.expandedHelp); } else { focusSearch(); }
-    return;
-  }
-  if(code==='KeyT'){e.preventDefault();setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');return;}
+  if(code==='Space'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();armKeySequence('SPACE');return;}
+  if(code==='Slash'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();if(e.shiftKey)toggleHelp(!state.expandedHelp);else focusSearch();return;}
+  if(code==='KeyG'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();if(e.shiftKey){jumpToEdge(true);return;}armKeySequence('G');return;}
+  if(code==='KeyT'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');return;}
   if(code==='KeyJ'||code==='ArrowDown'){e.preventDefault();focusNews(1);return;}
   if(code==='KeyK'||code==='ArrowUp'){e.preventDefault();focusNews(-1);return;}
   if(code==='PageDown'){e.preventDefault();scrollPage(1);return;}
   if(code==='PageUp'){e.preventDefault();scrollPage(-1);return;}
   if(code==='Home'){e.preventDefault();jumpToEdge(false);return;}
-  if(code==='KeyG' && e.shiftKey){e.preventDefault();jumpToEdge(true);return;}
-  if(code==='KeyG'){
-    if(state.keySequence==='G' && state.leaderHeld!=='G'){
-      e.preventDefault();
-      state.keySequence='';
-      clearTimeout(state.keySequenceTimer);
-      jumpToEdge(false);
-      return;
-    }
-    e.preventDefault();
-    state.leaderHeld='G';
-    state.keySequence='G';
-    clearTimeout(state.keySequenceTimer);
-    state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='G') state.keySequence=''; },1200);
-    return;
-  }
-
-  if(state.keySequence==='G'){
-    const commands={KeyN:()=>openSection('news'),KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyE:()=>openEditor(null),KeyT:()=>setCategory('Туризм'),Minus:()=>setCategory('Военнообязанные'),Digit1:()=>setCategory(CATEGORIES[0]),Digit2:()=>setCategory(CATEGORIES[1]),Digit3:()=>setCategory(CATEGORIES[2]),Digit4:()=>setCategory(CATEGORIES[3]),Digit5:()=>setCategory(CATEGORIES[4]),Digit6:()=>setCategory(CATEGORIES[5]),Digit7:()=>setCategory(CATEGORIES[6]),Digit8:()=>setCategory(CATEGORIES[7]),Digit9:()=>setCategory(CATEGORIES[8]),Digit0:()=>setCategory(CATEGORIES[9])};
-    if(commands[code]){
-      e.preventDefault();
-      commands[code]();
-      clearTimeout(state.keySequenceTimer);
-      if(state.leaderHeld==='G'){
-        state.keySequence='G';
-        state.keySequenceTimer=setTimeout(()=>{ if(state.leaderHeld!=='G') state.keySequence=''; },1200);
-      }else{
-        state.keySequence='';
-      }
-      return;
-    }
-  }
-
-  if(code==='Enter'||code==='KeyO'){e.preventDefault(); if(state.section==='news')openSelectedNews(); return;}
-  if(code==='KeyB'){e.preventDefault();if(state.section==='article'||state.section==='editor')backToNews();else if(state.section!=='news')openSection('news');return;}
+  if((code==='Enter'||code==='KeyO')&&!target.closest?.('button,a')){e.preventDefault();if(state.section==='news')openSelectedNews();return;}
+  if(code==='KeyB'){e.preventDefault();if(state.section==='article'||state.section==='editor'||state.section==='public-profile'||state.section==='public-publications'||state.section==='user-management'||state.section==='saved-drafts'||state.section==='profile-management')backToNews();else if(state.section!=='news')openAllNews();return;}
   if(code==='BracketLeft'||code==='BracketRight'){
-    if(state.section==='article'){
-      const nav=getArticleNeighbors(); const target=code==='BracketLeft'?nav.previous:nav.next; if(target) openArticle(target.id);
-    }
-    return;
+    if(state.section==='article'){const nav=getArticleNeighbors();const targetArticle=code==='BracketLeft'?nav.previous:nav.next;if(targetArticle)openArticle(targetArticle.id);}return;
   }
   if(code==='KeyR'){e.preventDefault();randomNews();return;}
   if(code==='KeyC'){e.preventDefault();clearNewsState();return;}
   if(code==='KeyX'){e.preventDefault();clearSearch();return;}
   if(code==='KeyN'){e.preventDefault();searchResult(e.shiftKey?-1:1);return;}
-  if(code==='KeyD' && state.admin && state.section==='article'){e.preventDefault();deleteNews(state.articleId);return;}
-  if(code==='KeyE' && state.admin && state.section==='article'){e.preventDefault();openEditor(state.articleId);return;}
-
-  state.keySequence='';
+  if(code==='KeyD'&&state.admin&&state.section==='article'){e.preventDefault();deleteNews(state.articleId);return;}
+  if(code==='KeyE'&&state.admin&&state.section==='article'){e.preventDefault();openEditor(state.articleId);return;}
+  resetKeySequence();
 }
 
 function onMobileMenu(){
@@ -2133,11 +2136,6 @@ function bindGlobalEvents(){
   };
 
   document.addEventListener('keydown',handleGlobalKeydown);
-  document.addEventListener('keyup',e=>{
-    if(e.code==='KeyG' && state.leaderHeld==='G') state.leaderHeld='';
-    if(e.code==='Space' && state.leaderHeld==='SPACE') state.leaderHeld='';
-    if(!state.leaderHeld) clearTimeout(state.keySequenceTimer);
-  });
 
   bind('#theme-toggle','click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
   bind('#keyboard-help','click',()=>toggleHelp(true));
@@ -2199,60 +2197,71 @@ function bindGlobalEvents(){
   }
 }
 
+function primarySectionFromState(section){return getPrimaryNavSection(section);}
+function cyclePrimarySection(delta){
+  const sections=['news','profile','about'];
+  const current=primarySectionFromState(state.section);
+  const index=Math.max(0,sections.indexOf(current));
+  const target=sections[(index+delta+sections.length)%sections.length];
+  if(target!==current)openSection(target);
+}
+function ensurePullRefreshIndicator(){
+  let indicator=$('#pull-refresh-indicator');
+  if(indicator)return indicator;
+  indicator=document.createElement('div');indicator.id='pull-refresh-indicator';indicator.className='pull-refresh-indicator';indicator.setAttribute('aria-hidden','true');indicator.innerHTML='<span class="material-symbols-rounded">sync</span>';document.body.appendChild(indicator);return indicator;
+}
+function setPullRefreshProgress(distance,visible=true){
+  const indicator=ensurePullRefreshIndicator();
+  const progress=clamp(distance/96,0,1);
+  indicator.style.setProperty('--pull-progress',String(progress));
+  indicator.style.setProperty('--pull-offset',Math.min(72,distance*.62)+'px');
+  indicator.classList.toggle('is-visible',visible);indicator.classList.toggle('is-ready',progress>=1);
+}
+function finishPullRefresh(){
+  const indicator=ensurePullRefreshIndicator();indicator.classList.remove('is-visible','is-ready');indicator.classList.add('is-refreshing');setTimeout(()=>window.location.reload(),180);
+}
 function initTouchGestures(){
-  if(!('ontouchstart' in window) && !navigator.maxTouchPoints) return;
-  let touchStart=null;
-  const threshold=72;
-
-  const ignoredTarget=(target)=>{
-    return !!target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],.mobile-category-scroll,.mobile-dock,pre,.md-table-wrap');
-  };
+  if(!('ontouchstart' in window)&&!navigator.maxTouchPoints)return;
+  const threshold=64,pullThreshold=96;let touchStart=null;
+  const ignoredTarget=target=>!!target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],pre,.md-table-wrap,.mobile-category-scroll,.crop-stage-wrap');
 
   document.addEventListener('touchstart',e=>{
-    if(!window.matchMedia?.('(max-width: 860px)').matches) return;
-    const t=e.changedTouches?.[0];
-    if(!t) return;
-    touchStart={
-      x:t.clientX,y:t.clientY,
-      time:Date.now(),
-      edgeLeft:t.clientX<=28,
-      ignored:ignoredTarget(e.target)
-    };
+    if(!window.matchMedia?.('(max-width:860px)').matches)return;
+    const t=e.changedTouches?.[0];if(!t)return;
+    const main=$('#main'),target=e.target,inMain=!!target?.closest?.('#main'),inDock=!!target?.closest?.('#mobile-dock');
+    if(!inMain&&!inDock)return;
+    const ignored=ignoredTarget(target);
+    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,pullCandidate:inMain&&!inDock&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
   },{passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
+    const t=e.changedTouches?.[0];if(!t)return;
+    const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
+    if(touchStart.pullCandidate&&!touchStart.inDock&&Math.abs(dy)>Math.abs(dx)*1.15&&dy>6){
+      touchStart.pulling=true;touchStart.pullDistance=Math.min(132,dy);setPullRefreshProgress(touchStart.pullDistance,true);if(dy>10)e.preventDefault();
+    }
+  },{passive:false});
 
   document.addEventListener('touchend',e=>{
-    if(!touchStart || !window.matchMedia?.('(max-width: 860px)').matches) return;
-    const t=e.changedTouches?.[0];
-    if(!t){touchStart=null;return;}
-    const dx=t.clientX-touchStart.x;
-    const dy=t.clientY-touchStart.y;
-    const elapsed=Date.now()-touchStart.time;
-    const horizontal=Math.abs(dx)>Math.abs(dy)*1.25;
-    const quick=elapsed<900;
-
-    if(quick && horizontal && Math.abs(dx)>=threshold){
-      const nav=$('.app-nav');
-
-      if(!nav?.classList.contains('is-open') && touchStart.edgeLeft && dx>0){
-        onMobileMenu();
-        touchStart=null;
-        return;
-      }
-      if(nav?.classList.contains('is-open') && dx<0){
-        closeMobileMenu();
-        touchStart=null;
-        return;
-      }
-
-      if(!touchStart.ignored && state.section==='article'){
-        const neighbors=getArticleNeighbors();
-        if(dx<0 && neighbors.next) openArticle(neighbors.next.id);
-        else if(dx>0 && neighbors.previous) openArticle(neighbors.previous.id);
-        else showToast('Других материалов в этом направлении нет');
-      }
+    if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
+    const start=touchStart;const t=e.changedTouches?.[0];touchStart=null;
+    if(!t){setPullRefreshProgress(0,false);return;}
+    const dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time,horizontal=Math.abs(dx)>Math.abs(dy)*1.2,quick=elapsed<1000;
+    if(start.pulling){if(start.pullDistance>=pullThreshold){e.preventDefault();finishPullRefresh();}else setPullRefreshProgress(0,false);return;}
+    if(!quick||Math.abs(dx)<threshold||!horizontal)return;
+    const nav=$('.app-nav');
+    if(!nav?.classList.contains('is-open')&&start.x<=28&&dx>0){e.preventDefault();onMobileMenu();return;}
+    if(nav?.classList.contains('is-open')&&dx<0){e.preventDefault();closeMobileMenu();return;}
+    if(start.inDock){e.preventDefault();cyclePrimarySection(dx<0?1:-1);return;}
+    if(start.ignored)return;
+    if(state.section==='article'){
+      const neighbors=getArticleNeighbors();e.preventDefault();
+      if(dx<0&&neighbors.next)openArticle(neighbors.next.id);else if(dx>0&&neighbors.previous)openArticle(neighbors.previous.id);else showToast('Других материалов в этом направлении нет');return;
     }
-    touchStart=null;
-  },{passive:true});
+    if(['news','profile','about','profile-management','saved-drafts','user-management','public-profile','public-publications'].includes(state.section)){e.preventDefault();cyclePrimarySection(dx<0?1:-1);}
+  },{passive:false});
+  document.addEventListener('touchcancel',()=>{touchStart=null;setPullRefreshProgress(0,false);},{passive:true});
 }
 
 function safeRun(label,fn){
@@ -2277,7 +2286,8 @@ function bootstrap(){
   safeRun('renderProfile',renderProfile);
   safeRun('setTheme',()=>setTheme(document.documentElement.dataset.theme||'light'));
   $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
-  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  requestAnimationFrame(()=>scrollActiveNavigationIntoView(state.section));
 
   // Supabase is intentionally non-blocking for the static frontend.
   Promise.resolve(initSupabase())
