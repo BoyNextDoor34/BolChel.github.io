@@ -55,7 +55,43 @@
 
   if(!bind()){
     document.addEventListener('DOMContentLoaded',bind,{once:true});
+  }\n
+
+  const CONTRAST_SURFACES = {
+    bw: {surface:'#ffffff', surfaceContainer:'#f4f4f4', surfaceHigh:'#eeeeee', text:'#000000', primary:'#000000', onPrimary:'#ffffff', border:'#000000'},
+    wb: {surface:'#000000', surfaceContainer:'#111111', surfaceHigh:'#222222', text:'#ffffff', primary:'#ffffff', onPrimary:'#000000', border:'#ffffff'},
+    'yellow-navy': {surface:'#001a33', surfaceContainer:'#00233f', surfaceHigh:'#00345f', text:'#ffffff', primary:'#ffff00', onPrimary:'#000000', border:'#ffff00'},
+    'navy-cream': {surface:'#fff8d7', surfaceContainer:'#f7efc9', surfaceHigh:'#d7e8f6', text:'#001a2d', primary:'#003b67', onPrimary:'#ffffff', border:'#001a2d'}
+  };
+
+  function applyDirectContrast(){
+    const enabled=get('a11y-enabled')?.checked===true;
+    const selected=document.querySelector('input[data-a11y-setting="contrast"]:checked');
+    const root=document.documentElement;
+    if(!enabled || !selected) return;
+    const key=selected.value;
+    root.dataset.a11yContrast=key;
+    const scheme=CONTRAST_SURFACES[key]||CONTRAST_SURFACES.bw;
+    root.style.setProperty('--a11y-contrast-surface',scheme.surface);
+    root.style.setProperty('--a11y-contrast-container',scheme.surfaceContainer);
+    root.style.setProperty('--a11y-contrast-high',scheme.surfaceHigh);
+    root.style.setProperty('--a11y-contrast-text',scheme.text);
+    root.style.setProperty('--a11y-contrast-primary',scheme.primary);
+    root.style.setProperty('--a11y-contrast-on-primary',scheme.onPrimary);
+    root.style.setProperty('--a11y-contrast-border',scheme.border);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',scheme.surface);
   }
 
-  window.__openAccessibilityDirect=openAccessibility;
-})();
+  function bindContrastFallback(){
+    if(document.documentElement.dataset.a11yContrastFallbackBound==='1') return;
+    document.documentElement.dataset.a11yContrastFallbackBound='1';
+    document.addEventListener('change',function(event){
+      const target=event.target;
+      if(!(target instanceof HTMLInputElement)) return;
+      if(target.dataset.a11ySetting==='contrast' || target.id==='a11y-enabled'){
+        requestAnimationFrame(applyDirectContrast);
+      }
+    },true);
+    requestAnimationFrame(applyDirectContrast);
+  }
+\n\n  window.__openAccessibilityDirect=openAccessibility;\n  bindContrastFallback();\n})();
