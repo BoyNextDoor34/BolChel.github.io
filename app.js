@@ -15,7 +15,8 @@ const state = {
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
   paletteCache:new Map(), palettePending:new Map(), authorProfiles:{}, authorProfilesLoadedAt:0,
-  supabaseInitPromise:null, supabaseError:null
+  supabaseInitPromise:null, supabaseError:null,
+  accessibility:{enabled:false,fontFamily:'Arial',fontScale:1.25,letterSpacing:'0',lineHeight:1.5,contrast:'bw',colorVision:'standard',underlineLinks:true,semanticMarkers:true,reduceMotion:true}
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -333,6 +334,134 @@ async function activateProfilePalette(){
     if(requestId===state.paletteRequestId) activateNeutralPalette();
     console.warn('Profile palette failed:',error);
   }
+}
+
+
+const ACCESSIBILITY_DEFAULTS={
+  enabled:false,
+  fontFamily:'Arial',
+  fontScale:1.25,
+  letterSpacing:'0',
+  lineHeight:1.5,
+  contrast:'bw',
+  colorVision:'standard',
+  underlineLinks:true,
+  semanticMarkers:true,
+  reduceMotion:true
+};
+const ACCESSIBILITY_ALLOWED={
+  fontFamily:['Arial','Times New Roman'],
+  fontScale:[1,1.25,1.5,1.75,2],
+  letterSpacing:['0','0.06em','0.12em'],
+  lineHeight:[1.5,1.8,2],
+  contrast:['bw','wb','yellow-navy','navy-cream'],
+  colorVision:['standard','redgreen','blueyellow','monochrome']
+};
+function loadAccessibilitySettings(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem('news-accessibility')||'null');}catch(_){saved=null;}
+  state.accessibility={...ACCESSIBILITY_DEFAULTS,...(saved&&typeof saved==='object'?saved:{})};
+  if(!ACCESSIBILITY_ALLOWED.fontFamily.includes(state.accessibility.fontFamily))state.accessibility.fontFamily=ACCESSIBILITY_DEFAULTS.fontFamily;
+  if(!ACCESSIBILITY_ALLOWED.fontScale.includes(Number(state.accessibility.fontScale)))state.accessibility.fontScale=ACCESSIBILITY_DEFAULTS.fontScale;
+  if(!ACCESSIBILITY_ALLOWED.letterSpacing.includes(String(state.accessibility.letterSpacing)))state.accessibility.letterSpacing=ACCESSIBILITY_DEFAULTS.letterSpacing;
+  if(!ACCESSIBILITY_ALLOWED.lineHeight.includes(Number(state.accessibility.lineHeight)))state.accessibility.lineHeight=ACCESSIBILITY_DEFAULTS.lineHeight;
+  if(!ACCESSIBILITY_ALLOWED.contrast.includes(state.accessibility.contrast))state.accessibility.contrast=ACCESSIBILITY_DEFAULTS.contrast;
+  if(!ACCESSIBILITY_ALLOWED.colorVision.includes(state.accessibility.colorVision))state.accessibility.colorVision=ACCESSIBILITY_DEFAULTS.colorVision;
+  state.accessibility.enabled=state.accessibility.enabled===true;
+  state.accessibility.underlineLinks=state.accessibility.underlineLinks!==false;
+  state.accessibility.semanticMarkers=state.accessibility.semanticMarkers!==false;
+  state.accessibility.reduceMotion=state.accessibility.reduceMotion!==false;
+  applyAccessibilitySettings(false);
+}
+function saveAccessibilitySettings(){
+  try{localStorage.setItem('news-accessibility',JSON.stringify(state.accessibility));}catch(_){}
+}
+function syncAccessibilityControls(){
+  const a=state.accessibility;
+  const enabled=$('#a11y-enabled');
+  if(enabled)enabled.checked=a.enabled;
+  $('[data-a11y-setting]').forEach(input=>{
+    const key=input.dataset.a11ySetting;
+    if(input.type==='radio')input.checked=String(input.value)===String(a[key]);
+    else if(input.type==='checkbox')input.checked=a[key]!==false;
+  });
+}
+function applyAccessibilitySettings(showMessage=true){
+  const a=state.accessibility;
+  const root=document.documentElement;
+  root.classList.toggle('a11y-enabled',a.enabled);
+  if(a.enabled){
+    root.dataset.a11yFont=a.fontFamily==='Times New Roman'?'times':'arial';
+    root.dataset.a11yScale=String(Math.round(Number(a.fontScale)*100));
+    root.dataset.a11yContrast=a.contrast;
+    root.dataset.a11yColorvision=a.colorVision;
+    root.dataset.a11ySemantic=a.semanticMarkers?'on':'off';
+    root.dataset.a11yReduceMotion=a.reduceMotion?'on':'off';
+    root.style.setProperty('--a11y-text-scale',String(a.fontScale));
+    root.style.setProperty('--a11y-letter-spacing',String(a.letterSpacing));
+    root.style.setProperty('--a11y-line-height',String(a.lineHeight));
+    root.style.setProperty('--a11y-font-family',a.fontFamily==='Times New Roman'?'"Times New Roman",serif':'Arial,sans-serif');
+    root.classList.toggle('a11y-underline-links',a.underlineLinks);
+  }else{
+    delete root.dataset.a11yFont;
+    delete root.dataset.a11yScale;
+    delete root.dataset.a11yContrast;
+    delete root.dataset.a11yColorvision;
+    delete root.dataset.a11ySemantic;
+    delete root.dataset.a11yReduceMotion;
+    root.classList.remove('a11y-underline-links');
+    root.style.removeProperty('--a11y-text-scale');
+    root.style.removeProperty('--a11y-letter-spacing');
+    root.style.removeProperty('--a11y-line-height');
+    root.style.removeProperty('--a11y-font-family');
+  }
+  const button=$('#accessibility-button');
+  if(button){
+    button.classList.toggle('is-selected',a.enabled);
+    button.setAttribute('aria-pressed',String(a.enabled));
+    button.setAttribute('aria-label',a.enabled?'Открыть настройки версии для слабовидящих (включено)':'Открыть настройки для слабовидящих');
+  }
+  const label=$('#accessibility-button-label');
+  if(label)label.textContent=a.enabled?'Слабовидящие: вкл.':'Слабовидящие';
+  syncAccessibilityControls();
+  if(showMessage)showToast(a.enabled?'Версия для слабовидящих включена.':'Обычная версия сайта включена.');
+}
+function updateAccessibilitySetting(key,value){
+  if(key==='fontScale')value=Number(value);
+  if(key==='lineHeight')value=Number(value);
+  if(key==='underlineLinks'||key==='semanticMarkers'||key==='reduceMotion')value=value===true;
+  state.accessibility[key]=value;
+  saveAccessibilitySettings();
+  applyAccessibilitySettings(true);
+}
+function openAccessibilitySettings(){
+  applyAccessibilitySettings(false);
+  const dialog=$('#accessibility-dialog');
+  if(dialog&&!dialog.open)dialog.showModal();
+  requestAnimationFrame(()=>$('#a11y-enabled')?.focus({preventScroll:true}));
+}
+function resetAccessibilitySettings(){
+  state.accessibility={...ACCESSIBILITY_DEFAULTS};
+  saveAccessibilitySettings();
+  applyAccessibilitySettings(false);
+  showToast('Настройки доступности сброшены.');
+}
+function bindAccessibilityEvents(){
+  const dialog=$('#accessibility-dialog');
+  if(!dialog)return;
+  $('#accessibility-button')?.addEventListener('click',openAccessibilitySettings);
+  $('#accessibility-close')?.addEventListener('click',()=>dialog.close());
+  $('#accessibility-close-bottom')?.addEventListener('click',()=>dialog.close());
+  $('#accessibility-reset')?.addEventListener('click',resetAccessibilitySettings);
+  dialog.addEventListener('change',e=>{
+    const target=e.target;
+    if(!(target instanceof HTMLInputElement))return;
+    if(target.id==='a11y-enabled'){updateAccessibilitySetting('enabled',target.checked);return;}
+    const key=target.dataset.a11ySetting;
+    if(!key)return;
+    if(target.type==='radio'&&!target.checked)return;
+    updateAccessibilitySetting(key,target.type==='checkbox'?target.checked:target.value);
+  });
 }
 
 function setTheme(theme){
@@ -1736,6 +1865,8 @@ function clearSearch(){ state.search=''; $('#news-search').value=''; renderNews(
 function clearNewsState(){ state.search='';state.category=null;state.selectedNewsIndex=0;renderCategoryNav();renderNews();showToast('Фильтры сброшены'); }
 
 function handleGlobalKeydown(e){
+  if(e.altKey&&!e.ctrlKey&&!e.metaKey&&code==='KeyA'){e.preventDefault();openAccessibilitySettings();return;}
+
   const target=e.target;
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
@@ -2076,6 +2207,9 @@ function safeRun(label,fn){
 }
 
 function bootstrap(){
+  safeRun('loadAccessibilitySettings',loadAccessibilitySettings);
+  safeRun('bindAccessibilityEvents',bindAccessibilityEvents);
+
   // Core input handling is installed first so rendering/auth failures never
   // disable mouse or keyboard interaction for the whole site.
   safeRun('bindGlobalEvents',bindGlobalEvents);
