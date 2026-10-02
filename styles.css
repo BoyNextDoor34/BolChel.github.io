@@ -105,7 +105,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   min-width:0;
   display:flex;
   flex-direction:column;
-  align-items:stretch;
+  align-items:center;
   gap:8px;
   color:var(--md-sys-color-on-surface);
   overflow:hidden;
@@ -130,17 +130,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-wordmark {
   min-width:0;
   width:100%;
-  height:78px;
+  height:88px;
   display:flex;
   flex-direction:column;
   justify-content:center;
-  gap:5px;
+  align-items:center;
+  gap:4px;
   overflow:hidden;
   padding:0;
+  margin:0;
 }
 .brand-title {
   display:block;
-  width:100%;
+  width:auto;
+  max-width:100%;
   min-width:0;
   overflow:hidden;
   white-space:nowrap;
@@ -149,21 +152,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   font-family:'Google Sans','Google Sans Text',system-ui,sans-serif;
   font-weight:700;
   text-transform:uppercase;
-  text-align:justify;
-  text-align-last:justify;
+  text-align:center;
   font-kerning:normal;
   font-synthesis:weight;
   margin:0;
+  line-height:.94;
   transform-origin:center;
 }
 .brand-title-top {
-  font-size:24px;
-  line-height:.92;
-  letter-spacing:-.025em;
+  font-size:30px;
+  letter-spacing:-.035em;
 }
 .brand-title-bottom {
   font-size:18px;
-  line-height:.92;
   letter-spacing:-.025em;
 }
 .brand-tagline {
@@ -505,8 +506,8 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 @media (max-width:1050px) {
   .brand-logo-main { grid-template-columns:80px minmax(0,1fr); gap:9px; }
   .brand-logo-mark { width:80px; height:80px; max-width:80px; max-height:80px; }
-  .brand-wordmark { height:72px; gap:4px; }
-  .brand-title-top { font-size:20px; }
+  .brand-wordmark { height:80px; gap:4px; }
+  .brand-title-top { font-size:27px; }
   .brand-title-bottom { font-size:16px; }
   .brand-tagline { width:100%; font-size:8px; }
 }
@@ -530,10 +531,16 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 }
 
 @media (max-width:860px) {
+  .brand-logo {
+    width:100%;
+    align-items:center;
+    gap:7px;
+  }
   .brand-logo-main {
+    width:100%;
     grid-template-columns:1fr;
     justify-items:center;
-    gap:6px;
+    gap:5px;
   }
   .brand-logo-mark {
     width:104px !important;
@@ -542,31 +549,36 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     max-height:104px !important;
   }
   .brand-wordmark {
-    width:100%;
-    height:auto;
+    width:min(100%, 278px);
+    height:104px;
     align-items:center;
-    text-align:center;
+    justify-content:center;
+    gap:4px;
+    margin-inline:auto;
+  }
+  .brand-title {
+    width:auto;
     max-width:100%;
-    gap:2px;
+    text-align:center;
   }
   .brand-title-top {
-    font-size:15px;
-    line-height:.96;
-    letter-spacing:-.02em;
-    text-align:center;
+    font-size:27px;
+    line-height:.94;
+    letter-spacing:-.035em;
   }
   .brand-title-bottom {
-    font-size:12px;
-    line-height:.96;
-    letter-spacing:-.02em;
-    text-align:center;
+    font-size:16px;
+    line-height:.94;
+    letter-spacing:-.025em;
   }
   .brand-tagline {
-    width:100%;
-    font-size:7px;
+    width:min(100%, 278px);
+    font-size:8px;
     line-height:1.15;
     letter-spacing:.035em;
     padding-top:5px;
+    text-align:center;
+    margin-inline:auto;
   }
 }
 
