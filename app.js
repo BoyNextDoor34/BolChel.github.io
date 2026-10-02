@@ -1898,7 +1898,7 @@ function initAvatarCrop(){
     img.onload=()=>{ state.avatarCrop={file,img,zoom:1,rotation:0,x:0,y:0,dragging:false,lastX:0,lastY:0,blob:null}; drawAvatarCrop(); $('#avatar-crop-dialog').showModal(); };
     img.src=url;
   });
-  function drawAvatarCrop(){
+  function drawAvatarCrop(showGuide=true){
     const s=canvas.width, c=state.avatarCrop; ctx.clearRect(0,0,s,s); ctx.fillStyle='#111';ctx.fillRect(0,0,s,s); if(!c.img)return;
     const rotatedQuarter=(Math.abs(c.rotation)%180)!==0;
     const imgW=rotatedQuarter?c.img.naturalHeight:c.img.naturalWidth;
@@ -1908,7 +1908,7 @@ function initAvatarCrop(){
     const maxY=Math.max(0,(imgH*scale-s)/2);
     c.x=clamp(c.x,-maxX,maxX); c.y=clamp(c.y,-maxY,maxY);
     ctx.save(); ctx.translate(s/2+c.x,s/2+c.y); ctx.rotate(c.rotation*Math.PI/180); ctx.drawImage(c.img,-c.img.naturalWidth*scale/2,-c.img.naturalHeight*scale/2,c.img.naturalWidth*scale,c.img.naturalHeight*scale); ctx.restore();
-    ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.strokeRect(1,1,s-2,s-2);
+    if(showGuide){ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.strokeRect(1,1,s-2,s-2);}
   }
   canvas.addEventListener('pointerdown',e=>{const c=state.avatarCrop;c.dragging=true;c.lastX=e.clientX;c.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{const c=state.avatarCrop;if(!c.dragging)return;const rect=canvas.getBoundingClientRect();const sx=canvas.width/Math.max(1,rect.width);const sy=canvas.height/Math.max(1,rect.height);c.x+=(e.clientX-c.lastX)*sx;c.y+=(e.clientY-c.lastY)*sy;c.lastX=e.clientX;c.lastY=e.clientY;drawAvatarCrop();});
@@ -1921,8 +1921,9 @@ function initAvatarCrop(){
   $('#avatar-crop-cancel').onclick=()=>$('#avatar-crop-dialog').close();
   $('#avatar-crop-apply').onclick=()=>{
     const out=document.createElement('canvas');out.width=out.height=512;const octx=out.getContext('2d');const s=canvas.width;const c=state.avatarCrop;
+    drawAvatarCrop(false);
     octx.drawImage(canvas,0,0,s,s,0,0,512,512);
-    out.toBlob(blob=>{state.pendingAvatarBlob=blob;$('#avatar-preview-note').textContent='Кадрирование применено. После сохранения изображение будет загружено в Supabase Storage.';$('#profile-avatar').value='';$('#avatar-crop-dialog').close();},'image/webp',.9);
+    out.toBlob(blob=>{drawAvatarCrop(true);state.pendingAvatarBlob=blob;$('#avatar-preview-note').textContent='Кадрирование применено. После сохранения изображение будет загружено в Supabase Storage.';$('#profile-avatar').value='';$('#avatar-crop-dialog').close();},'image/webp',.9);
   };
 }
 
