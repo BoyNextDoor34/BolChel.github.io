@@ -561,11 +561,10 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     padding:0;
   }
   .brand-title {
-    width:100%;
+    width:max-content;
     max-width:100%;
     overflow:visible;
-    text-align:justify;
-    text-align-last:justify;
+    text-align:center;
     transform-origin:center;
   }
   .brand-title-top {
