@@ -472,6 +472,7 @@ function openAccessibilitySettings(){
   requestAnimationFrame(()=>$('#a11y-enabled')?.focus({preventScroll:true}));
 }
 window.openAccessibilitySettings=openAccessibilitySettings;
+window.__setAccessibilitySetting=(key,value)=>updateAccessibilitySetting(key,value);
 function resetAccessibilitySettings(){
   state.accessibility={...ACCESSIBILITY_DEFAULTS};
   saveAccessibilitySettings();
