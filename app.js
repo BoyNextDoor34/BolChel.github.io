@@ -378,9 +378,24 @@ const ACCESSIBILITY_CONTRAST_PRESETS={
   'navy-cream':{primary:'#003b67',on_primary:'#ffffff',primary_container:'#d7e8f6',on_primary_container:'#001a2d',secondary:'#6b3d00',secondary_container:'#f2dfc5',on_secondary_container:'#241000',tertiary:'#5a207f',on_tertiary:'#ffffff',surface:'#fff8d7',surface_tint:'#fff8d7',surface_container_low:'#fffbe7',surface_container:'#f7efc9',surface_container_high:'#eee3b4',surface_container_highest:'#e4d89f',on_surface:'#001a2d',on_surface_variant:'#17354d',outline:'#001a2d',outline_variant:'#587084',error:'#8c0000'}
 };
 const ACCESSIBILITY_COLOR_VISION_PRESETS={
-  redgreen:{primary:'#0057b8',on_primary:'#ffffff',secondary:'#9a4d00',secondary_container:'#f4d7bc',on_secondary_container:'#2a1700',tertiary:'#5b2a86',on_tertiary:'#ffffff',error:'#7f0000'},
-  blueyellow:{primary:'#7600a8',on_primary:'#ffffff',secondary:'#944600',secondary_container:'#f4d9c4',on_secondary_container:'#2b1300',tertiary:'#00645e',on_tertiary:'#ffffff',error:'#8b0058'},
-  monochrome:{primary:'#111111',on_primary:'#ffffff',secondary:'#333333',secondary_container:'#dedede',on_secondary_container:'#111111',tertiary:'#555555',on_tertiary:'#ffffff',error:'#333333'}
+  // Keep surface/neutral tones controlled by the selected contrast scheme,
+  // but remap every chromatic Material role so all semantic UI elements follow
+  // the selected color-vision-safe palette.
+  redgreen:{
+    primary:'#0057b8',on_primary:'#ffffff',primary_container:'#dcecff',on_primary_container:'#002b5c',
+    secondary:'#b05a00',secondary_container:'#f8dec7',on_secondary_container:'#3d1b00',
+    tertiary:'#6a3d9a',on_tertiary:'#ffffff',error:'#7a1fa2'
+  },
+  blueyellow:{
+    primary:'#7a2e9e',on_primary:'#ffffff',primary_container:'#f0d9f8',on_primary_container:'#3a124c',
+    secondary:'#8c4a00',secondary_container:'#f5dcc5',on_secondary_container:'#3b1b00',
+    tertiary:'#006a63',on_tertiary:'#ffffff',error:'#a00078'
+  },
+  monochrome:{
+    primary:'#111111',on_primary:'#ffffff',primary_container:'#dddddd',on_primary_container:'#111111',
+    secondary:'#333333',secondary_container:'#dddddd',on_secondary_container:'#111111',
+    tertiary:'#555555',on_tertiary:'#ffffff',error:'#444444'
+  }
 };
 function loadAccessibilitySettings(){
   let saved=null;
