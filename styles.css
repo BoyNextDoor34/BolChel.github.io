@@ -1552,6 +1552,9 @@ input[type="range"]::-moz-range-thumb {
   .editor-panes[data-editor-mode="split"] {
     grid-template-columns:1fr !important;
   }
+  .editor-panes[data-editor-mode="split"] .editor-pane-preview {
+    display:block !important;
+  }
   .editor-panes[data-editor-mode="edit"] .editor-pane-preview,
   .editor-panes[data-editor-mode="preview"] .editor-pane-input {
     display:none !important;
@@ -1559,14 +1562,6 @@ input[type="range"]::-moz-range-thumb {
   .editor-panes[data-editor-mode="split"] .editor-pane + .editor-pane {
     border-left:0 !important;
     border-top:1px solid var(--md-sys-color-outline-variant) !important;
-  }
-}
-  .editor-panes[data-editor-mode="split"] .editor-pane-preview {
-    display:none !important;
-  }
-  .editor-panes[data-editor-mode="edit"] .editor-pane-preview,
-  .editor-panes[data-editor-mode="preview"] .editor-pane-input {
-    display:none !important;
   }
 }
 
