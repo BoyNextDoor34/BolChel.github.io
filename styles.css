@@ -1773,124 +1773,124 @@ input[type="range"]::-moz-range-thumb {
 
 /* Accessible contrast presets. Dynamic M3 colors are intentionally overridden in this mode. */
 html.a11y-enabled[data-a11y-contrast="bw"]{
-  --md-sys-color-primary:#000000;
-  --md-sys-color-on-primary:#ffffff;
-  --md-sys-color-primary-container:#eeeeee;
-  --md-sys-color-on-primary-container:#000000;
-  --md-sys-color-secondary:#000000;
-  --md-sys-color-secondary-container:#e6e6e6;
-  --md-sys-color-on-secondary-container:#000000;
-  --md-sys-color-tertiary:#000000;
-  --md-sys-color-on-tertiary:#ffffff;
-  --md-sys-color-surface:#ffffff;
-  --md-sys-color-surface-tint:#ffffff;
-  --md-sys-color-surface-container-low:#ffffff;
-  --md-sys-color-surface-container:#f4f4f4;
-  --md-sys-color-surface-container-high:#e8e8e8;
-  --md-sys-color-surface-container-highest:#dddddd;
-  --md-sys-color-on-surface:#000000;
-  --md-sys-color-on-surface-variant:#202020;
-  --md-sys-color-outline:#000000;
-  --md-sys-color-outline-variant:#666666;
-  --md-sys-color-error:#9b0000;
+  --md-sys-color-primary:#000000 !important;
+  --md-sys-color-on-primary:#ffffff !important;
+  --md-sys-color-primary-container:#eeeeee !important;
+  --md-sys-color-on-primary-container:#000000 !important;
+  --md-sys-color-secondary:#000000 !important;
+  --md-sys-color-secondary-container:#e6e6e6 !important;
+  --md-sys-color-on-secondary-container:#000000 !important;
+  --md-sys-color-tertiary:#000000 !important;
+  --md-sys-color-on-tertiary:#ffffff !important;
+  --md-sys-color-surface:#ffffff !important;
+  --md-sys-color-surface-tint:#ffffff !important;
+  --md-sys-color-surface-container-low:#ffffff !important;
+  --md-sys-color-surface-container:#f4f4f4 !important;
+  --md-sys-color-surface-container-high:#e8e8e8 !important;
+  --md-sys-color-surface-container-highest:#dddddd !important;
+  --md-sys-color-on-surface:#000000 !important;
+  --md-sys-color-on-surface-variant:#202020 !important;
+  --md-sys-color-outline:#000000 !important;
+  --md-sys-color-outline-variant:#666666 !important;
+  --md-sys-color-error:#9b0000 !important;
 }
 html.a11y-enabled[data-a11y-contrast="wb"]{
-  --md-sys-color-primary:#ffffff;
-  --md-sys-color-on-primary:#000000;
-  --md-sys-color-primary-container:#222222;
-  --md-sys-color-on-primary-container:#ffffff;
-  --md-sys-color-secondary:#ffffff;
-  --md-sys-color-secondary-container:#242424;
-  --md-sys-color-on-secondary-container:#ffffff;
-  --md-sys-color-tertiary:#ffffff;
-  --md-sys-color-on-tertiary:#000000;
-  --md-sys-color-surface:#000000;
-  --md-sys-color-surface-tint:#000000;
-  --md-sys-color-surface-container-low:#050505;
-  --md-sys-color-surface-container:#111111;
-  --md-sys-color-surface-container-high:#1d1d1d;
-  --md-sys-color-surface-container-highest:#292929;
-  --md-sys-color-on-surface:#ffffff;
-  --md-sys-color-on-surface-variant:#e8e8e8;
-  --md-sys-color-outline:#ffffff;
-  --md-sys-color-outline-variant:#aaaaaa;
-  --md-sys-color-error:#ff8f8f;
+  --md-sys-color-primary:#ffffff !important;
+  --md-sys-color-on-primary:#000000 !important;
+  --md-sys-color-primary-container:#222222 !important;
+  --md-sys-color-on-primary-container:#ffffff !important;
+  --md-sys-color-secondary:#ffffff !important;
+  --md-sys-color-secondary-container:#242424 !important;
+  --md-sys-color-on-secondary-container:#ffffff !important;
+  --md-sys-color-tertiary:#ffffff !important;
+  --md-sys-color-on-tertiary:#000000 !important;
+  --md-sys-color-surface:#000000 !important;
+  --md-sys-color-surface-tint:#000000 !important;
+  --md-sys-color-surface-container-low:#050505 !important;
+  --md-sys-color-surface-container:#111111 !important;
+  --md-sys-color-surface-container-high:#1d1d1d !important;
+  --md-sys-color-surface-container-highest:#292929 !important;
+  --md-sys-color-on-surface:#ffffff !important;
+  --md-sys-color-on-surface-variant:#e8e8e8 !important;
+  --md-sys-color-outline:#ffffff !important;
+  --md-sys-color-outline-variant:#aaaaaa !important;
+  --md-sys-color-error:#ff8f8f !important;
 }
 html.a11y-enabled[data-a11y-contrast="yellow-navy"]{
-  --md-sys-color-primary:#ffff00;
-  --md-sys-color-on-primary:#000000;
-  --md-sys-color-primary-container:#00345f;
-  --md-sys-color-on-primary-container:#ffff00;
-  --md-sys-color-secondary:#69f7ff;
-  --md-sys-color-secondary-container:#00395b;
-  --md-sys-color-on-secondary-container:#ffffff;
-  --md-sys-color-tertiary:#ff9e64;
-  --md-sys-color-on-tertiary:#000000;
-  --md-sys-color-surface:#001a33;
-  --md-sys-color-surface-tint:#001a33;
-  --md-sys-color-surface-container-low:#001528;
-  --md-sys-color-surface-container:#00233f;
-  --md-sys-color-surface-container-high:#003052;
-  --md-sys-color-surface-container-highest:#003b63;
-  --md-sys-color-on-surface:#ffffff;
-  --md-sys-color-on-surface-variant:#ffff99;
-  --md-sys-color-outline:#ffff00;
-  --md-sys-color-outline-variant:#8d8d4a;
-  --md-sys-color-error:#ff8f8f;
+  --md-sys-color-primary:#ffff00 !important;
+  --md-sys-color-on-primary:#000000 !important;
+  --md-sys-color-primary-container:#00345f !important;
+  --md-sys-color-on-primary-container:#ffff00 !important;
+  --md-sys-color-secondary:#69f7ff !important;
+  --md-sys-color-secondary-container:#00395b !important;
+  --md-sys-color-on-secondary-container:#ffffff !important;
+  --md-sys-color-tertiary:#ff9e64 !important;
+  --md-sys-color-on-tertiary:#000000 !important;
+  --md-sys-color-surface:#001a33 !important;
+  --md-sys-color-surface-tint:#001a33 !important;
+  --md-sys-color-surface-container-low:#001528 !important;
+  --md-sys-color-surface-container:#00233f !important;
+  --md-sys-color-surface-container-high:#003052 !important;
+  --md-sys-color-surface-container-highest:#003b63 !important;
+  --md-sys-color-on-surface:#ffffff !important;
+  --md-sys-color-on-surface-variant:#ffff99 !important;
+  --md-sys-color-outline:#ffff00 !important;
+  --md-sys-color-outline-variant:#8d8d4a !important;
+  --md-sys-color-error:#ff8f8f !important;
 }
 html.a11y-enabled[data-a11y-contrast="navy-cream"]{
-  --md-sys-color-primary:#003b67;
-  --md-sys-color-on-primary:#ffffff;
-  --md-sys-color-primary-container:#d7e8f6;
-  --md-sys-color-on-primary-container:#001a2d;
-  --md-sys-color-secondary:#6b3d00;
-  --md-sys-color-secondary-container:#f2dfc5;
-  --md-sys-color-on-secondary-container:#241000;
-  --md-sys-color-tertiary:#5a207f;
-  --md-sys-color-on-tertiary:#ffffff;
-  --md-sys-color-surface:#fff8d7;
-  --md-sys-color-surface-tint:#fff8d7;
-  --md-sys-color-surface-container-low:#fffbe7;
-  --md-sys-color-surface-container:#f7efc9;
-  --md-sys-color-surface-container-high:#eee3b4;
-  --md-sys-color-surface-container-highest:#e4d89f;
-  --md-sys-color-on-surface:#001a2d;
-  --md-sys-color-on-surface-variant:#17354d;
-  --md-sys-color-outline:#001a2d;
-  --md-sys-color-outline-variant:#587084;
-  --md-sys-color-error:#8c0000;
+  --md-sys-color-primary:#003b67 !important;
+  --md-sys-color-on-primary:#ffffff !important;
+  --md-sys-color-primary-container:#d7e8f6 !important;
+  --md-sys-color-on-primary-container:#001a2d !important;
+  --md-sys-color-secondary:#6b3d00 !important;
+  --md-sys-color-secondary-container:#f2dfc5 !important;
+  --md-sys-color-on-secondary-container:#241000 !important;
+  --md-sys-color-tertiary:#5a207f !important;
+  --md-sys-color-on-tertiary:#ffffff !important;
+  --md-sys-color-surface:#fff8d7 !important;
+  --md-sys-color-surface-tint:#fff8d7 !important;
+  --md-sys-color-surface-container-low:#fffbe7 !important;
+  --md-sys-color-surface-container:#f7efc9 !important;
+  --md-sys-color-surface-container-high:#eee3b4 !important;
+  --md-sys-color-surface-container-highest:#e4d89f !important;
+  --md-sys-color-on-surface:#001a2d !important;
+  --md-sys-color-on-surface-variant:#17354d !important;
+  --md-sys-color-outline:#001a2d !important;
+  --md-sys-color-outline-variant:#587084 !important;
+  --md-sys-color-error:#8c0000 !important;
 }
 
 /* Color-vision-friendly accent profiles: color is supplemental; semantics are also marked structurally. */
 html.a11y-enabled[data-a11y-colorvision="redgreen"]{
-  --md-sys-color-primary:#0057b8;
-  --md-sys-color-on-primary:#ffffff;
-  --md-sys-color-secondary:#9a4d00;
-  --md-sys-color-secondary-container:#f4d7bc;
-  --md-sys-color-on-secondary-container:#2a1700;
-  --md-sys-color-tertiary:#5b2a86;
-  --md-sys-color-on-tertiary:#ffffff;
-  --md-sys-color-error:#7f0000;
+  --md-sys-color-primary:#0057b8 !important;
+  --md-sys-color-on-primary:#ffffff !important;
+  --md-sys-color-secondary:#9a4d00 !important;
+  --md-sys-color-secondary-container:#f4d7bc !important;
+  --md-sys-color-on-secondary-container:#2a1700 !important;
+  --md-sys-color-tertiary:#5b2a86 !important;
+  --md-sys-color-on-tertiary:#ffffff !important;
+  --md-sys-color-error:#7f0000 !important;
 }
 html.a11y-enabled[data-a11y-colorvision="blueyellow"]{
-  --md-sys-color-primary:#7600a8;
-  --md-sys-color-on-primary:#ffffff;
-  --md-sys-color-secondary:#944600;
-  --md-sys-color-secondary-container:#f4d9c4;
-  --md-sys-color-on-secondary-container:#2b1300;
-  --md-sys-color-tertiary:#00645e;
-  --md-sys-color-on-tertiary:#ffffff;
-  --md-sys-color-error:#8b0058;
+  --md-sys-color-primary:#7600a8 !important;
+  --md-sys-color-on-primary:#ffffff !important;
+  --md-sys-color-secondary:#944600 !important;
+  --md-sys-color-secondary-container:#f4d9c4 !important;
+  --md-sys-color-on-secondary-container:#2b1300 !important;
+  --md-sys-color-tertiary:#00645e !important;
+  --md-sys-color-on-tertiary:#ffffff !important;
+  --md-sys-color-error:#8b0058 !important;
 }
 html.a11y-enabled[data-a11y-colorvision="monochrome"]{
-  --md-sys-color-primary:#111111;
-  --md-sys-color-on-primary:#ffffff;
-  --md-sys-color-secondary:#333333;
-  --md-sys-color-secondary-container:#dedede;
-  --md-sys-color-on-secondary-container:#111111;
-  --md-sys-color-tertiary:#555555;
-  --md-sys-color-on-tertiary:#ffffff;
-  --md-sys-color-error:#333333;
+  --md-sys-color-primary:#111111 !important;
+  --md-sys-color-on-primary:#ffffff !important;
+  --md-sys-color-secondary:#333333 !important;
+  --md-sys-color-secondary-container:#dedede !important;
+  --md-sys-color-on-secondary-container:#111111 !important;
+  --md-sys-color-tertiary:#555555 !important;
+  --md-sys-color-on-tertiary:#ffffff !important;
+  --md-sys-color-error:#333333 !important;
 }
 
 /* Typography, spacing, focus, controls and reflow. */
@@ -1958,7 +1958,7 @@ html.a11y-enabled[data-a11y-scale="175"] .news-grid,
 html.a11y-enabled[data-a11y-scale="200"] .news-grid{
   grid-template-columns:1fr !important;
 }
-html.a11y-enabled .news-card{grid-column:1 / -1 !important}
+html.a11y-enabled .news-card{--news-primary:var(--md-sys-color-primary) !important;grid-column:1 / -1 !important}
 html.a11y-enabled .profile-layout,
 html.a11y-enabled .about-grid,
 html.a11y-enabled .editor-meta-grid,
