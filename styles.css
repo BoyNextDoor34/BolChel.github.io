@@ -282,7 +282,33 @@ body.nav-collapsed main { margin-left:88px; width:calc(100vw - 88px); max-width:
 .filled-button { background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); border:1px solid color-mix(in srgb, var(--md-sys-color-primary) 60%, var(--md-sys-color-outline)); }
 .tonal-button { background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-on-surface); border:1px solid var(--md-sys-color-outline-variant); }
 .text-button { background:transparent; color:var(--md-sys-color-primary); }
+.filled-button, .tonal-button, .text-button, .icon-button, .avatar-button, .nav-item, .mobile-dock-item, .mobile-cat, .segment, .editor-mode {
+  transition:background .16s ease, color .16s ease, border-color .16s ease, filter .16s ease, transform .12s ease;
+}
 .filled-button:hover, .tonal-button:hover, .text-button:hover { filter:brightness(.97); }
+.filled-button:active, .tonal-button:active, .text-button:active, .icon-button:active, .avatar-button:active, .mobile-dock-item:active, .mobile-cat:active, .segment:active, .editor-mode:active { transform:scale(.98); }
+
+.page-section.is-visible { animation:page-section-enter .24s ease both; }
+.news-card { animation:news-card-enter .28s ease both; }
+.news-grid .news-card:nth-child(2) { animation-delay:.025s; }
+.news-grid .news-card:nth-child(3) { animation-delay:.05s; }
+.news-grid .news-card:nth-child(4) { animation-delay:.075s; }
+.news-grid .news-card:nth-child(5) { animation-delay:.10s; }
+.news-grid .news-card:nth-child(6) { animation-delay:.125s; }
+.surface-card, .about-card, .profile-main, .profile-side { transition:background .18s ease, border-color .18s ease, transform .18s ease; }
+.about-card:hover, .surface-card:hover { transform:translateY(-1px); }
+
+@keyframes page-section-enter {
+  from { opacity:0; transform:translateY(6px); }
+  to { opacity:1; transform:none; }
+}
+@keyframes news-card-enter {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:none; }
+}
+@keyframes pull-refresh-spin {
+  to { transform:rotate(360deg); }
+}
 
 main { margin-left:var(--desktop-side); margin-right:0; max-width:var(--page-max); padding:112px 32px 72px; min-height:100vh; }
 .page-section { display:none; }
@@ -609,7 +635,8 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     overflow:hidden;
     overscroll-behavior:none;
   }
-  main { margin-left:0; margin-right:0; padding:98px 18px 100px; height:100%; min-height:0; max-height:100%; overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; }
+  main { margin-left:0; margin-right:0; padding:98px 18px 100px; height:100%; min-height:0; max-height:100%; overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; touch-action:pan-y; }
+   .mobile-dock { touch-action:pan-y; }
   .mobile-category-bar {
     display:block;
     position:fixed !important;
@@ -2319,3 +2346,29 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
   color:#001a2d !important;
 }
 
+
+.pull-refresh-indicator {
+  display:none;
+  position:fixed;
+  top:8px;
+  left:50%;
+  z-index:120;
+  width:42px;
+  height:42px;
+  border:1px solid var(--md-sys-color-outline);
+  border-radius:50%;
+  background:var(--md-sys-color-surface-container);
+  color:var(--md-sys-color-primary);
+  place-items:center;
+  opacity:0;
+  transform:translate(-50%,-70px);
+  pointer-events:none;
+}
+@media(max-width:860px){
+  .pull-refresh-indicator { display:grid; transition:opacity .12s ease, transform .12s ease; }
+  .pull-refresh-indicator.is-visible { opacity:1; transform:translate(-50%,var(--pull-offset,0px)); transition:none; }
+  .pull-refresh-indicator.is-ready { background:var(--md-sys-color-primary-container); color:var(--md-sys-color-on-primary-container); }
+  .pull-refresh-indicator.is-ready .material-symbols-rounded { transform:rotate(180deg); }
+  .pull-refresh-indicator.is-refreshing { opacity:1; transform:translate(-50%,0); }
+  .pull-refresh-indicator.is-refreshing .material-symbols-rounded { animation:pull-refresh-spin .8s linear infinite; }
+}
