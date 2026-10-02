@@ -309,6 +309,20 @@ body.nav-collapsed main { margin-left:88px; width:calc(100vw - 88px); max-width:
 @keyframes pull-refresh-spin {
   to { transform:rotate(360deg); }
 }
+html.a11y-enabled[data-a11y-reduce-motion="on"] .about-card:hover,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .surface-card:hover,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .filled-button:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .tonal-button:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .text-button:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .icon-button:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .avatar-button:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .mobile-dock-item:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .mobile-cat:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .segment:active,
+html.a11y-enabled[data-a11y-reduce-motion="on"] .editor-mode:active{
+  transform:none !important;
+}
+
 
 main { margin-left:var(--desktop-side); margin-right:0; max-width:var(--page-max); padding:112px 32px 72px; min-height:100vh; }
 .page-section { display:none; }
