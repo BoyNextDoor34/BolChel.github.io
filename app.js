@@ -1912,8 +1912,6 @@ function initAvatarCrop(){
   }
   canvas.addEventListener('pointerdown',e=>{const c=state.avatarCrop;c.dragging=true;c.lastX=e.clientX;c.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{const c=state.avatarCrop;if(!c.dragging)return;const rect=canvas.getBoundingClientRect();const sx=canvas.width/Math.max(1,rect.width);const sy=canvas.height/Math.max(1,rect.height);c.x+=(e.clientX-c.lastX)*sx;c.y+=(e.clientY-c.lastY)*sy;c.lastX=e.clientX;c.lastY=e.clientY;drawAvatarCrop();});
-  canvas.addEventListener('pointerdown',e=>{const c=state.avatarCrop;c.dragging=true;c.lastX=e.clientX;c.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);});
-  canvas.addEventListener('pointermove',e=>{const c=state.avatarCrop;if(!c.dragging)return;c.x+=e.clientX-c.lastX;c.y+=e.clientY-c.lastY;c.lastX=e.clientX;c.lastY=e.clientY;drawAvatarCrop();});
   canvas.addEventListener('pointerup',()=>state.avatarCrop.dragging=false);
   $('#avatar-zoom').addEventListener('input',e=>{state.avatarCrop.zoom=Number(e.target.value);drawAvatarCrop();});
   $('#avatar-rotate-left').onclick=()=>{state.avatarCrop.rotation-=90;drawAvatarCrop();};
