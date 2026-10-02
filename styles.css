@@ -1762,7 +1762,7 @@ input[type="range"]::-moz-range-thumb {
 .accessibility-actions{
   margin-top:18px;
 }
-.accessibility-button{
+.accessibility-button{position:relative;z-index:30;pointer-events:auto;
   min-height:44px;
 }
 .accessibility-button.is-selected{
