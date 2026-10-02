@@ -30,8 +30,7 @@ const KEYMAP = [
     [['Ctrl+U'],'Прокрутить вверх'],
     [['PageDown'],'Следующий экран'],
     [['PageUp'],'Предыдущий экран'],
-    [['Home'],'В начало списка'],
-    [['G','G'],'В начало списка (альтернатива Home)'],
+    [[['Home'],['G','G']],'Перейти к первой новости'],
     [['Shift+G'],'В конец списка'],
     [['Enter / O'],'Открыть выбранную новость'],
     [['Esc'],'Назад или закрыть текущий экран'],
@@ -904,7 +903,12 @@ function backToNews() {
 function renderKeyHelp(){
   const root=$('#whichkey-content');
   if(!root) return;
-  root.innerHTML=KEYMAP.map(group=>`<section class="key-group"><div class="key-group-title">${escapeHtml(group.group)}</div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>`<tr><td><div class="key-combo">${keys.map((k,index)=>`${index?'<span class="key-step" aria-hidden="true">→</span>':''}<kbd>${escapeHtml(k)}</kbd>`).join('')}</div></td><td>${escapeHtml(desc)}</td></tr>`).join('')}</tbody></table></section>`).join('');
+  const renderSequence=sequence=>sequence.map((k,index)=>`${index?'<span class="key-step" aria-hidden="true">→</span>':''}<kbd>${escapeHtml(k)}</kbd>`).join('');
+  root.innerHTML=KEYMAP.map(group=>`<section class="key-group"><div class="key-group-title">${escapeHtml(group.group)}</div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
+    const alternatives=Array.isArray(keys[0])?keys:[keys];
+    const rendered=alternatives.map((sequence,index)=>`${index?'<span class="key-or" aria-hidden="true">/</span>':''}${renderSequence(sequence)}`).join('');
+    return `<tr><td><div class="key-combo">${rendered}</div></td><td>${escapeHtml(desc)}</td></tr>`;
+  }).join('')}</tbody></table></section>`).join('');
 }
 
 function toggleHelp(expanded=true){
@@ -2124,8 +2128,7 @@ function handleGlobalKeydown(e){
     if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const commands={
         KeyN:openAllNews,KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyE:()=>openEditor(null),
-        Equal:openAllNews,NumpadAdd:openAllNews,
-        KeyT:()=>setCategory('Туризм'),Minus:()=>setCategory('Военнообязанные'),
+        Minus:()=>setCategory('Военнообязанные'),
         Digit1:()=>setCategory(CATEGORIES[0]),Digit2:()=>setCategory(CATEGORIES[1]),Digit3:()=>setCategory(CATEGORIES[2]),
         Digit4:()=>setCategory(CATEGORIES[3]),Digit5:()=>setCategory(CATEGORIES[4]),Digit6:()=>setCategory(CATEGORIES[5]),
         Digit7:()=>setCategory(CATEGORIES[6]),Digit8:()=>setCategory(CATEGORIES[7]),Digit9:()=>setCategory(CATEGORIES[8]),Digit0:()=>setCategory(CATEGORIES[9])
