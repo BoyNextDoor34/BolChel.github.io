@@ -444,7 +444,17 @@ function applyAccessibilitySettings(showMessage=true){
     root.style.removeProperty('--a11y-letter-spacing');
     root.style.removeProperty('--a11y-line-height');
     root.style.removeProperty('--a11y-font-family');
+    root.style.removeProperty('--a11y-contrast-surface');
+    root.style.removeProperty('--a11y-contrast-container');
+    root.style.removeProperty('--a11y-contrast-high');
+    root.style.removeProperty('--a11y-contrast-text');
+    root.style.removeProperty('--a11y-contrast-primary');
+    root.style.removeProperty('--a11y-contrast-on-primary');
+    root.style.removeProperty('--a11y-contrast-border');
     presetKeys.forEach(key=>root.style.removeProperty('--md-sys-color-'+key));
+    const normalPalette=state.activePalette||NEUTRAL_PALETTE;
+    const normalScheme=document.documentElement.dataset.theme==='dark'?normalPalette.dark:normalPalette.light;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',normalScheme.surface);
   }
   const button=$('#accessibility-button');
   if(button){
