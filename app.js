@@ -440,6 +440,7 @@ function openAccessibilitySettings(){
   if(dialog&&!dialog.open)dialog.showModal();
   requestAnimationFrame(()=>$('#a11y-enabled')?.focus({preventScroll:true}));
 }
+window.openAccessibilitySettings=openAccessibilitySettings;
 function resetAccessibilitySettings(){
   state.accessibility={...ACCESSIBILITY_DEFAULTS};
   saveAccessibilitySettings();
