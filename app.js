@@ -268,6 +268,18 @@ function tuneNoctaliaSurfaceRoles(palette,hct,utils,isDark){
   return palette;
 }
 
+function applyAccessibilityColorScheme(){
+  const a=state.accessibility;
+  if(!a?.enabled) return;
+  const root=document.documentElement;
+  const contrastPreset=ACCESSIBILITY_CONTRAST_PRESETS[a.contrast]||ACCESSIBILITY_CONTRAST_PRESETS.bw;
+  const colorPreset=a.colorVision!=='standard'?(ACCESSIBILITY_COLOR_VISION_PRESETS[a.colorVision]||{}):{};
+  const effective={...contrastPreset,...colorPreset};
+  Object.entries(effective).forEach(([key,value])=>{
+    root.style.setProperty('--md-sys-color-'+key,value,'important');
+  });
+}
+
 function applySitePalette(palette){
   if(!palette) return;
   state.sitePalette=palette;
@@ -287,6 +299,8 @@ function applySitePalette(palette){
     outline:'--md-sys-color-outline', outline_variant:'--md-sys-color-outline-variant', error:'--md-sys-color-error'
   };
   Object.entries(map).forEach(([key,varName])=>root.style.setProperty(varName,scheme[key]));
+  // The accessibility scheme always has precedence over dynamic M3/Matugen colors.
+  applyAccessibilityColorScheme();
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content',scheme.surface);
 }
 
@@ -417,10 +431,7 @@ function applyAccessibilitySettings(showMessage=true){
     root.style.setProperty('--a11y-line-height',String(a.lineHeight));
     root.style.setProperty('--a11y-font-family',a.fontFamily==='Times New Roman'?'Times New Roman,serif':'Arial,sans-serif');
     root.classList.toggle('a11y-underline-links',a.underlineLinks);
-    const contrastPreset=ACCESSIBILITY_CONTRAST_PRESETS[a.contrast]||ACCESSIBILITY_CONTRAST_PRESETS.bw;
-    const colorPreset=a.colorVision!=='standard'?(ACCESSIBILITY_COLOR_VISION_PRESETS[a.colorVision]||{}):{};
-    const effective={...contrastPreset,...colorPreset};
-    Object.entries(effective).forEach(([key,value])=>root.style.setProperty('--md-sys-color-'+key,value,'important'));
+    applyAccessibilityColorScheme();
   }else{
     delete root.dataset.a11yFont;
     delete root.dataset.a11yScale;
