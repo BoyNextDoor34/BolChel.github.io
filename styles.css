@@ -1552,9 +1552,6 @@ input[type="range"]::-moz-range-thumb {
   .editor-panes[data-editor-mode="split"] {
     grid-template-columns:1fr !important;
   }
-  .editor-panes[data-editor-mode="split"] .editor-pane-preview {
-    display:block !important;
-  }
   .editor-panes[data-editor-mode="edit"] .editor-pane-preview,
   .editor-panes[data-editor-mode="preview"] .editor-pane-input {
     display:none !important;
