@@ -117,6 +117,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   grid-template-columns:80px minmax(0,1fr);
   align-items:center;
   gap:8px;
+  padding-right:4px;
   overflow:visible;
 }
 .brand-logo-mark {
@@ -134,30 +135,30 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   display:flex;
   flex-direction:column;
   justify-content:center;
-  align-items:center;
+  align-items:stretch;
   gap:2px;
-  overflow:visible;
-  padding:0;
+  overflow:hidden;
+  padding:0 12px 0 0;
   margin:0;
 }
 .brand-title {
   display:block;
-  width:max-content;
-  max-width:100%;
+  width:100%;
   min-width:0;
-  overflow:visible;
+  overflow:hidden;
   white-space:nowrap;
   text-overflow:clip;
   color:var(--md-sys-color-primary);
   font-family:'Google Sans','Google Sans Text',system-ui,sans-serif;
   font-weight:700;
   text-transform:uppercase;
-  text-align:center;
+  text-align:justify;
+  text-align-last:justify;
   font-kerning:normal;
   font-synthesis:weight;
   margin:0;
   line-height:.9;
-  transform-origin:center;
+  transform-origin:left center;
 }
 .brand-title-top {
   font-size:37px;
@@ -506,7 +507,7 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 @media (max-width:1050px) {
   .brand-logo-main { grid-template-columns:72px minmax(0,1fr); gap:8px; }
   .brand-logo-mark { width:72px; height:72px; max-width:72px; max-height:72px; flex-basis:72px; }
-  .brand-wordmark { height:72px; gap:2px; }
+  .brand-wordmark { height:72px; gap:2px; padding-right:10px; }
   .brand-title-top { font-size:29px; }
   .brand-title-bottom { font-size:17px; }
   .brand-tagline { width:100%; font-size:8px; }
@@ -557,11 +558,15 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     gap:3px;
     margin-inline:auto;
     overflow:visible;
+    padding:0;
   }
   .brand-title {
-    width:max-content;
+    width:100%;
     max-width:100%;
-    text-align:center;
+    overflow:visible;
+    text-align:justify;
+    text-align-last:justify;
+    transform-origin:center;
   }
   .brand-title-top {
     font-size:50px;
