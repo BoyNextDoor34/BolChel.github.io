@@ -90,10 +90,16 @@
       const target=event.target;
       if(!(target instanceof HTMLInputElement)) return;
       if(target.dataset.a11ySetting==='contrast' || target.id==='a11y-enabled'){
-        requestAnimationFrame(applyDirectContrast);
+        applyDirectContrast();
       }
     },true);
-    requestAnimationFrame(applyDirectContrast);
+    document.addEventListener('click',function(event){
+      const target=event.target;
+      if(target instanceof HTMLInputElement && target.dataset.a11ySetting==='contrast'){
+        applyDirectContrast();
+      }
+    },true);
+    applyDirectContrast();
   }
 
 
