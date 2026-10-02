@@ -79,7 +79,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .hidden { display:none !important; }
 .mobile-only { display:grid; }
 .topbar-menu-button { margin-right:2px; display:grid; }
-.app-nav.is-collapsed { width:88px; }
+.app-nav.is-collapsed {
+  width:88px;
+  padding-left:8px;
+  padding-right:8px;
+}
 .app-nav.is-collapsed .brand-wordmark,
 .app-nav.is-collapsed .brand-tagline,
 .app-nav.is-collapsed .nav-item > span:not(.material-symbols-rounded),
