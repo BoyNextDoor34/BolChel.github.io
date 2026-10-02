@@ -106,46 +106,46 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:8px;
+  gap:6px;
   color:var(--md-sys-color-on-surface);
-  overflow:hidden;
+  overflow:visible;
 }
 .brand-logo-main {
   width:100%;
   min-width:0;
   display:grid;
-  grid-template-columns:88px minmax(0,1fr);
+  grid-template-columns:80px minmax(0,1fr);
   align-items:center;
-  gap:11px;
-  overflow:hidden;
+  gap:8px;
+  overflow:visible;
 }
 .brand-logo-mark {
   display:block;
-  width:88px;
-  height:88px;
-  flex:0 0 88px;
-  max-width:88px;
-  max-height:88px;
+  width:80px;
+  height:80px;
+  flex:0 0 80px;
+  max-width:80px;
+  max-height:80px;
 }
 .brand-wordmark {
   min-width:0;
   width:100%;
-  height:88px;
+  height:80px;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  gap:4px;
-  overflow:hidden;
+  gap:2px;
+  overflow:visible;
   padding:0;
   margin:0;
 }
 .brand-title {
   display:block;
-  width:auto;
+  width:max-content;
   max-width:100%;
   min-width:0;
-  overflow:hidden;
+  overflow:visible;
   white-space:nowrap;
   text-overflow:clip;
   color:var(--md-sys-color-primary);
@@ -156,21 +156,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   font-kerning:normal;
   font-synthesis:weight;
   margin:0;
-  line-height:.94;
+  line-height:.9;
   transform-origin:center;
 }
 .brand-title-top {
-  font-size:30px;
+  font-size:37px;
   letter-spacing:-.035em;
 }
 .brand-title-bottom {
-  font-size:18px;
+  font-size:22px;
   letter-spacing:-.025em;
 }
 .brand-tagline {
   width:100%;
   align-self:center;
-  padding-top:7px;
+  padding-top:6px;
   border-top:1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
   color:var(--md-sys-color-on-surface-variant);
   font-size:9px;
@@ -504,11 +504,11 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 .mobile-dock { display:none; }
 
 @media (max-width:1050px) {
-  .brand-logo-main { grid-template-columns:80px minmax(0,1fr); gap:9px; }
-  .brand-logo-mark { width:80px; height:80px; max-width:80px; max-height:80px; }
-  .brand-wordmark { height:80px; gap:4px; }
-  .brand-title-top { font-size:27px; }
-  .brand-title-bottom { font-size:16px; }
+  .brand-logo-main { grid-template-columns:72px minmax(0,1fr); gap:8px; }
+  .brand-logo-mark { width:72px; height:72px; max-width:72px; max-height:72px; flex-basis:72px; }
+  .brand-wordmark { height:72px; gap:2px; }
+  .brand-title-top { font-size:29px; }
+  .brand-title-bottom { font-size:17px; }
   .brand-tagline { width:100%; font-size:8px; }
 }
 
@@ -540,39 +540,41 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     width:100%;
     grid-template-columns:1fr;
     justify-items:center;
-    gap:5px;
+    gap:8px;
   }
   .brand-logo-mark {
     width:104px !important;
     height:104px !important;
     max-width:104px !important;
     max-height:104px !important;
+    flex:0 0 104px;
   }
   .brand-wordmark {
-    width:min(100%, 278px);
-    height:104px;
+    width:100%;
+    height:auto;
     align-items:center;
     justify-content:center;
-    gap:4px;
+    gap:3px;
     margin-inline:auto;
+    overflow:visible;
   }
   .brand-title {
-    width:auto;
+    width:max-content;
     max-width:100%;
     text-align:center;
   }
   .brand-title-top {
-    font-size:27px;
-    line-height:.94;
-    letter-spacing:-.035em;
+    font-size:50px;
+    line-height:.88;
+    letter-spacing:-.04em;
   }
   .brand-title-bottom {
-    font-size:16px;
-    line-height:.94;
-    letter-spacing:-.025em;
+    font-size:29px;
+    line-height:.88;
+    letter-spacing:-.03em;
   }
   .brand-tagline {
-    width:min(100%, 278px);
+    width:100%;
     font-size:8px;
     line-height:1.15;
     letter-spacing:.035em;
