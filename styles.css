@@ -176,7 +176,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-}.app-nav {
+}.app-nav.is-collapsed .brand-logo {
+  width:56px !important;
+  max-width:56px !important;
+  height:56px;
+  gap:0;
+  overflow:hidden;
+}
+.app-nav.is-collapsed .brand-logo-main {
+  width:56px !important;
+  max-width:56px !important;
+  height:56px;
+  grid-template-columns:1fr;
+  overflow:hidden;
+}
+.app-nav.is-collapsed .brand-logo-mark {
+  width:56px !important;
+  height:56px !important;
+  max-width:56px !important;
+  max-height:56px !important;
+  flex:0 0 56px;
+}
+.app-nav.is-collapsed .brand-wordmark,
+.app-nav.is-collapsed .brand-tagline {
+  display:none !important;
+}
+
+.app-nav {
   position:fixed; inset:0 auto 0 0; width:var(--desktop-side); padding:22px 16px;
   background:var(--md-sys-color-surface);
   border-right:1px solid var(--md-sys-color-outline-variant);
