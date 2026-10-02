@@ -449,7 +449,7 @@ function resetAccessibilitySettings(){
 function bindAccessibilityEvents(){
   const dialog=$('#accessibility-dialog');
   if(!dialog)return;
-  $('#accessibility-button')?.addEventListener('click',openAccessibilitySettings);
+  $('#accessibility-button')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openAccessibilitySettings();},{capture:true});
   $('#accessibility-close')?.addEventListener('click',()=>dialog.close());
   $('#accessibility-close-bottom')?.addEventListener('click',()=>dialog.close());
   $('#accessibility-reset')?.addEventListener('click',resetAccessibilitySettings);
@@ -1865,11 +1865,11 @@ function clearSearch(){ state.search=''; $('#news-search').value=''; renderNews(
 function clearNewsState(){ state.search='';state.category=null;state.selectedNewsIndex=0;renderCategoryNav();renderNews();showToast('Фильтры сброшены'); }
 
 function handleGlobalKeydown(e){
-  if(e.altKey&&!e.ctrlKey&&!e.metaKey&&code==='KeyA'){e.preventDefault();openAccessibilitySettings();return;}
-
   const target=e.target;
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
+
+  if(e.altKey&&!e.ctrlKey&&!e.metaKey&&code==='KeyA'){e.preventDefault();openAccessibilitySettings();return;}
 
   const leaderCode = code==='KeyG' || code==='Space';
   if(e.repeat && (state.keySequence || leaderCode)) return;
