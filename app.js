@@ -311,6 +311,7 @@ async function activateArticlePalette(article){
     if(requestId!==state.paletteRequestId || state.section!=='article' || String(state.articleId)!==String(article.id)) return;
     applySitePalette(palette);
     renderArticle();
+    requestAnimationFrame(()=>scrollMainToTop('auto'));
   }catch(error){
     if(requestId===state.paletteRequestId) activateNeutralPalette();
     console.warn('Article palette failed:',error);
@@ -518,7 +519,7 @@ function renderNews(){
     root.innerHTML=`<div class="empty-state"><h2>${title}</h2><p>${text}</p></div>`;
     return;
   }
-  root.innerHTML=items.map((n,i)=>cardTemplate(n,i===0&&!state.search&&!state.category,i)).join('');
+  root.innerHTML=items.map((n,i)=>cardTemplate(n,i===0&&!state.search.trim()&&!state.category,i)).join('');
   root.querySelectorAll('.news-card').forEach(card=>{
     card.addEventListener('click',()=>openArticle(card.dataset.id));
     card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.code==='Enter') openArticle(card.dataset.id); });
@@ -553,6 +554,7 @@ async function openArticle(id){
   state.previousSection=state.section==='article'?'news':state.section;
   openSection('article');
   renderArticle();
+   requestAnimationFrame(()=>scrollMainToTop('auto'));
 }
 
 
@@ -1703,7 +1705,7 @@ async function saveProfile(){
 }
 
 function searchNews(value=$('#news-search')?.value||''){
-  state.search=value.trim(); state.selectedNewsIndex=0; renderNews();
+  state.search=String(value??''); state.selectedNewsIndex=0; renderNews();
 }
 
 function focusSearch(){ $('#news-search')?.focus(); $('#news-search')?.select(); }
@@ -1898,10 +1900,18 @@ function initAvatarCrop(){
   });
   function drawAvatarCrop(){
     const s=canvas.width, c=state.avatarCrop; ctx.clearRect(0,0,s,s); ctx.fillStyle='#111';ctx.fillRect(0,0,s,s); if(!c.img)return;
-    const base=Math.max(s/c.img.naturalWidth,s/c.img.naturalHeight), scale=base*c.zoom;
+    const rotatedQuarter=(Math.abs(c.rotation)%180)!==0;
+    const imgW=rotatedQuarter?c.img.naturalHeight:c.img.naturalWidth;
+    const imgH=rotatedQuarter?c.img.naturalWidth:c.img.naturalHeight;
+    const base=Math.max(s/imgW,s/imgH), scale=base*c.zoom;
+    const maxX=Math.max(0,(imgW*scale-s)/2);
+    const maxY=Math.max(0,(imgH*scale-s)/2);
+    c.x=clamp(c.x,-maxX,maxX); c.y=clamp(c.y,-maxY,maxY);
     ctx.save(); ctx.translate(s/2+c.x,s/2+c.y); ctx.rotate(c.rotation*Math.PI/180); ctx.drawImage(c.img,-c.img.naturalWidth*scale/2,-c.img.naturalHeight*scale/2,c.img.naturalWidth*scale,c.img.naturalHeight*scale); ctx.restore();
     ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.strokeRect(1,1,s-2,s-2);
   }
+  canvas.addEventListener('pointerdown',e=>{const c=state.avatarCrop;c.dragging=true;c.lastX=e.clientX;c.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{const c=state.avatarCrop;if(!c.dragging)return;const rect=canvas.getBoundingClientRect();const sx=canvas.width/Math.max(1,rect.width);const sy=canvas.height/Math.max(1,rect.height);c.x+=(e.clientX-c.lastX)*sx;c.y+=(e.clientY-c.lastY)*sy;c.lastX=e.clientX;c.lastY=e.clientY;drawAvatarCrop();});
   canvas.addEventListener('pointerdown',e=>{const c=state.avatarCrop;c.dragging=true;c.lastX=e.clientX;c.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{const c=state.avatarCrop;if(!c.dragging)return;c.x+=e.clientX-c.lastX;c.y+=e.clientY-c.lastY;c.lastX=e.clientX;c.lastY=e.clientY;drawAvatarCrop();});
   canvas.addEventListener('pointerup',()=>state.avatarCrop.dragging=false);
@@ -1961,7 +1971,8 @@ function bindGlobalEvents(){
     const btn=e.target.closest('[data-section]');
     if(btn){
       openSection(btn.dataset.section);
-      scrollMainToTop();
+       requestAnimationFrame(()=>syncPrimaryNavigation(btn.dataset.section));
+       scrollMainToTop('auto');
     }
   });
 
