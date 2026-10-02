@@ -55,7 +55,8 @@
 
   if(!bind()){
     document.addEventListener('DOMContentLoaded',bind,{once:true});
-  }\n
+  }
+
 
   const CONTRAST_SURFACES = {
     bw: {surface:'#ffffff', surfaceContainer:'#f4f4f4', surfaceHigh:'#eeeeee', text:'#000000', primary:'#000000', onPrimary:'#ffffff', border:'#000000'},
@@ -94,4 +95,8 @@
     },true);
     requestAnimationFrame(applyDirectContrast);
   }
-\n\n  window.__openAccessibilityDirect=openAccessibility;\n  bindContrastFallback();\n})();
+
+
+  window.__openAccessibilityDirect=openAccessibility;
+  bindContrastFallback();
+})();
