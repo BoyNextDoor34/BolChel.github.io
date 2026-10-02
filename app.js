@@ -614,7 +614,7 @@ function scrollMainBy(delta,behavior='smooth'){
 function scrollElementIntoMain(element,behavior='smooth'){
   if(!element) return;
   if(!isMobileLayout()){
-    element.scrollIntoView({block:'center',behavior});
+    element.scrollIntoView({block:'center',behavior:getMotionBehavior(behavior)});
     return;
   }
   const main=getMainScroller();
@@ -1979,7 +1979,7 @@ function armKeySequence(sequence,timeout=850){
 }
 function handleEditableKeydown(e){
   const target=e.target;
-  if(e.isComposing)return false;
+  if(e.isComposing||e.defaultPrevented)return false;
   if(e.code==='Enter'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
     if(target.id==='news-search'){
       e.preventDefault();searchNews(target.value);target.blur();
