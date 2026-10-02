@@ -470,7 +470,7 @@ function syncAccessibilityControls(){
   const a=state.accessibility;
   const enabled=$('#a11y-enabled');
   if(enabled)enabled.checked=a.enabled;
-  $('[data-a11y-setting]').forEach(input=>{
+  $$('[data-a11y-setting]').forEach(input=>{
     const key=input.dataset.a11ySetting;
     if(input.type==='radio')input.checked=String(input.value)===String(a[key]);
     else if(input.type==='checkbox')input.checked=a[key]!==false;
@@ -713,10 +713,10 @@ function syncPrimaryNavigation(sectionOverride=null){
 function openSection(section) {
   if(state.section!==section) state.previousSection=state.section;
   state.section=section;
-  $('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
+  $$('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
   const navSection=getPrimaryNavSection(section);
-  $('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
-  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
+  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===navSection));
   requestAnimationFrame(()=>scrollActiveNavigationIntoView(section));
   const title=section==='news'?'Новости':section==='profile'?'Профиль':section==='profile-management'?'Профиль':section==='saved-drafts'?'Профиль':section==='user-management'?'Пользователи':section==='public-profile'?'Профиль пользователя':section==='public-publications'?'Все публикации':section==='about'?'О нас':section==='article'?'Материал':'Редактор';
   $('#page-title').textContent=title;
