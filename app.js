@@ -1213,11 +1213,21 @@ function bindEditorEvents(){
 function syncEditorMode(){
   $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
   const panes=$('#editor-panes');
-  if(!panes) return;
-  panes.dataset.editorMode=state.editor.mode;
-  panes.style.gridTemplateColumns=state.editor.mode==='split'?'1fr 1fr':'1fr';
-  $('.editor-pane-input').classList.toggle('hidden',state.editor.mode==='preview');
-  $('.editor-pane-preview').classList.toggle('hidden',state.editor.mode==='edit');
+  const input=$('.editor-pane-input');
+  const preview=$('.editor-pane-preview');
+  if(!panes||!input||!preview) return;
+  const mode=state.editor.mode;
+  const mobile=isMobileLayout();
+  panes.dataset.editorMode=mode;
+  panes.style.setProperty('grid-template-columns',mode==='split'?(mobile?'1fr':'1fr 1fr'):'1fr','important');
+  input.classList.toggle('hidden',mode==='preview');
+  preview.classList.toggle('hidden',mode==='edit');
+  input.style.setProperty('display',mode==='preview'?'none':'flex','important');
+  preview.style.setProperty('display',mode==='edit'?'none':'block','important');
+  if(mode==='split'&&mobile){
+    input.style.setProperty('display','flex','important');
+    preview.style.setProperty('display','block','important');
+  }
 }
 function markdownValue(){ return $('#news-body-input')?.value||''; }
 function setTextareaSelection(start,end){ const el=$('#news-body-input'); el.focus(); el.setSelectionRange(start,end); }
