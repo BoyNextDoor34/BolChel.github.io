@@ -16,7 +16,6 @@ const state = {
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
   paletteCache:new Map(), palettePending:new Map(), authorProfiles:{}, authorProfilesLoadedAt:0,
   supabaseInitPromise:null, supabaseError:null,
-  supabaseInitPromise:null, supabaseError:null,
   accessibility:{enabled:false,fontFamily:'Arial',fontScale:1.25,letterSpacing:'0',lineHeight:1.5,contrast:'bw',colorVision:'standard',underlineLinks:true,semanticMarkers:true,reduceMotion:true,hideNewsImages:false}
 };
 
@@ -346,9 +345,9 @@ const ACCESSIBILITY_DEFAULTS={
   lineHeight:1.5,
   contrast:'bw',
   colorVision:'standard',
-  underlineLinks:true,
+  semanticMarkers:true,
+  reduceMotion:true,
   hideNewsImages:false
-  reduceMotion:true
 };
 const ACCESSIBILITY_ALLOWED={
   fontFamily:['Arial','Times New Roman'],
