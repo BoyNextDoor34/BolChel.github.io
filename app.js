@@ -2006,6 +2006,10 @@ function handleGlobalKeydown(e){
   if(e.isComposing)return;
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
+
+  if((e.ctrlKey||e.metaKey)&&code==='Enter'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
+  if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
+
   if(isEditable){
     handleEditableKeydown(e);
     if(code==='Escape'&&target.id==='news-search'){e.preventDefault();target.blur();}
@@ -2029,8 +2033,6 @@ function handleGlobalKeydown(e){
     if($('#avatar-crop-dialog').open){e.preventDefault();$('#avatar-crop-dialog').close();return;}
     if(state.section==='article'||state.section==='editor'){e.preventDefault();backToNews();return;}
   }
-  if((e.ctrlKey||e.metaKey)&&code==='Enter'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
-  if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
   if(e.ctrlKey||e.metaKey){if(code==='KeyD'){e.preventDefault();scrollPage(1);return;}if(code==='KeyU'){e.preventDefault();scrollPage(-1);return;}}
 
   if(state.keySequence==='SPACE'&&code==='Slash'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();toggleHelp(!state.expandedHelp);resetKeySequence();return;}
