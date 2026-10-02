@@ -1959,6 +1959,16 @@ html.a11y-enabled[data-a11y-scale="200"] .news-grid{
   grid-template-columns:1fr !important;
 }
 html.a11y-enabled .news-card{--news-primary:var(--md-sys-color-primary) !important;grid-column:1 / -1 !important}
+html.a11y-enabled.a11y-hide-news-images .news-card-image,
+html.a11y-enabled.a11y-hide-news-images .article-cover,
+html.a11y-enabled.a11y-hide-news-images .article-markdown img,
+html.a11y-enabled.a11y-hide-news-images .markdown-preview img{
+  display:none !important;
+}
+html.a11y-enabled.a11y-hide-news-images .news-card{
+  grid-column:1 / -1 !important;
+}
+
 html.a11y-enabled .profile-layout,
 html.a11y-enabled .about-grid,
 html.a11y-enabled .editor-meta-grid,
