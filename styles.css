@@ -2077,3 +2077,239 @@ html.a11y-enabled .md-table-wrap{
   html.a11y-enabled h3{font-size:calc(1.25rem * var(--a11y-text-scale)) !important}
   html.a11y-enabled .topbar-actions{gap:6px}
 }
+
+/* Explicit high-contrast surface layer.
+   Keep this independent from the dynamic Material 3 palette so the contrast
+   selector always has a visible effect, even when another subsystem rewrites
+   --md-sys-color-* variables. */
+html.a11y-enabled[data-a11y-contrast="bw"] body,
+html.a11y-enabled[data-a11y-contrast="bw"] .app-nav,
+html.a11y-enabled[data-a11y-contrast="bw"] .topbar,
+html.a11y-enabled[data-a11y-contrast="bw"] .mobile-dock,
+html.a11y-enabled[data-a11y-contrast="bw"] .whichkey-panel,
+html.a11y-enabled[data-a11y-contrast="bw"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="bw"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="bw"] .news-card,
+html.a11y-enabled[data-a11y-contrast="bw"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="bw"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="bw"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="bw"] .accessibility-switch{
+  background:#ffffff !important;
+  color:#000000 !important;
+}
+html.a11y-enabled[data-a11y-contrast="bw"] .filled-button{
+  background:#000000 !important;
+  color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="bw"] .tonal-button{
+  background:#eeeeee !important;
+  color:#000000 !important;
+}
+html.a11y-enabled[data-a11y-contrast="bw"] .text-button,
+html.a11y-enabled[data-a11y-contrast="bw"] .page-context span:first-child,
+html.a11y-enabled[data-a11y-contrast="bw"] .eyebrow,
+html.a11y-enabled[data-a11y-contrast="bw"] .category-pill,
+html.a11y-enabled[data-a11y-contrast="bw"] a{
+  color:#000000 !important;
+}
+html.a11y-enabled[data-a11y-contrast="bw"] .category-pill{
+  background:#eeeeee !important;
+}
+html.a11y-enabled[data-a11y-contrast="bw"] .news-card,
+html.a11y-enabled[data-a11y-contrast="bw"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="bw"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="bw"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="bw"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="bw"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="bw"] .accessibility-switch{
+  border-color:#000000 !important;
+}
+html.a11y-enabled[data-a11y-contrast="bw"] p,
+html.a11y-enabled[data-a11y-contrast="bw"] li,
+html.a11y-enabled[data-a11y-contrast="bw"] .news-summary,
+html.a11y-enabled[data-a11y-contrast="bw"] .news-meta,
+html.a11y-enabled[data-a11y-contrast="bw"] .article-lead,
+html.a11y-enabled[data-a11y-contrast="bw"] .article-byline,
+html.a11y-enabled[data-a11y-contrast="bw"] .page-context,
+html.a11y-enabled[data-a11y-contrast="bw"] .search-status,
+html.a11y-enabled[data-a11y-contrast="bw"] .accessibility-note,
+html.a11y-enabled[data-a11y-contrast="bw"] .accessibility-switch small,
+html.a11y-enabled[data-a11y-contrast="bw"] .profile-role,
+html.a11y-enabled[data-a11y-contrast="bw"] .muted{
+  color:#000000 !important;
+}
+
+html.a11y-enabled[data-a11y-contrast="wb"] body,
+html.a11y-enabled[data-a11y-contrast="wb"] .app-nav,
+html.a11y-enabled[data-a11y-contrast="wb"] .topbar,
+html.a11y-enabled[data-a11y-contrast="wb"] .mobile-dock,
+html.a11y-enabled[data-a11y-contrast="wb"] .whichkey-panel,
+html.a11y-enabled[data-a11y-contrast="wb"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="wb"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="wb"] .news-card,
+html.a11y-enabled[data-a11y-contrast="wb"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="wb"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="wb"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="wb"] .accessibility-switch{
+  background:#000000 !important;
+  color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="wb"] .filled-button{
+  background:#ffffff !important;
+  color:#000000 !important;
+}
+html.a11y-enabled[data-a11y-contrast="wb"] .tonal-button{
+  background:#222222 !important;
+  color:#ffffff !important;
+  border-color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="wb"] .text-button,
+html.a11y-enabled[data-a11y-contrast="wb"] .page-context span:first-child,
+html.a11y-enabled[data-a11y-contrast="wb"] .eyebrow,
+html.a11y-enabled[data-a11y-contrast="wb"] .category-pill,
+html.a11y-enabled[data-a11y-contrast="wb"] a{
+  color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="wb"] .category-pill{
+  background:#222222 !important;
+}
+html.a11y-enabled[data-a11y-contrast="wb"] .news-card,
+html.a11y-enabled[data-a11y-contrast="wb"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="wb"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="wb"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="wb"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="wb"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="wb"] .accessibility-switch{
+  border-color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="wb"] p,
+html.a11y-enabled[data-a11y-contrast="wb"] li,
+html.a11y-enabled[data-a11y-contrast="wb"] .news-summary,
+html.a11y-enabled[data-a11y-contrast="wb"] .news-meta,
+html.a11y-enabled[data-a11y-contrast="wb"] .article-lead,
+html.a11y-enabled[data-a11y-contrast="wb"] .article-byline,
+html.a11y-enabled[data-a11y-contrast="wb"] .page-context,
+html.a11y-enabled[data-a11y-contrast="wb"] .search-status,
+html.a11y-enabled[data-a11y-contrast="wb"] .accessibility-note,
+html.a11y-enabled[data-a11y-contrast="wb"] .accessibility-switch small,
+html.a11y-enabled[data-a11y-contrast="wb"] .profile-role,
+html.a11y-enabled[data-a11y-contrast="wb"] .muted{
+  color:#ffffff !important;
+}
+
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] body,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .app-nav,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .topbar,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .mobile-dock,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .whichkey-panel,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .news-card,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .accessibility-switch{
+  background:#001a33 !important;
+  color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .filled-button{
+  background:#ffff00 !important;
+  color:#000000 !important;
+}
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .tonal-button{
+  background:#00345f !important;
+  color:#ffffff !important;
+  border-color:#ffff00 !important;
+}
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .text-button,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .page-context span:first-child,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .eyebrow,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .category-pill,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] a{
+  color:#ffff00 !important;
+}
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .category-pill{
+  background:#00345f !important;
+}
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .news-card,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .accessibility-switch{
+  border-color:#ffff00 !important;
+}
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] p,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] li,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .news-summary,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .news-meta,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .article-lead,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .article-byline,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .page-context,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .search-status,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .accessibility-note,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .accessibility-switch small,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .profile-role,
+html.a11y-enabled[data-a11y-contrast="yellow-navy"] .muted{
+  color:#ffffff !important;
+}
+
+html.a11y-enabled[data-a11y-contrast="navy-cream"] body,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .app-nav,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .topbar,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .mobile-dock,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .whichkey-panel,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .news-card,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .accessibility-switch{
+  background:#fff8d7 !important;
+  color:#001a2d !important;
+}
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .filled-button{
+  background:#003b67 !important;
+  color:#ffffff !important;
+}
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .tonal-button{
+  background:#d7e8f6 !important;
+  color:#001a2d !important;
+  border-color:#001a2d !important;
+}
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .text-button,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .page-context span:first-child,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .eyebrow,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .category-pill,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] a{
+  color:#003b67 !important;
+}
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .category-pill{
+  background:#d7e8f6 !important;
+}
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .news-card,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .surface-card,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .search-shell,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .dialog-card,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .accessibility-fieldset,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .a11y-check,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .accessibility-switch{
+  border-color:#001a2d !important;
+}
+html.a11y-enabled[data-a11y-contrast="navy-cream"] p,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] li,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .news-summary,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .news-meta,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .article-lead,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .article-byline,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .page-context,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .search-status,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .accessibility-note,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .accessibility-switch small,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .profile-role,
+html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
+  color:#001a2d !important;
+}
+
