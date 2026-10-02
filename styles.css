@@ -104,6 +104,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   align-items:stretch;
   gap:9px;
   color:var(--md-sys-color-on-surface);
+  overflow:hidden;
 }
 .brand-logo-main {
   width:100%;
@@ -112,12 +113,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   grid-template-columns:88px minmax(0,1fr);
   align-items:center;
   gap:11px;
+  overflow:hidden;
 }
 .brand-logo-mark {
   display:block;
   width:88px;
   height:88px;
   flex:0 0 88px;
+  max-width:100%;
+  overflow:hidden;
 }
 .brand-wordmark {
   min-width:0;
@@ -130,17 +134,32 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   overflow:hidden;
   padding:0;
 }
-.brand-word {
-  display:block;
+.brand-word-row {
   width:100%;
   min-width:0;
-  height:40px;
-  overflow:visible;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:3px;
+  overflow:hidden;
 }
 .brand-word-top { height:39px; }
 .brand-word-bottom { height:44px; }
-.brand-word path {
-  vector-effect:non-scaling-stroke;
+.brand-letter {
+  min-width:0;
+  flex:1 1 0;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.brand-letter svg {
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:20px;
+  overflow:visible;
 }
 .brand-tagline {
   width:100%;
@@ -453,11 +472,12 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 .mobile-dock { display:none; }
 
 @media (max-width:1050px) {
-  .brand-logo-main { grid-template-columns:74px minmax(0,1fr); gap:9px; }
-  .brand-logo-mark { width:74px; height:74px; }
-  .brand-wordmark { height:74px; gap:4px; }
-  .brand-word-top { height:33px; }
-  .brand-word-bottom { height:37px; }
+  .brand-logo-main { grid-template-columns:76px minmax(0,1fr); gap:9px; }
+  .brand-logo-mark { width:76px; height:76px; max-width:76px; }
+  .brand-wordmark { height:76px; gap:4px; }
+  .brand-word-top { height:34px; }
+  .brand-word-bottom { height:38px; }
+  .brand-letter svg { max-width:18px; }
   .brand-tagline { width:100%; font-size:8px; }
 }
 
@@ -485,18 +505,24 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     justify-items:center;
     gap:7px;
   }
-  .brand-logo-mark { width:70px; height:70px; }
+  .brand-logo-mark {
+    width:88px !important;
+    height:88px !important;
+    max-width:88px !important;
+    max-height:88px !important;
+  }
   .brand-wordmark {
     width:100%;
-    height:76px;
+    height:82px;
     align-items:center;
     text-align:center;
     max-width:100%;
     gap:4px;
   }
-  .brand-word { width:100%; }
-  .brand-word-top { height:34px; }
-  .brand-word-bottom { height:38px; }
+  .brand-word-row { gap:3px; }
+  .brand-word-top { height:36px; }
+  .brand-word-bottom { height:42px; }
+  .brand-letter svg { max-width:20px; }
   .brand-tagline { width:100%; font-size:9px; }
 }
 
