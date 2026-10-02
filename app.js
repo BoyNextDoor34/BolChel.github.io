@@ -16,7 +16,8 @@ const state = {
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
   paletteCache:new Map(), palettePending:new Map(), authorProfiles:{}, authorProfilesLoadedAt:0,
   supabaseInitPromise:null, supabaseError:null,
-  accessibility:{enabled:false,fontFamily:'Arial',fontScale:1.25,letterSpacing:'0',lineHeight:1.5,contrast:'bw',colorVision:'standard',underlineLinks:true,semanticMarkers:true,reduceMotion:true}
+  supabaseInitPromise:null, supabaseError:null,
+  accessibility:{enabled:false,fontFamily:'Arial',fontScale:1.25,letterSpacing:'0',lineHeight:1.5,contrast:'bw',colorVision:'standard',underlineLinks:true,semanticMarkers:true,reduceMotion:true,hideNewsImages:false}
 };
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -346,7 +347,7 @@ const ACCESSIBILITY_DEFAULTS={
   contrast:'bw',
   colorVision:'standard',
   underlineLinks:true,
-  semanticMarkers:true,
+  hideNewsImages:false
   reduceMotion:true
 };
 const ACCESSIBILITY_ALLOWED={
@@ -356,6 +357,17 @@ const ACCESSIBILITY_ALLOWED={
   lineHeight:[1.5,1.8,2],
   contrast:['bw','wb','yellow-navy','navy-cream'],
   colorVision:['standard','redgreen','blueyellow','monochrome']
+};
+const ACCESSIBILITY_CONTRAST_PRESETS={
+  bw:{primary:'#000000',on_primary:'#ffffff',primary_container:'#eeeeee',on_primary_container:'#000000',secondary:'#000000',secondary_container:'#e6e6e6',on_secondary_container:'#000000',tertiary:'#000000',on_tertiary:'#ffffff',surface:'#ffffff',surface_tint:'#ffffff',surface_container_low:'#ffffff',surface_container:'#f4f4f4',surface_container_high:'#e8e8e8',surface_container_highest:'#dddddd',on_surface:'#000000',on_surface_variant:'#202020',outline:'#000000',outline_variant:'#666666',error:'#9b0000'},
+  wb:{primary:'#ffffff',on_primary:'#000000',primary_container:'#222222',on_primary_container:'#ffffff',secondary:'#ffffff',secondary_container:'#242424',on_secondary_container:'#ffffff',tertiary:'#ffffff',on_tertiary:'#000000',surface:'#000000',surface_tint:'#000000',surface_container_low:'#050505',surface_container:'#111111',surface_container_high:'#1d1d1d',surface_container_highest:'#292929',on_surface:'#ffffff',on_surface_variant:'#e8e8e8',outline:'#ffffff',outline_variant:'#aaaaaa',error:'#ff8f8f'},
+  'yellow-navy':{primary:'#ffff00',on_primary:'#000000',primary_container:'#00345f',on_primary_container:'#ffff00',secondary:'#69f7ff',secondary_container:'#00395b',on_secondary_container:'#ffffff',tertiary:'#ff9e64',on_tertiary:'#000000',surface:'#001a33',surface_tint:'#001a33',surface_container_low:'#001528',surface_container:'#00233f',surface_container_high:'#003052',surface_container_highest:'#003b63',on_surface:'#ffffff',on_surface_variant:'#ffff99',outline:'#ffff00',outline_variant:'#8d8d4a',error:'#ff8f8f'},
+  'navy-cream':{primary:'#003b67',on_primary:'#ffffff',primary_container:'#d7e8f6',on_primary_container:'#001a2d',secondary:'#6b3d00',secondary_container:'#f2dfc5',on_secondary_container:'#241000',tertiary:'#5a207f',on_tertiary:'#ffffff',surface:'#fff8d7',surface_tint:'#fff8d7',surface_container_low:'#fffbe7',surface_container:'#f7efc9',surface_container_high:'#eee3b4',surface_container_highest:'#e4d89f',on_surface:'#001a2d',on_surface_variant:'#17354d',outline:'#001a2d',outline_variant:'#587084',error:'#8c0000'}
+};
+const ACCESSIBILITY_COLOR_VISION_PRESETS={
+  redgreen:{primary:'#0057b8',on_primary:'#ffffff',secondary:'#9a4d00',secondary_container:'#f4d7bc',on_secondary_container:'#2a1700',tertiary:'#5b2a86',on_tertiary:'#ffffff',error:'#7f0000'},
+  blueyellow:{primary:'#7600a8',on_primary:'#ffffff',secondary:'#944600',secondary_container:'#f4d9c4',on_secondary_container:'#2b1300',tertiary:'#00645e',on_tertiary:'#ffffff',error:'#8b0058'},
+  monochrome:{primary:'#111111',on_primary:'#ffffff',secondary:'#333333',secondary_container:'#dedede',on_secondary_container:'#111111',tertiary:'#555555',on_tertiary:'#ffffff',error:'#333333'}
 };
 function loadAccessibilitySettings(){
   let saved=null;
@@ -371,6 +383,7 @@ function loadAccessibilitySettings(){
   state.accessibility.underlineLinks=state.accessibility.underlineLinks!==false;
   state.accessibility.semanticMarkers=state.accessibility.semanticMarkers!==false;
   state.accessibility.reduceMotion=state.accessibility.reduceMotion!==false;
+  state.accessibility.hideNewsImages=state.accessibility.hideNewsImages===true;
   applyAccessibilitySettings(false);
 }
 function saveAccessibilitySettings(){
@@ -390,6 +403,9 @@ function applyAccessibilitySettings(showMessage=true){
   const a=state.accessibility;
   const root=document.documentElement;
   root.classList.toggle('a11y-enabled',a.enabled);
+  root.classList.toggle('a11y-hide-news-images',a.enabled&&a.hideNewsImages);
+  const presetKeys=new Set(Object.keys(ACCESSIBILITY_CONTRAST_PRESETS.bw));
+  Object.values(ACCESSIBILITY_COLOR_VISION_PRESETS).forEach(p=>Object.keys(p).forEach(k=>presetKeys.add(k)));
   if(a.enabled){
     root.dataset.a11yFont=a.fontFamily==='Times New Roman'?'times':'arial';
     root.dataset.a11yScale=String(Math.round(Number(a.fontScale)*100));
@@ -400,8 +416,12 @@ function applyAccessibilitySettings(showMessage=true){
     root.style.setProperty('--a11y-text-scale',String(a.fontScale));
     root.style.setProperty('--a11y-letter-spacing',String(a.letterSpacing));
     root.style.setProperty('--a11y-line-height',String(a.lineHeight));
-    root.style.setProperty('--a11y-font-family',a.fontFamily==='Times New Roman'?'"Times New Roman",serif':'Arial,sans-serif');
+    root.style.setProperty('--a11y-font-family',a.fontFamily==='Times New Roman'?'Times New Roman,serif':'Arial,sans-serif');
     root.classList.toggle('a11y-underline-links',a.underlineLinks);
+    const contrastPreset=ACCESSIBILITY_CONTRAST_PRESETS[a.contrast]||ACCESSIBILITY_CONTRAST_PRESETS.bw;
+    const colorPreset=a.colorVision!=='standard'?(ACCESSIBILITY_COLOR_VISION_PRESETS[a.colorVision]||{}):{};
+    const effective={...contrastPreset,...colorPreset};
+    Object.entries(effective).forEach(([key,value])=>root.style.setProperty('--md-sys-color-'+key,value,'important'));
   }else{
     delete root.dataset.a11yFont;
     delete root.dataset.a11yScale;
@@ -414,6 +434,7 @@ function applyAccessibilitySettings(showMessage=true){
     root.style.removeProperty('--a11y-letter-spacing');
     root.style.removeProperty('--a11y-line-height');
     root.style.removeProperty('--a11y-font-family');
+    presetKeys.forEach(key=>root.style.removeProperty('--md-sys-color-'+key));
   }
   const button=$('#accessibility-button');
   if(button){
@@ -429,7 +450,7 @@ function applyAccessibilitySettings(showMessage=true){
 function updateAccessibilitySetting(key,value){
   if(key==='fontScale')value=Number(value);
   if(key==='lineHeight')value=Number(value);
-  if(key==='underlineLinks'||key==='semanticMarkers'||key==='reduceMotion')value=value===true;
+  if(key==='underlineLinks'||key==='semanticMarkers'||key==='reduceMotion'||key==='hideNewsImages')value=value===true;
   state.accessibility[key]=value;
   saveAccessibilitySettings();
   applyAccessibilitySettings(true);
