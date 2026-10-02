@@ -102,31 +102,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   display:flex;
   flex-direction:column;
   align-items:stretch;
-  gap:10px;
+  gap:9px;
   color:var(--md-sys-color-on-surface);
 }
 .brand-logo-main {
   width:100%;
   min-width:0;
   display:grid;
-  grid-template-columns:84px minmax(0,1fr);
+  grid-template-columns:88px minmax(0,1fr);
   align-items:center;
-  gap:12px;
+  gap:11px;
 }
 .brand-logo-mark {
   display:block;
-  width:84px;
-  height:84px;
-  flex:0 0 84px;
+  width:88px;
+  height:88px;
+  flex:0 0 88px;
 }
 .brand-wordmark {
   min-width:0;
   width:100%;
+  height:82px;
   display:flex;
   flex-direction:column;
-  gap:3px;
+  justify-content:center;
+  gap:6px;
   overflow:hidden;
-  padding:1px 0 0;
+  padding:0;
 }
 .brand-title {
   display:block;
@@ -135,9 +137,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   white-space:nowrap;
   text-overflow:clip;
   color:var(--md-sys-color-primary);
-  line-height:.84;
-  font-family:'PT Serif', ui-serif, Georgia, 'Times New Roman', serif;
+  font-family:'Roboto Condensed','Arial Narrow',Arial,sans-serif;
   font-weight:700;
+  line-height:.86;
   text-transform:uppercase;
   text-align:justify;
   text-align-last:justify;
@@ -145,18 +147,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   font-kerning:normal;
   font-synthesis:none;
   hyphens:none;
+  transform:scaleY(1.08);
+  transform-origin:center;
 }
 .brand-title-top {
-  font-size:21px;
-  letter-spacing:.015em;
-}
-.brand-title-bottom {
-  font-size:16px;
+  font-size:25px;
   letter-spacing:.01em;
 }
+.brand-title-bottom {
+  font-size:19px;
+  letter-spacing:.005em;
+}
 .brand-tagline {
-  width:calc(100% - 96px);
-  align-self:flex-end;
+  width:100%;
+  align-self:center;
   padding-top:7px;
   border-top:1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
   color:var(--md-sys-color-on-surface-variant);
@@ -169,20 +173,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-}
-.app-nav.is-collapsed .brand-logo {
-  width:56px;
-  gap:0;
-}
-.app-nav.is-collapsed .brand-logo-main {
-  width:56px;
-  grid-template-columns:1fr;
-}
-.app-nav.is-collapsed .brand-logo-mark {
-  width:56px;
-  height:56px;
-}
-.app-nav {
+}.app-nav {
   position:fixed; inset:0 auto 0 0; width:var(--desktop-side); padding:22px 16px;
   background:var(--md-sys-color-surface);
   border-right:1px solid var(--md-sys-color-outline-variant);
@@ -478,11 +469,12 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
 .mobile-dock { display:none; }
 
 @media (max-width:1050px) {
-  .brand-logo-main { grid-template-columns:70px minmax(0,1fr); gap:9px; }
-  .brand-logo-mark { width:70px; height:70px; }
-  .brand-title-top { font-size:18px; }
-  .brand-title-bottom { font-size:14px; }
-  .brand-tagline { width:calc(100% - 79px); font-size:8px; }
+  .brand-logo-main { grid-template-columns:74px minmax(0,1fr); gap:9px; }
+  .brand-logo-mark { width:74px; height:74px; }
+  .brand-wordmark { height:70px; }
+  .brand-title-top { font-size:21px; }
+  .brand-title-bottom { font-size:16px; }
+  .brand-tagline { width:100%; font-size:8px; }
 }
 
 @media (max-width:1280px) {
@@ -510,10 +502,17 @@ kbd { min-width:28px; padding:4px 7px; display:inline-flex; justify-content:cent
     gap:7px;
   }
   .brand-logo-mark { width:70px; height:70px; }
-  .brand-wordmark { align-items:center; text-align:center; max-width:100%; }
-  .brand-title-top { font-size:18px; letter-spacing:.12em; }
-  .brand-title-bottom { font-size:15px; letter-spacing:.065em; }
-  .brand-tagline { font-size:9px; }
+  .brand-wordmark {
+    width:100%;
+    height:auto;
+    align-items:center;
+    text-align:center;
+    max-width:100%;
+    gap:5px;
+  }
+  .brand-title-top { font-size:21px; letter-spacing:.01em; }
+  .brand-title-bottom { font-size:16px; letter-spacing:.005em; }
+  .brand-tagline { width:100%; font-size:9px; }
 }
 
 @media (max-width:860px) {
