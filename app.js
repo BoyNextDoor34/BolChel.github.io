@@ -2332,7 +2332,7 @@ function bootstrap(){
   safeRun('renderProfile',renderProfile);
   safeRun('setTheme',()=>setTheme(document.documentElement.dataset.theme||'light'));
   $$('#main-nav .nav-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
-  $('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
+  $$('#mobile-dock .mobile-dock-item').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.section===state.section));
   requestAnimationFrame(()=>scrollActiveNavigationIntoView(state.section));
 
   // Supabase is intentionally non-blocking for the static frontend.
