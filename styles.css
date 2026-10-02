@@ -1865,32 +1865,38 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"]{
 html.a11y-enabled[data-a11y-colorvision="redgreen"]{
   --md-sys-color-primary:#0057b8 !important;
   --md-sys-color-on-primary:#ffffff !important;
-  --md-sys-color-secondary:#9a4d00 !important;
-  --md-sys-color-secondary-container:#f4d7bc !important;
-  --md-sys-color-on-secondary-container:#2a1700 !important;
-  --md-sys-color-tertiary:#5b2a86 !important;
+  --md-sys-color-primary-container:#dcecff !important;
+  --md-sys-color-on-primary-container:#002b5c !important;
+  --md-sys-color-secondary:#b05a00 !important;
+  --md-sys-color-secondary-container:#f8dec7 !important;
+  --md-sys-color-on-secondary-container:#3d1b00 !important;
+  --md-sys-color-tertiary:#6a3d9a !important;
   --md-sys-color-on-tertiary:#ffffff !important;
-  --md-sys-color-error:#7f0000 !important;
+  --md-sys-color-error:#7a1fa2 !important;
 }
 html.a11y-enabled[data-a11y-colorvision="blueyellow"]{
-  --md-sys-color-primary:#7600a8 !important;
+  --md-sys-color-primary:#7a2e9e !important;
   --md-sys-color-on-primary:#ffffff !important;
-  --md-sys-color-secondary:#944600 !important;
-  --md-sys-color-secondary-container:#f4d9c4 !important;
-  --md-sys-color-on-secondary-container:#2b1300 !important;
-  --md-sys-color-tertiary:#00645e !important;
+  --md-sys-color-primary-container:#f0d9f8 !important;
+  --md-sys-color-on-primary-container:#3a124c !important;
+  --md-sys-color-secondary:#8c4a00 !important;
+  --md-sys-color-secondary-container:#f5dcc5 !important;
+  --md-sys-color-on-secondary-container:#3b1b00 !important;
+  --md-sys-color-tertiary:#006a63 !important;
   --md-sys-color-on-tertiary:#ffffff !important;
-  --md-sys-color-error:#8b0058 !important;
+  --md-sys-color-error:#a00078 !important;
 }
 html.a11y-enabled[data-a11y-colorvision="monochrome"]{
   --md-sys-color-primary:#111111 !important;
   --md-sys-color-on-primary:#ffffff !important;
+  --md-sys-color-primary-container:#dddddd !important;
+  --md-sys-color-on-primary-container:#111111 !important;
   --md-sys-color-secondary:#333333 !important;
-  --md-sys-color-secondary-container:#dedede !important;
+  --md-sys-color-secondary-container:#dddddd !important;
   --md-sys-color-on-secondary-container:#111111 !important;
   --md-sys-color-tertiary:#555555 !important;
   --md-sys-color-on-tertiary:#ffffff !important;
-  --md-sys-color-error:#333333 !important;
+  --md-sys-color-error:#444444 !important;
 }
 
 /* Typography, spacing, focus, controls and reflow. */
