@@ -2031,6 +2031,7 @@ function handleGlobalKeydown(e){
   if(e.isComposing)return;
   const isEditable=target.matches?.('input,textarea,select,[contenteditable="true"]');
   const code=e.code;
+  if(e.repeat&&(code==='KeyG'||code==='Space'))return;
 
   /* Editor save shortcuts must remain active while the Markdown textarea is focused. */
   if((e.ctrlKey||e.metaKey)&&code==='Enter'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
