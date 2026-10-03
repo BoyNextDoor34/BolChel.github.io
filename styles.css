@@ -676,7 +676,8 @@ kbd{
 @media (max-width:980px){
   .whichkey-panel{
     width:min(900px,calc(100vw - 28px));
-    height:min(760px,calc(100vh - 28px));
+    height:auto;
+    max-height:calc(100vh - 28px);
   }
   #whichkey-content{
     grid-template-columns:repeat(2,minmax(0,1fr));
