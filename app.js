@@ -2185,6 +2185,11 @@ function completeLeaderCommand(){
     armReleasedSequence(sequence);
   }
 }
+function ensureKeyboardFocusVisible(el){
+  if(!el||!el.closest?.('#main'))return;
+  if(el.closest('#whichkey-panel,.mobile-dock,.app-nav,dialog[open]'))return;
+  requestAnimationFrame(()=>el.scrollIntoView({block:'nearest',inline:'nearest',behavior:getMotionBehavior()}));
+}
 function getKeyboardFocusableElements(root=document){
   return [...root.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')]
     .filter(el=>{
@@ -2461,7 +2466,7 @@ function handleGlobalKeydown(e){
     const next=current+delta;
     if(!wrap&&(next<0||next>=list.length))return false;
     state.editorKeyboardIndex=wrap?(next+list.length)%list.length:next;
-    sync();
+    sync({focus:true});
     return true;
   }
 
@@ -2474,7 +2479,7 @@ function handleGlobalKeydown(e){
     const all=controls();
     const globalIndex=all.indexOf(list[idx]);
     state.editorKeyboardIndex=Math.max(0,globalIndex);
-    sync();
+    sync({focus:true});
   }
 
   function activate(){
@@ -2623,6 +2628,8 @@ function initAvatarCrop(){
     out.toBlob(blob=>{drawAvatarCrop(true);state.pendingAvatarBlob=blob;$('#avatar-preview-note').textContent='Кадрирование применено. После сохранения изображение будет загружено в Supabase Storage.';$('#profile-avatar').value='';$('#avatar-crop-dialog').close();},'image/webp',.9);
   };
 }
+
+  document.addEventListener('focusin',event=>ensureKeyboardFocusVisible(event.target),true);
 
 function bindGlobalEvents(){
   const bind=(selector,event,handler)=>{
