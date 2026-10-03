@@ -57,6 +57,7 @@ const KEYMAP = [
     [['G','-'],'Военнообязанные']
   ]},
   {group:'Поиск и интерфейс', rows:[
+    [['↑ / ↓ / ← / →'],'Перейти к соседнему элементу из текстового поля на границе текста'],
     [['/'],'Фокус поиска'],
     [['Space','/'],'Открыть / закрыть расширенную шпаргалку'],
     [['T'],'Переключить светлую / тёмную тему'],
@@ -1006,12 +1007,14 @@ function renderKeyHelp(){
     return `<tr><td><div class="key-combo">${rendered}</div></td><td>${escapeHtml(desc)}</td></tr>`;
   }).join('')}</tbody></table></section>`;
   const columnCount=window.innerWidth<=700?1:window.innerWidth<=980?2:3;
-  const pairUnits=[
-    {groups:KEYMAP.slice(4,6)},
-    {groups:KEYMAP.slice(6,9)},
-    {groups:KEYMAP.slice(0,4)}
-  ].map(unit=>({groups:unit.groups,weight:unit.groups.reduce((sum,group)=>sum+estimateGroupWeight(group),0)}));
-  const units=[...pairUnits].sort((a,b)=>b.weight-a.weight);
+  const units=[
+    {groups:[KEYMAP[0]],weight:estimateGroupWeight(KEYMAP[0])},
+    {groups:[KEYMAP[1]],weight:estimateGroupWeight(KEYMAP[1])},
+    {groups:[KEYMAP[2]],weight:estimateGroupWeight(KEYMAP[2])},
+    {groups:[KEYMAP[3]],weight:estimateGroupWeight(KEYMAP[3])},
+    {groups:[KEYMAP[4],KEYMAP[5]],weight:estimateGroupWeight(KEYMAP[4])+estimateGroupWeight(KEYMAP[5])},
+    {groups:[KEYMAP[6],KEYMAP[7],KEYMAP[8]],weight:estimateGroupWeight(KEYMAP[6])+estimateGroupWeight(KEYMAP[7])+estimateGroupWeight(KEYMAP[8])}
+  ].sort((a,b)=>b.weight-a.weight);
   const columns=Array.from({length:columnCount},()=>[]);
   const heights=Array.from({length:columnCount},()=>0);
   units.forEach(unit=>{
@@ -2182,6 +2185,56 @@ function completeLeaderCommand(){
     armReleasedSequence(sequence);
   }
 }
+function getKeyboardFocusableElements(root=document){
+  return [...root.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+    .filter(el=>{
+      const style=getComputedStyle(el);
+      return style.display!=='none'&&style.visibility!=='hidden'&&el.offsetParent!==null;
+    });
+}
+function ensureFocusVisible(el){
+  if(!el)return;
+  requestAnimationFrame(()=>el.scrollIntoView({block:'nearest',inline:'nearest',behavior:getMotionBehavior()}));
+}
+function moveFocusByArrow(direction,target){
+  const root=target?.closest?.('#editor-page,#article-page,#profile-page,#about-page,#main')||document;
+  const fields=getKeyboardFocusableElements(root);
+  const currentIndex=fields.indexOf(target);
+  if(currentIndex<0)return false;
+  const isText=target.matches?.('input,textarea');
+  const value=String(target.value||'');
+  const start=typeof target.selectionStart==='number'?target.selectionStart:null;
+  const end=typeof target.selectionEnd==='number'?target.selectionEnd:null;
+  const collapsed=start!==null&&end!==null&&start===end;
+  const lines=value.slice(0,start===null?value.length:start).split('\n');
+  const atStart=collapsed&&(start===0||start===null);
+  const atEnd=collapsed&&(end===value.length||end===null);
+  const isTextarea=target.tagName==='TEXTAREA';
+  if(isText){
+    if(direction==='left'&&atStart)return focusAdjacent(fields,currentIndex,-1);
+    if(direction==='right'&&atEnd)return focusAdjacent(fields,currentIndex,1);
+    if(direction==='up'){
+      if(!isTextarea||lines.length<=1||start===0)return focusAdjacent(fields,currentIndex,-1);
+      const lineBefore=value.slice(0,start);
+      if(!lineBefore.includes('\n'))return focusAdjacent(fields,currentIndex,-1);
+    }
+    if(direction==='down'){
+      if(!isTextarea||!value.slice(start??0).includes('\n'))return focusAdjacent(fields,currentIndex,1);
+    }
+  }else if(direction==='up'){
+    return focusAdjacent(fields,currentIndex,-1);
+  }else if(direction==='down'){
+    return focusAdjacent(fields,currentIndex,1);
+  }
+  return false;
+}
+function focusAdjacent(fields,index,delta){
+  const target=fields[index+delta];
+  if(!target)return false;
+  target.focus({preventScroll:true});
+  ensureFocusVisible(target);
+  return true;
+}
 function handleEditableKeydown(e){
   const target=e.target;
   if(e.isComposing||e.defaultPrevented)return false;
@@ -2218,6 +2271,14 @@ function handleGlobalKeydown(e){
   if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
 
   if(isEditable){
+    if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      const arrowMap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+      const direction=arrowMap[e.code];
+      if(direction&&moveFocusByArrow(direction,target)){
+        e.preventDefault();
+        return;
+      }
+    }
     const rapidEditableHelp=e.code==='Slash'||e.key==='/';
     if(rapidEditableHelp&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&state.lastEditableSpaceTarget===target&&Date.now()-state.lastEditableSpaceAt<650){
       if((target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement)&&typeof target.selectionStart==='number'){
@@ -2693,7 +2754,7 @@ function initTouchGestures(){
     const inDock=!!target?.closest?.('#mobile-dock');
     const inNav=!!target?.closest?.('.app-nav');
     const inScrim=!!target?.closest?.('#mobile-scrim');
-    const inEditorField=!!target?.closest?.('#section-editor #news-body-input');
+    const inEditorField=!!target?.closest?.('#section-editor #editor-panes');
     if(!inMain&&!inDock&&!inNav&&!inScrim)return;
     const ignored=ignoredTarget(target);
     touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,inNav,inScrim,inEditorField,editorSwipeLocked:false,pullCandidate:inMain&&!inDock&&!inNav&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
@@ -2703,7 +2764,7 @@ function initTouchGestures(){
     if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
     const t=e.changedTouches?.[0];if(!t)return;
     const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
-    if(touchStart.inEditorField&&!touchStart.editorSwipeLocked&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.15){
+    if(touchStart.inEditorField&&!touchStart.editorSwipeLocked&&Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.08){
       touchStart.editorSwipeLocked=true;
       e.preventDefault();
     }
