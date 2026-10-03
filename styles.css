@@ -669,7 +669,7 @@ kbd{
   #whichkey-content{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
-  .key-column:nth-child(3){display:none}
+  .key-column{display:contents}
 }
 @media (max-width:700px){
   .whichkey-panel{
@@ -687,8 +687,7 @@ kbd{
     padding:10px;
     gap:8px;
   }
-  .key-column:nth-child(2),
-  .key-column:nth-child(3){display:flex}
+  .key-column{display:contents}
   .key-group-title{min-height:37px;padding:8px 10px}
   .key-table td{padding:6px 8px;font-size:11px}
   .key-table td:first-child{width:42%}
