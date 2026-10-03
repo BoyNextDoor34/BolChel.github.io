@@ -1004,13 +1004,18 @@ function renderKeyHelp(){
     return `<tr><td><div class="key-combo">${rendered}</div></td><td>${escapeHtml(desc)}</td></tr>`;
   }).join('')}</tbody></table></section>`;
   const columnCount=window.innerWidth<=700?1:window.innerWidth<=980?2:3;
+  const pairUnits=[
+    {groups:KEYMAP.slice(4,6)},
+    {groups:KEYMAP.slice(6,9)},
+    {groups:KEYMAP.slice(0,4)}
+  ].map(unit=>({groups:unit.groups,weight:unit.groups.reduce((sum,group)=>sum+estimateGroupWeight(group),0)}));
+  const units=[...pairUnits].sort((a,b)=>b.weight-a.weight);
   const columns=Array.from({length:columnCount},()=>[]);
   const heights=Array.from({length:columnCount},()=>0);
-  const groups=[...KEYMAP].sort((a,b)=>estimateGroupWeight(b)-estimateGroupWeight(a));
-  groups.forEach(group=>{
+  units.forEach(unit=>{
     const target=heights.indexOf(Math.min(...heights));
-    columns[target].push(group);
-    heights[target]+=estimateGroupWeight(group);
+    columns[target].push(...unit.groups);
+    heights[target]+=unit.weight;
   });
   if(columnCount===1)columns[0]=[...KEYMAP];
   root.innerHTML=columns.map(column=>`<div class="key-column">${column.map(renderGroup).join('')}</div>`).join('');
@@ -1594,8 +1599,9 @@ function bindEditorEvents(){
 
   $$('.editor-mode').forEach(btn=>{
     btn.onclick=()=>{
+      const previous=state.editor.mode;
       state.editor.mode=btn.dataset.editorMode;
-      syncEditorMode();
+      syncEditorMode(previous!==state.editor.mode);
     };
   });
 
@@ -1608,7 +1614,7 @@ function bindEditorEvents(){
   });
 
 }
-function syncEditorMode(){
+function syncEditorMode(animate=false){
   $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
   const panes=$('#editor-panes');
   const input=$('.editor-pane-input');
@@ -2290,18 +2296,19 @@ function handleGlobalKeydown(e){
 
   const toolbarControls=()=>[...document.querySelectorAll('#editor-page .editor-tool,#editor-page .editor-mode')];
 
-  function sync(){
+  function sync(options={}){
     const list=controls();
     if(!list.length){state.editorKeyboardIndex=-1;return;}
     state.editorKeyboardIndex=Math.max(0,Math.min(state.editorKeyboardIndex<0?0:state.editorKeyboardIndex,list.length-1));
     list.forEach((el,index)=>{
       const selected=state.editorKeyboardEnabled&&index===state.editorKeyboardIndex;
       el.classList.toggle('is-editor-keyboard-selected',selected);
-      el.setAttribute('aria-current',selected?'true':'false');
+      if(selected)el.setAttribute('aria-current','true');else el.removeAttribute('aria-current');
     });
-    if(state.editorKeyboardEnabled){
-      list[state.editorKeyboardIndex]?.focus?.({preventScroll:true});
-      list[state.editorKeyboardIndex]?.scrollIntoView?.({block:'nearest',inline:'nearest',behavior:'auto'});
+    if(state.editorKeyboardEnabled&&options.focus){
+      const el=list[state.editorKeyboardIndex];
+      el?.focus?.({preventScroll:true});
+      el?.scrollIntoView?.({block:'nearest',inline:'nearest',behavior:'auto'});
     }
   }
 
@@ -2342,7 +2349,7 @@ function handleGlobalKeydown(e){
     const list=controls(),idx=list.indexOf(body);
     if(idx>=0)state.editorKeyboardIndex=idx;
     body.focus();
-    sync();
+    sync({focus:false});
     return true;
   }
 
@@ -2354,7 +2361,7 @@ function handleGlobalKeydown(e){
     state.editorKeyboardEnabled=!state.editorKeyboardEnabled;
     state.editorKeyboardIndex=-1;
     if(state.editorKeyboardEnabled){
-      sync();
+      sync({focus:true});
       showToast('Управление редактором с клавиатуры включено.');
     }else{
       controls().forEach(el=>el.classList.remove('is-editor-keyboard-selected'));
@@ -2391,8 +2398,14 @@ function handleGlobalKeydown(e){
     }
   },true);
 
-  document.addEventListener('click',()=>{if(state.editorKeyboardEnabled&&state.section==='editor')requestAnimationFrame(sync);},true);
-  document.addEventListener('keydown',()=>{if(state.editorKeyboardEnabled&&state.section==='editor')queueMicrotask(sync);},true);
+  document.addEventListener('focusin',event=>{
+    if(!state.editorKeyboardEnabled||state.section!=='editor')return;
+    const index=controls().indexOf(event.target);
+    if(index>=0){
+      state.editorKeyboardIndex=index;
+      sync({focus:false});
+    }
+  },true);
 
   const boot=()=>{
     const style=document.createElement('style');
@@ -2539,8 +2552,11 @@ function cyclePrimarySection(delta){
   const sections=['news','profile','about'];
   const current=primarySectionFromState(state.section);
   const index=Math.max(0,sections.indexOf(current));
-  const target=sections[(index+delta+sections.length)%sections.length];
+  const targetIndex=index+delta;
+  if(targetIndex<0||targetIndex>=sections.length)return false;
+  const target=sections[targetIndex];
   if(target!==current)openSection(target);
+  return target!==current;
 }
 function ensurePullRefreshIndicator(){
   let indicator=$('#pull-refresh-indicator');
@@ -2574,13 +2590,17 @@ function initTouchGestures(){
     const inEditorField=!!target?.closest?.('#section-editor #news-body-input');
     if(!inMain&&!inDock&&!inNav&&!inScrim)return;
     const ignored=ignoredTarget(target);
-    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,inNav,inScrim,inEditorField,pullCandidate:inMain&&!inDock&&!inNav&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
+    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,inNav,inScrim,inEditorField,editorSwipeLocked:false,pullCandidate:inMain&&!inDock&&!inNav&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
   },{passive:true});
 
   document.addEventListener('touchmove',e=>{
     if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
     const t=e.changedTouches?.[0];if(!t)return;
     const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
+    if(touchStart.inEditorField&&!touchStart.editorSwipeLocked&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.15){
+      touchStart.editorSwipeLocked=true;
+      e.preventDefault();
+    }
     if(touchStart.pullCandidate&&!touchStart.inDock&&Math.abs(dy)>Math.abs(dx)*1.15&&dy>6){
       touchStart.pulling=true;touchStart.pullDistance=Math.min(132,dy);setPullRefreshProgress(touchStart.pullDistance,true);if(dy>10)e.preventDefault();
     }
@@ -2594,13 +2614,14 @@ function initTouchGestures(){
     if(start.pulling){if(start.pullDistance>=pullThreshold){e.preventDefault();finishPullRefresh();}else setPullRefreshProgress(0,false);return;}
     if(!quick||Math.abs(dx)<threshold||!horizontal)return;
     if(start.inEditorField&&state.section==='editor'){
-      const modes=['split','preview','edit'];
+      const modes=['split','edit','preview'];
       const current=Math.max(0,modes.indexOf(state.editor.mode));
-      const next=(current+(dx<0?1:-1)+modes.length)%modes.length;
+      const requested=current+(dx<0?1:-1);
+      if(requested<0||requested>=modes.length)return;
       e.preventDefault();
-      state.editor.mode=modes[next];
-      syncEditorMode();
-      showToast(modes[next]==='split'?'Два окна':modes[next]==='preview'?'Предпросмотр':'Markdown');
+      state.editor.mode=modes[requested];
+      syncEditorMode(true);
+      showToast(modes[requested]==='split'?'Два окна':modes[requested]==='preview'?'Предпросмотр':'Markdown');
       return;
     }
     const nav=$('.app-nav');
