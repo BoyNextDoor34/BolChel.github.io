@@ -1436,8 +1436,9 @@ async function loadRemoteNews(){
     state.news=(result.data||[]).map(mapRemoteNews);
     renderNews();
 
-    await authorsPromise;
-    await refreshNewsAuthorLabels();
+    authorsPromise.then(()=>refreshNewsAuthorLabels()).catch(error=>{
+      console.warn('Deferred author label refresh failed:',error);
+    });
   }catch(error){
     console.error('News load failed:',error);
     showToast('Не удалось загрузить новости из Supabase: '+(error.message||'неизвестная ошибка'));
