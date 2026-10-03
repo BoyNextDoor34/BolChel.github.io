@@ -2626,9 +2626,9 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
   z-index:120;
   width:42px;
   height:42px;
-  border:1px solid var(--md-sys-color-outline);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) var(--pull-tint,8%),var(--md-sys-color-outline));
   border-radius:50%;
-  background:var(--md-sys-color-surface-container);
+  background:color-mix(in srgb,var(--md-sys-color-primary-container) var(--pull-tint,8%),var(--md-sys-color-surface-container));
   color:var(--md-sys-color-primary);
   place-items:center;
   opacity:0;
@@ -2636,9 +2636,13 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
   pointer-events:none;
 }
 @media(max-width:860px){
-  .pull-refresh-indicator { display:grid; transition:opacity .12s ease, transform .12s ease; }
+  .pull-refresh-indicator { display:grid; transition:opacity .12s ease, transform .12s ease, background .08s linear, border-color .08s linear, color .08s linear; }
   .pull-refresh-indicator.is-visible { opacity:1; transform:translate(-50%,var(--pull-offset,0px)); transition:none; }
-  .pull-refresh-indicator.is-ready { background:var(--md-sys-color-primary-container); color:var(--md-sys-color-on-primary-container); }
+  .pull-refresh-indicator.is-ready,
+  .pull-refresh-indicator.is-refreshing {
+    background:color-mix(in srgb,var(--md-sys-color-primary-container) var(--pull-tint,50%),var(--md-sys-color-surface-container));
+    color:var(--md-sys-color-primary);
+  }
   .pull-refresh-indicator.is-ready .material-symbols-rounded { transform:rotate(180deg); }
   .pull-refresh-indicator.is-refreshing { opacity:1; transform:translate(-50%,0); }
   .pull-refresh-indicator.is-refreshing .material-symbols-rounded { animation:pull-refresh-spin .8s linear infinite; }
@@ -2651,4 +2655,45 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
 @keyframes nav-item-enter {
   from { opacity:.75; transform:translateX(-5px); }
   to { opacity:1; transform:none; }
+}
+
+/* Keep the mobile dock's active state stable while navigation is changing.
+   The item keeps the same border geometry at rest and when selected, avoiding
+   a bright/white border flash on dark palettes during the transition. */
+@media (max-width:860px){
+  .mobile-dock-item,
+  .mobile-dock-item.is-active{
+    border:1px solid transparent !important;
+    box-shadow:none !important;
+    outline:0;
+  }
+  .mobile-dock-item:focus-visible{
+    outline:2px solid var(--md-sys-color-primary) !important;
+    outline-offset:2px;
+  }
+}
+
+/* Material 3 pop-in animation for the custom selection menus. */
+.editor-select-menu{
+  display:block;
+  visibility:hidden;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(-6px) scale(.985);
+  transform-origin:top center;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s;
+}
+.editor-select-control.is-open .editor-select-menu{
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+  transform:none;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s linear 0s;
+}
+@media (prefers-reduced-motion:reduce){
+  .editor-select-menu,
+  .editor-select-control.is-open .editor-select-menu{
+    transition:none;
+    transform:none;
+  }
 }
