@@ -262,6 +262,9 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     const code=event.code;
     const key=event.key;
 
+    /* Let native buttons/links keep their native Enter activation. */
+    if(code==='Enter'&&target.matches?.('button,a[href],[role="button"]'))return;
+
     /* I is intentionally available even when comment keyboard mode is off. */
     if(code==='KeyI'){
       event.preventDefault();
