@@ -2290,6 +2290,14 @@ function handleGlobalKeydown(e){
   const code=e.code;
   if(e.repeat&&(code==='KeyG'||code==='Space'))return;
 
+  /* Native controls keep their browser activation; custom role=button controls
+     get the same Enter behavior when they do not have a native default action. */
+  if(code==='Enter'&&target.matches?.('[role="button"]:not(button):not(a)')){
+    e.preventDefault();
+    target.click?.();
+    return;
+  }
+
   /* Editor save shortcuts must remain active while the Markdown textarea is focused. */
   if((e.ctrlKey||e.metaKey)&&code==='Enter'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
   if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
