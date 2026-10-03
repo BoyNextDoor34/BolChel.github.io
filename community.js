@@ -203,7 +203,7 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     if(!actions.length){show('Для этого комментария нет доступных кнопок управления.');return;}
     const start=selectedActionIndex<0?0:selectedActionIndex;
     selectedActionIndex=(start+delta+actions.length)%actions.length;
-    syncSelection({focus:true,scroll:false});
+    syncSelection({focus:true,scroll:true});
   }
 
   function activateSelectedAction(){
