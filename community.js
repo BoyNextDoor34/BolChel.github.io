@@ -242,7 +242,7 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     if(event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
     const target=event.target;
     const editable=target?.matches?.('input,textarea,select,[contenteditable="true"]');
-    if(editable)return;
+    if(editable||target?.closest?.('#whichkey-panel,dialog[open]'))return;
 
     const code=event.code;
     const key=event.key;
@@ -282,6 +282,24 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
       '.community-comment[aria-selected="false"]{outline-color:transparent}';
     document.head.appendChild(style);
   }
+
+  document.addEventListener('keydown',event=>{
+    const dialog=document.querySelector('#community-ban-dialog[open]');
+    if(!dialog)return;
+    const field=dialog.querySelector('#community-ban-reason');
+    const cancel=dialog.querySelector('[data-community-ban-close]');
+    const ok=dialog.querySelector('button[type="submit"]');
+    if(!cancel||!ok)return;
+    if(event.key==='ArrowLeft'||event.key==='ArrowUp'){
+      event.preventDefault();event.stopImmediatePropagation();cancel.focus({preventScroll:true});return;
+    }
+    if(event.key==='ArrowRight'||event.key==='ArrowDown'){
+      event.preventDefault();event.stopImmediatePropagation();ok.focus({preventScroll:true});return;
+    }
+    if(event.key==='Enter'&&document.activeElement!==field){
+      event.preventDefault();event.stopImmediatePropagation();document.activeElement===cancel?cancel.click():ok.click();return;
+    }
+  },true);
 
   const boot=()=>{addStyle();ensureObserver();};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
