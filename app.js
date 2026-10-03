@@ -2393,13 +2393,15 @@ function handleGlobalKeydown(e){
     }
   }
 
-  function select(delta){
+  function select(delta,wrap=true){
     const list=controls();
-    if(!list.length){showToast('В редакторе пока нет доступных элементов.');return;}
-    state.editorKeyboardIndex=(state.editorKeyboardIndex<0?0:state.editorKeyboardIndex)+delta;
-    if(state.editorKeyboardIndex<0)state.editorKeyboardIndex=list.length-1;
-    if(state.editorKeyboardIndex>=list.length)state.editorKeyboardIndex=0;
+    if(!list.length){showToast('В редакторе пока нет доступных элементов.');return false;}
+    const current=Math.max(0,state.editorKeyboardIndex<0?0:state.editorKeyboardIndex);
+    const next=current+delta;
+    if(!wrap&&(next<0||next>=list.length))return false;
+    state.editorKeyboardIndex=wrap?(next+list.length)%list.length:next;
     sync();
+    return true;
   }
 
   function selectToolbar(delta){
@@ -2459,9 +2461,11 @@ function handleGlobalKeydown(e){
     const editable=target?.matches?.('input,textarea,select,[contenteditable="true"]');
     const code=event.code;
     if((code==='Tab'||code==='NumpadTab')&&!event.ctrlKey&&!event.metaKey&&!event.altKey){
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      select(event.shiftKey?-1:1);
+      const moved=select(event.shiftKey?-1:1,false);
+      if(moved){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
       return;
     }
     if(editable)return;
