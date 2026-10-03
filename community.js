@@ -54,7 +54,7 @@ $$('[data-comment-reply]',m).forEach(btn=>btn.addEventListener('click',e=>{
       if(banned()){show('Ваш аккаунт заблокирован.');return;}
       const form=$('[data-reply-form="'+CSS.escape(btn.dataset.commentReply)+'"]',m);
       if(!form)return;
-      $('.community-reply-form',m).forEach(x=>{if(x!==form)x.classList.add('hidden');});
+      $$('.community-reply-form',m).forEach(x=>{if(x!==form)x.classList.add('hidden');});
       form.classList.toggle('hidden');
       if(!form.classList.contains('hidden')){
         const textarea=$('textarea',form);
