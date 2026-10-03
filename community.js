@@ -280,9 +280,14 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     if(code==='KeyD'&&selected){if(activateCommentAction('[data-comment-delete]','Удаление доступно только для своего комментария или модерации.')){event.preventDefault();event.stopImmediatePropagation();}return;}
     if(code==='KeyB'&&selected){if(activateCommentAction('[data-comment-ban]','Блокировка доступна только администратору или владельцу.')){event.preventDefault();event.stopImmediatePropagation();}return;}
     if(code==='KeyP'&&selected){if(activateCommentAction('.community-profile-link')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    /*
+       The TKL "+" key is physically the "=" key with Shift. Some browsers/layouts
+       expose the modifier state inconsistently, so use the physical key code as
+       the stable shortcut while the comment-control mode is active.
+    */
     const positiveReaction=selected&&(
       event.key==='+'
-      || (event.code==='Equal'&&event.shiftKey)
+      || event.code==='Equal'
       || event.code==='NumpadAdd'
       || event.code==='Add'
     );
