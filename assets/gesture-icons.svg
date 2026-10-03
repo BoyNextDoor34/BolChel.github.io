@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0 0 128 96">
+  <defs>
+    <path id="hand" d="M50 67V34c0-4 3-7 7-7s7 3 7 7v15-29c0-4 3-7 7-7s7 3 7 7v29-24c0-4 3-7 7-7s7 3 7 7v28-16c0-4 3-7 7-7s7 3 7 7v25c0 16-10 27-28 27H66c-9 0-16-7-16-16Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="touch-dot" d="M71 43c0-4 3-7 7-7s7 3 7 7" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <path id="arrow-left" d="M92 18H30M30 18l17-12M30 18l17 12" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="arrow-right" d="M36 18h62M98 18L81 6M98 18 81 30" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="arrow-up" d="M28 74V18M28 18 16 34M28 18l12 16" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="arrow-down" d="M28 18v56M28 74 16 58M28 74l12-16" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="double-arrow" d="M21 18h38M59 18 48 7M59 18 48 29M107 18H69M69 18 80 7M69 18l11 11" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </defs>
+
+  <symbol id="gesture-swipe-left" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <use href="#arrow-left"/>
+  </symbol>
+
+  <symbol id="gesture-swipe-right" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <use href="#arrow-right"/>
+  </symbol>
+
+  <symbol id="gesture-swipe-up" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <use href="#arrow-up"/>
+  </symbol>
+
+  <symbol id="gesture-swipe-down" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <use href="#arrow-down"/>
+  </symbol>
+
+  <symbol id="gesture-swipe-horizontal" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <use href="#double-arrow"/>
+  </symbol>
+
+  <symbol id="gesture-pull-down" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <use href="#arrow-down"/>
+    <circle cx="78" cy="24" r="4" fill="currentColor"/>
+  </symbol>
+
+  <symbol id="gesture-tap" viewBox="0 0 128 96">
+    <use href="#hand"/>
+    <circle cx="80" cy="34" r="9" fill="none" stroke="currentColor" stroke-width="5"/>
+  </symbol>
+
+  <symbol id="gesture-edge-right" viewBox="0 0 128 96">
+    <path d="M111 7v82" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <use href="#hand"/>
+    <use href="#arrow-left"/>
+  </symbol>
+
+  <symbol id="gesture-edge-left" viewBox="0 0 128 96">
+    <path d="M17 7v82" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <use href="#hand"/>
+    <use href="#arrow-right"/>
+  </symbol>
+</svg>
