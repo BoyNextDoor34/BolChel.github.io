@@ -1427,6 +1427,8 @@ function openEditor(id,mode='edit'){
     return;
   }
   state.editor={ id:id?String(id):null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode, submissionId:null, draftId:null };
+  state.editorKeyboardEnabled=false;
+  state.editorKeyboardIndex=-1;
   openSection('editor');
   requestAnimationFrame(()=>syncPrimaryNavigation(state.previousSection||'news'));
 }
@@ -2365,6 +2367,9 @@ function handleGlobalKeydown(e){
     if(event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
     if(state.section!=='editor'||!state.editorKeyboardEnabled||window.innerWidth<=860)return;
     if(event.target?.closest?.('#whichkey-panel,dialog[open]'))return;
+    const target=event.target;
+    const editable=target?.matches?.('input,textarea,select,[contenteditable="true"]');
+    if(editable)return;
     const code=event.code;
     if(code==='KeyJ'||code==='ArrowDown'){
       event.preventDefault();event.stopImmediatePropagation();select(1);return;
@@ -2546,6 +2551,7 @@ function setPullRefreshProgress(distance,visible=true){
   const indicator=ensurePullRefreshIndicator();
   const progress=clamp(distance/96,0,1);
   indicator.style.setProperty('--pull-progress',String(progress));
+  indicator.style.setProperty('--pull-tint',Math.round(8+progress*42)+'%');
   indicator.style.setProperty('--pull-offset',Math.min(72,distance*.62)+'px');
   indicator.classList.toggle('is-visible',visible);indicator.classList.toggle('is-ready',progress>=1);
 }
