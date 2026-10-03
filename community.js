@@ -131,6 +131,7 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
    mouse-accessible; this layer adds a Vim-like selection model on top. */
 (function(){
   'use strict';
+  let commentKeyboardEnabled=false;
   let selectedCommentId=null;
   let selectedActionIndex=-1;
   let observedRoot=null;
@@ -227,7 +228,7 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     observer?.disconnect();
     observedRoot=root;
     observer=new MutationObserver(()=>{
-      if(comments().length){
+      if(commentKeyboardEnabled&&comments().length){
         syncSelection({focus:false,scroll:false});
       }
     });
@@ -238,7 +239,7 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
   document.addEventListener('keydown',event=>{
     ensureObserver();
     const article=document.querySelector('#article-page .community-comments');
-    if(!article||!comments().length)return;
+    if(!article)return;
     if(event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
     const target=event.target;
     const editable=target?.matches?.('input,textarea,select,[contenteditable="true"]');
@@ -246,6 +247,16 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
 
     const code=event.code;
     const key=event.key;
+
+    /* I is intentionally available even when comment keyboard mode is off. */
+    if(code==='KeyI'){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      focusComposer();
+      return;
+    }
+    if(!commentKeyboardEnabled||!comments().length)return;
+
     const comment=currentComment();
     const selected=!!comment&&comment.classList.contains('is-keyboard-selected');
 
@@ -264,15 +275,66 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     if(code==='Enter'&&selected){
       event.preventDefault();event.stopImmediatePropagation();activateSelectedAction();return;
     }
-    if(code==='KeyI'){event.preventDefault();event.stopImmediatePropagation();focusComposer();return;}
     if(code==='KeyE'&&selected){if(activateCommentAction('[data-comment-edit]','Изменять можно только свой комментарий.')){event.preventDefault();event.stopImmediatePropagation();}return;}
     if(code==='KeyR'&&selected){if(activateCommentAction('[data-comment-reply]')){event.preventDefault();event.stopImmediatePropagation();}return;}
     if(code==='KeyD'&&selected){if(activateCommentAction('[data-comment-delete]','Удаление доступно только для своего комментария или модерации.')){event.preventDefault();event.stopImmediatePropagation();}return;}
     if(code==='KeyB'&&selected){if(activateCommentAction('[data-comment-ban]','Блокировка доступна только администратору или владельцу.')){event.preventDefault();event.stopImmediatePropagation();}return;}
     if(code==='KeyP'&&selected){if(activateCommentAction('.community-profile-link')){event.preventDefault();event.stopImmediatePropagation();}return;}
-    if((code==='Equal'||code==='NumpadAdd')&&event.shiftKey&&selected){if(activateCommentAction('[data-comment-up]')){event.preventDefault();event.stopImmediatePropagation();}return;}
-    if((code==='Minus'||code==='NumpadSubtract')&&selected){if(activateCommentAction('[data-comment-down]')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    const positiveReaction=selected&&(
+      event.key==='+'
+      || (event.code==='Equal'&&event.shiftKey)
+      || event.code==='NumpadAdd'
+      || event.code==='Add'
+    );
+    if(positiveReaction){
+      if(activateCommentAction('[data-comment-up]')){
+        event.preventDefault();event.stopImmediatePropagation();
+      }
+      return;
+    }
+    const negativeReaction=selected&&(
+      event.key==='-'
+      || event.code==='Minus'
+      || event.code==='NumpadSubtract'
+      || event.code==='Subtract'
+    );
+    if(negativeReaction){
+      if(activateCommentAction('[data-comment-down]')){
+        event.preventDefault();event.stopImmediatePropagation();
+      }
+      return;
+    }
   },true);
+
+  function setKeyboardSelectionEnabled(enabled){
+    commentKeyboardEnabled=Boolean(enabled);
+    const list=comments();
+    list.forEach(comment=>{
+      comment.classList.remove('is-keyboard-selected');
+      comment.removeAttribute('aria-selected');
+      comment.removeAttribute('tabindex');
+      comment.querySelectorAll('.community-comment-action.is-keyboard-selected,.community-vote-button.is-keyboard-selected')
+        .forEach(button=>button.classList.remove('is-keyboard-selected'));
+    });
+    selectedCommentId=null;
+    selectedActionIndex=-1;
+    if(commentKeyboardEnabled){
+      if(!list.length){
+        show('В этой статье пока нет комментариев.');
+        return false;
+      }
+      syncSelection({focus:true,scroll:true});
+      show('Управление комментариями с клавиатуры включено.');
+    }else{
+      show('Управление комментариями с клавиатуры выключено.');
+    }
+    return commentKeyboardEnabled;
+  }
+
+  window.toggleCommentKeyboardNavigation=()=>{
+    const next=!commentKeyboardEnabled;
+    return setKeyboardSelectionEnabled(next);
+  };
 
   function addStyle(){
     if($('#community-keyboard-style'))return;
