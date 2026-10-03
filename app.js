@@ -57,6 +57,7 @@ const KEYMAP = [
     [['G','-'],'Военнообязанные']
   ]},
   {group:'Поиск и интерфейс', rows:[
+    [['Enter'],'Активировать сфокусированную кнопку или ссылку'],
     [['↑ / ↓ / ← / →'],'Перейти к соседнему элементу из текстового поля на границе текста'],
     [['Tab / Shift+Tab'],'Перейти к следующему / предыдущему фокусируемому элементу'],
     [['/'],'Фокус поиска'],
@@ -1322,6 +1323,10 @@ async function initSupabase(){
       });
       state.supabaseError=null;
 
+      const newsLoadPromise=loadRemoteNews().catch(error=>{
+        console.warn('Initial Supabase news load failed:',error);
+      });
+
       try{
         const {data:{session},error:sessionError}=await state.supabase.auth.getSession();
         if(sessionError) throw sessionError;
@@ -1340,12 +1345,7 @@ async function initSupabase(){
         },0);
       });
 
-      try{
-        await loadRemoteNews();
-      }catch(error){
-        console.warn('Initial Supabase news load failed:',error);
-      }
-
+      await newsLoadPromise;
       return state.supabase;
     }catch(error){
       state.supabaseError=error;
@@ -1395,11 +1395,27 @@ async function loadEditorAuthors(selectedId=''){
   menu.querySelectorAll('.editor-select-option').forEach(option=>option.classList.toggle('is-selected',option.dataset.value===input.value));
   bindEditorSelectControls();
 }
+async function refreshNewsAuthorLabels(){
+  if(!state.news.length)return;
+  let changed=false;
+  state.news.forEach(item=>{
+    const profile=state.authorProfiles?.[item.authorId];
+    const fallback=(item.authorId&&state.user?.id===item.authorId)
+      ?(state.user.profile?.nickname||state.user.email?.split('@')[0]||'Редакция')
+      :'Редакция';
+    const next=profile?.nickname||fallback;
+    if(item.author!==next){item.author=next;changed=true;}
+  });
+  if(changed&&state.section==='news')renderNews();
+}
+
 async function loadRemoteNews(){
   if(!state.supabase) return;
 
   try{
-    await loadAuthorProfiles();
+    const authorsPromise=loadAuthorProfiles().catch(error=>{
+      console.warn('Author profiles load failed:',error);
+    });
 
     const fullSelect='id,author_id,category,title,summary,body,image_url,accent_hex,palette,published_at,updated_at';
     let result=await state.supabase
@@ -1420,6 +1436,8 @@ async function loadRemoteNews(){
     state.news=(result.data||[]).map(mapRemoteNews);
     renderNews();
 
+    await authorsPromise;
+    await refreshNewsAuthorLabels();
   }catch(error){
     console.error('News load failed:',error);
     showToast('Не удалось загрузить новости из Supabase: '+(error.message||'неизвестная ошибка'));
@@ -2277,6 +2295,7 @@ function handleGlobalKeydown(e){
   if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
 
   if(isEditable){
+    if(e.code==='Enter'&&target.matches?.('button,a[href],[role="button"]'))return;
     if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const arrowMap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
       const direction=arrowMap[e.code];
