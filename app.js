@@ -978,14 +978,28 @@ function renderKeyHelp(){
     if(last>=2&&last<=4)return count+' сочетания';
     return count+' сочетаний';
   };
-  const columns=[[],[],[]];
-  const assignments=[0,1,0,1,2,2,2];
-  KEYMAP.forEach((group,index)=>columns[assignments[index]??(index%3)].push(group));
+  const estimateGroupWeight=group=>42+group.rows.reduce((total,[keys,desc])=>{
+    const alternatives=Array.isArray(keys[0])?keys:[keys];
+    const comboWidth=alternatives.reduce((max,sequence)=>Math.max(max,sequence.reduce((sum,key)=>sum+String(key).length+2,0)),0);
+    const comboLines=Math.max(1,Math.ceil(comboWidth/15));
+    const descLines=Math.max(1,Math.ceil(String(desc||'').length/38));
+    return total+Math.max(comboLines,descLines)*29;
+  },0);
   const renderGroup=group=>`<section class="key-group"><div class="key-group-title"><span>${escapeHtml(group.group)}</span><span class="key-group-count">${countLabel(group.rows.length)}</span></div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
     const alternatives=Array.isArray(keys[0])?keys:[keys];
     const rendered=alternatives.map((sequence,index)=>`${index?'<span class="key-or" aria-hidden="true">/</span>':''}${renderSequence(sequence)}`).join('');
     return `<tr><td><div class="key-combo">${rendered}</div></td><td>${escapeHtml(desc)}</td></tr>`;
   }).join('')}</tbody></table></section>`;
+  const columnCount=window.innerWidth<=700?1:window.innerWidth<=980?2:3;
+  const columns=Array.from({length:columnCount},()=>[]);
+  const heights=Array.from({length:columnCount},()=>0);
+  const groups=[...KEYMAP].sort((a,b)=>estimateGroupWeight(b)-estimateGroupWeight(a));
+  groups.forEach(group=>{
+    const target=heights.indexOf(Math.min(...heights));
+    columns[target].push(group);
+    heights[target]+=estimateGroupWeight(group);
+  });
+  if(columnCount===1)columns[0]=[...KEYMAP];
   root.innerHTML=columns.map(column=>`<div class="key-column">${column.map(renderGroup).join('')}</div>`).join('');
 }
 
