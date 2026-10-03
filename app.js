@@ -15,7 +15,7 @@ const state = {
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
   paletteCache:new Map(), palettePending:new Map(), authorProfiles:{}, authorProfilesLoadedAt:0,
-  supabaseInitPromise:null, supabaseError:null,
+  supabaseInitPromise:null, supabaseError:null, navigationHistory:[], restoringNavigation:false,
   accessibility:{enabled:false,fontFamily:'Arial',fontScale:1.25,letterSpacing:'0',lineHeight:1.5,contrast:'bw',colorVision:'standard',underlineLinks:true,semanticMarkers:true,reduceMotion:true,hideNewsImages:false}
 };
 
@@ -31,6 +31,7 @@ const KEYMAP = [
     [['G','G'],'Перейти к первой новости'],
     [['Shift','G'],'В конец списка'],
     [['Enter / O'],'Открыть выбранную новость'],
+    [['Alt','←'],'Вернуться на предыдущую страницу'],
     [['Esc'],'Назад или закрыть текущий экран'],
     [['[ / ]'],'Предыдущая / следующая статья'],
     [['R'],'Открыть случайную новость'],
@@ -67,13 +68,18 @@ const KEYMAP = [
     [['Ctrl','S'],'Сохранить изменения или предложение'],
     [['Ctrl','Enter'],'Опубликовать новость / отправить предложение редактору']
   ]},
-  {group:'Комментарии', rows:[
+  {group:'Комментарии — всегда доступно', rows:[
+    [['G','C'],'Включить / выключить управление комментариями'],
+    [['I'],'Перейти к написанию комментария'],
+    [['Enter'],'Опубликовать комментарий в поле ввода'],
+    [['Shift','Enter'],'Создать новый абзац в поле ввода']
+  ]},
+  {group:'Комментарии — режим управления', rows:[
     [['J / ↓'],'Выбрать следующий комментарий'],
     [['K / ↑'],'Выбрать предыдущий комментарий'],
     [['H / ←'],'Предыдущая кнопка выбранного комментария'],
     [['L / →'],'Следующая кнопка выбранного комментария'],
     [['Enter'],'Активировать выбранную кнопку комментария'],
-    [['I'],'Перейти к написанию комментария'],
     [['E'],'Изменить свой выбранный комментарий'],
     [['R'],'Ответить на выбранный комментарий'],
     [['D'],'Удалить свой выбранный комментарий'],
@@ -717,8 +723,61 @@ function syncPrimaryNavigation(sectionOverride=null){
   requestAnimationFrame(()=>scrollActiveNavigationIntoView(section));
 }
 
+function getNavigationSnapshot(){
+  return {
+    section:state.section,
+    articleId:state.articleId,
+    category:state.category,
+    search:state.search,
+    selectedNewsIndex:state.selectedNewsIndex
+  };
+}
+function rememberNavigationPage(){
+  if(state.restoringNavigation||state.section==='editor')return;
+  const snapshot=getNavigationSnapshot();
+  const last=state.navigationHistory[state.navigationHistory.length-1];
+  if(last&&last.section===snapshot.section&&String(last.articleId||'')===String(snapshot.articleId||'')&&last.category===snapshot.category&&last.search===snapshot.search)return;
+  state.navigationHistory.push(snapshot);
+  if(state.navigationHistory.length>40)state.navigationHistory.shift();
+}
+function renderRestoredPage(){
+  if(state.section==='news'){
+    renderCategoryNav();
+    renderNews();
+    requestAnimationFrame(()=>syncPrimaryNavigation('news'));
+    return;
+  }
+  if(state.section==='article'){
+    renderArticle();
+    requestAnimationFrame(()=>syncPrimaryNavigation('article'));
+    return;
+  }
+  if(state.section==='profile'){
+    renderProfile();
+    requestAnimationFrame(()=>syncPrimaryNavigation('profile'));
+  }
+}
+function goToPreviousPage(){
+  const previous=state.navigationHistory.pop();
+  if(!previous){
+    showToast('Предыдущей страницы в приложении нет.');
+    return;
+  }
+  state.restoringNavigation=true;
+  state.section=previous.section;
+  state.articleId=previous.articleId;
+  state.category=previous.category;
+  state.search=previous.search||'';
+  state.selectedNewsIndex=Number.isFinite(previous.selectedNewsIndex)?previous.selectedNewsIndex:0;
+  openSection(previous.section);
+  renderRestoredPage();
+  state.restoringNavigation=false;
+}
 function openSection(section) {
-  if(state.section!==section) state.previousSection=state.section;
+  if(state.section!==section) {
+    state.previousSection=state.section;
+    rememberNavigationPage();
+  }
   state.section=section;
   $$('.page-section').forEach(el=>el.classList.toggle('is-visible',el.id===`section-${section}`));
   const navSection=getPrimaryNavSection(section);
@@ -843,6 +902,7 @@ async function ensureNewsPalette(newsItem){
 async function openArticle(id){
   const news=state.news.find(n=>String(n.id)===String(id));
   if(!news) return;
+  if(state.section==='article'&&String(state.articleId)!==String(id)) rememberNavigationPage();
   state.articleId=id;
   state.previousSection=state.section==='article'?'news':state.section;
   openSection('article');
@@ -2115,7 +2175,7 @@ function handleGlobalKeydown(e){
     if($('#auth-dialog').open){e.preventDefault();$('#auth-dialog').close();return;}
     if($('#edit-profile-dialog').open){e.preventDefault();$('#edit-profile-dialog').close();return;}
     if($('#avatar-crop-dialog').open){e.preventDefault();$('#avatar-crop-dialog').close();return;}
-    if(state.section==='article'||state.section==='editor'){e.preventDefault();backToNews();return;}
+    if(state.section==='article'||state.section==='editor'){e.preventDefault();goToPreviousPage();return;}
   }
 
   if(state.keySequence==='SPACE'&&code==='Slash'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
@@ -2128,7 +2188,7 @@ function handleGlobalKeydown(e){
     }
     if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const commands={
-        KeyN:openAllNews,KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyE:()=>state.admin?openEditor(null):openEditor(null,'suggest'),
+        KeyN:openAllNews,KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyC:()=>window.toggleCommentKeyboardNavigation?.(),KeyE:()=>state.admin?openEditor(null):openEditor(null,'suggest'),
         Equal:openAllNews,
         Minus:()=>setCategory('Военнообязанные'),
         Digit1:()=>setCategory(CATEGORIES[0]),Digit2:()=>setCategory(CATEGORIES[1]),Digit3:()=>setCategory(CATEGORIES[2]),
@@ -2149,6 +2209,7 @@ function handleGlobalKeydown(e){
     armLeader('G');return;
   }
   if(code==='KeyT'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');return;}
+  if(e.altKey&&!e.ctrlKey&&!e.metaKey&&code==='ArrowLeft'){e.preventDefault();goToPreviousPage();return;}
   if(code==='KeyJ'||code==='ArrowDown'){e.preventDefault();focusNews(1);return;}
   if(code==='KeyK'||code==='ArrowUp'){e.preventDefault();focusNews(-1);return;}
   if(code==='PageDown'){e.preventDefault();scrollPage(1);return;}
