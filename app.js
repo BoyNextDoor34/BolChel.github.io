@@ -971,7 +971,14 @@ function renderKeyHelp(){
   const root=$('#whichkey-content');
   if(!root) return;
   const renderSequence=sequence=>sequence.map((k,index)=>`${index?'<span class="key-step" aria-hidden="true">+</span>':''}<kbd>${escapeHtml(k)}</kbd>`).join('');
-  root.innerHTML=KEYMAP.map(group=>`<section class="key-group"><div class="key-group-title">${escapeHtml(group.group)}</div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
+  const countLabel=count=>{
+    if(count%100>=11&&count%100<=14)return count+' сочетаний';
+    const last=count%10;
+    if(last===1)return count+' сочетание';
+    if(last>=2&&last<=4)return count+' сочетания';
+    return count+' сочетаний';
+  };
+  root.innerHTML=KEYMAP.map(group=>`<section class="key-group"><div class="key-group-title"><span>${escapeHtml(group.group)}</span><span class="key-group-count">${countLabel(group.rows.length)}</span></div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
     const alternatives=Array.isArray(keys[0])?keys:[keys];
     const rendered=alternatives.map((sequence,index)=>`${index?'<span class="key-or" aria-hidden="true">/</span>':''}${renderSequence(sequence)}`).join('');
     return `<tr><td><div class="key-combo">${rendered}</div></td><td>${escapeHtml(desc)}</td></tr>`;
@@ -2303,6 +2310,9 @@ function bindGlobalEvents(){
   bind('#theme-toggle','click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
   bind('#keyboard-help','click',()=>toggleHelp(true));
   bind('#close-help','click',()=>toggleHelp(false));
+  bind('#whichkey-panel','click',e=>{
+    if(e.target?.id==='whichkey-panel')toggleHelp(false);
+  });
   bind('#auth-button','click',()=>openAuth('login'));
   bind('#avatar-button','click',()=>openSection('profile'));
   bind('#mobile-menu','click',onMobileMenu);
