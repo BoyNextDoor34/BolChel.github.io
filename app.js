@@ -11,7 +11,7 @@ const state = {
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null, draftId:null },
-  editorKeyboardEnabled:false, editorKeyboardIndex:-1, lastEditableSpaceAt:0, lastEditableSpaceTarget:null,
+  editorKeyboardEnabled:false, editorKeyboardIndex:-1, lastEditableSpaceAt:0, lastEditableSpaceTarget:null, lastEditableGAt:0, lastEditableGTarget:null,
   newsSuggestions:[],
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
@@ -2234,12 +2234,35 @@ function handleGlobalKeydown(e){
       toggleHelp(!state.expandedHelp);
       return;
     }
+    const rapidEditorLeader=state.section==='editor'&&code==='KeyM'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&state.lastEditableGTarget===target&&Date.now()-state.lastEditableGAt<650;
+    if(rapidEditorLeader){
+      if((target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement)&&typeof target.selectionStart==='number'){
+        const pos=target.selectionStart;
+        if(pos>0){
+          target.value=target.value.slice(0,pos-1)+target.value.slice(pos);
+          target.setSelectionRange(pos-1,pos-1);
+          target.dispatchEvent(new Event('input',{bubbles:true}));
+        }
+      }
+      e.preventDefault();
+      state.lastEditableGAt=0;
+      state.lastEditableGTarget=null;
+      window.toggleEditorKeyboardNavigation?.();
+      return;
+    }
     if(code==='Space'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
       state.lastEditableSpaceAt=Date.now();
       state.lastEditableSpaceTarget=target;
     }else if(code!=='Slash'&&e.key!=='/'){
       state.lastEditableSpaceAt=0;
       state.lastEditableSpaceTarget=null;
+    }
+    if(state.section==='editor'&&code==='KeyG'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      state.lastEditableGAt=Date.now();
+      state.lastEditableGTarget=target;
+    }else if(code!=='KeyM'){
+      state.lastEditableGAt=0;
+      state.lastEditableGTarget=null;
     }
     handleEditableKeydown(e);
     if(code==='Escape'&&target.id==='news-search'){e.preventDefault();target.blur();}
