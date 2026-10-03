@@ -448,9 +448,9 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   padding:0;
   background:
     linear-gradient(135deg,
-      color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface)) 0%,
-      color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container)) 52%,
-      color-mix(in srgb,var(--md-sys-color-primary) 11%,var(--md-sys-color-surface-container-low)) 100%);
+      color-mix(in srgb,var(--md-sys-color-primary-container) 72%,var(--md-sys-color-surface) 28%) 0%,
+      color-mix(in srgb,var(--md-sys-color-primary-container) 58%,var(--md-sys-color-surface-container) 42%) 52%,
+      color-mix(in srgb,var(--md-sys-color-primary-container) 64%,var(--md-sys-color-surface-container-low) 36%) 100%);
   color:var(--md-sys-color-on-surface);
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
   border-radius:26px;
