@@ -448,11 +448,11 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   padding:0;
   background:
     linear-gradient(135deg,
-      color-mix(in srgb,var(--md-sys-color-primary) 9%,var(--md-sys-color-surface-container)) 0%,
-      var(--md-sys-color-surface-container) 50%,
-      color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low)) 100%);
+      color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface)) 0%,
+      color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container)) 52%,
+      color-mix(in srgb,var(--md-sys-color-primary) 11%,var(--md-sys-color-surface-container-low)) 100%);
   color:var(--md-sys-color-on-surface);
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 28%,var(--md-sys-color-outline-variant));
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
   border-radius:26px;
   box-shadow:0 20px 54px color-mix(in srgb,#000 28%,transparent);
   overscroll-behavior:contain;
@@ -477,7 +477,7 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   margin:0;
   padding:10px 18px;
   box-sizing:border-box;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 13%,var(--md-sys-color-surface-container));
+  background:color-mix(in srgb,var(--md-sys-color-primary) 11%,var(--md-sys-color-surface-container));
   border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
   z-index:2;
 }
@@ -572,10 +572,10 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   flex-direction:column;
   gap:8px;
   align-self:start;
-  padding:7px;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
-  border-radius:18px;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-surface-container-low));
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
 }
 .key-group{
   min-width:0;
