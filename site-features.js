@@ -103,6 +103,23 @@
     if(confirmed)replayWithConfirmedNativeAction(button);
   },true);
 
+  document.addEventListener('keydown',event=>{
+    const dialog=document.querySelector('.site-confirm-dialog[open]');
+    if(!dialog)return;
+    const cancel=dialog.querySelector('#site-confirm-cancel');
+    const ok=dialog.querySelector('#site-confirm-ok');
+    if(!cancel||!ok)return;
+    if(event.key==='ArrowLeft'||event.key==='ArrowUp'){
+      event.preventDefault();event.stopImmediatePropagation();cancel.focus({preventScroll:true});return;
+    }
+    if(event.key==='ArrowRight'||event.key==='ArrowDown'){
+      event.preventDefault();event.stopImmediatePropagation();ok.focus({preventScroll:true});return;
+    }
+    if(event.key==='Enter'){
+      event.preventDefault();event.stopImmediatePropagation();document.activeElement===cancel?cancel.click():ok.click();return;
+    }
+  },true);
+
   window.siteConfirm=ask;
 })();
 
