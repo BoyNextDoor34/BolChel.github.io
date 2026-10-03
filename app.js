@@ -903,7 +903,7 @@ function backToNews() {
 function renderKeyHelp(){
   const root=$('#whichkey-content');
   if(!root) return;
-  const renderSequence=sequence=>sequence.map((k,index)=>`${index?'<span class="key-step" aria-hidden="true">→</span>':''}<kbd>${escapeHtml(k)}</kbd>`).join('');
+  const renderSequence=sequence=>sequence.map((k,index)=>`${index?'<span class="key-step" aria-hidden="true">+</span>':''}<kbd>${escapeHtml(k)}</kbd>`).join('');
   root.innerHTML=KEYMAP.map(group=>`<section class="key-group"><div class="key-group-title">${escapeHtml(group.group)}</div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
     const alternatives=Array.isArray(keys[0])?keys:[keys];
     const rendered=alternatives.map((sequence,index)=>`${index?'<span class="key-or" aria-hidden="true">/</span>':''}${renderSequence(sequence)}`).join('');
@@ -2098,9 +2098,8 @@ function handleGlobalKeydown(e){
 
   if(state.expandedHelp){
     if(code==='Escape'){e.preventDefault();toggleHelp(false);return;}
-    if(code==='PageDown'||code==='ArrowDown'||code==='KeyJ'||(e.ctrlKey&&code==='KeyD')){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageDown'?panel.clientHeight*.85:180,behavior:getMotionBehavior()});return;}
-    if(code==='PageUp'||code==='ArrowUp'||code==='KeyK'||(e.ctrlKey&&code==='KeyU')){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageUp'?-panel.clientHeight*.85:-180,behavior:getMotionBehavior()});return;}
-    if(code==='Home'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollTo({top:0,behavior:getMotionBehavior()});return;}
+    if(code==='PageDown'||code==='ArrowDown'||code==='KeyJ'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageDown'?panel.clientHeight*.85:180,behavior:getMotionBehavior()});return;}
+    if(code==='PageUp'||code==='ArrowUp'||code==='KeyK'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageUp'?-panel.clientHeight*.85:-180,behavior:getMotionBehavior()});return;}
     if(code==='End'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollTo({top:panel.scrollHeight,behavior:getMotionBehavior()});return;}
   }
 
