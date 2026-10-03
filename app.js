@@ -978,11 +978,15 @@ function renderKeyHelp(){
     if(last>=2&&last<=4)return count+' сочетания';
     return count+' сочетаний';
   };
-  root.innerHTML=KEYMAP.map(group=>`<section class="key-group"><div class="key-group-title"><span>${escapeHtml(group.group)}</span><span class="key-group-count">${countLabel(group.rows.length)}</span></div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
+  const columns=[[],[],[]];
+  const assignments=[0,1,0,1,2,2,2];
+  KEYMAP.forEach((group,index)=>columns[assignments[index]??(index%3)].push(group));
+  const renderGroup=group=>`<section class="key-group"><div class="key-group-title"><span>${escapeHtml(group.group)}</span><span class="key-group-count">${countLabel(group.rows.length)}</span></div><table class="key-table"><tbody>${group.rows.map(([keys,desc])=>{
     const alternatives=Array.isArray(keys[0])?keys:[keys];
     const rendered=alternatives.map((sequence,index)=>`${index?'<span class="key-or" aria-hidden="true">/</span>':''}${renderSequence(sequence)}`).join('');
     return `<tr><td><div class="key-combo">${rendered}</div></td><td>${escapeHtml(desc)}</td></tr>`;
-  }).join('')}</tbody></table></section>`).join('');
+  }).join('')}</tbody></table></section>`;
+  root.innerHTML=columns.map(column=>`<div class="key-column">${column.map(renderGroup).join('')}</div>`).join('');
 }
 
 function toggleHelp(expanded=true){
