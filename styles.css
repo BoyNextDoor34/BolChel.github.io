@@ -446,11 +446,15 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   box-sizing:border-box;
   overflow:hidden;
   padding:0;
-  background:var(--md-sys-color-surface-container);
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb,var(--md-sys-color-primary) 9%,var(--md-sys-color-surface-container)) 0%,
+      var(--md-sys-color-surface-container) 50%,
+      color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low)) 100%);
   color:var(--md-sys-color-on-surface);
-  border:1px solid var(--md-sys-color-outline-variant);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 28%,var(--md-sys-color-outline-variant));
   border-radius:26px;
-  box-shadow:0 24px 70px color-mix(in srgb,#000 38%,transparent);
+  box-shadow:0 20px 54px color-mix(in srgb,#000 28%,transparent);
   overscroll-behavior:contain;
 }
 .whichkey-panel::before{
@@ -458,8 +462,8 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   position:fixed;
   inset:-100vmax;
   z-index:-1;
-  background:color-mix(in srgb,#000 48%,transparent);
-  backdrop-filter:blur(10px) saturate(.86);
+  background:color-mix(in srgb,#000 46%,transparent);
+  backdrop-filter:blur(10px) saturate(.84);
   pointer-events:none;
 }
 .whichkey-panel .whichkey-header{
@@ -467,61 +471,71 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:16px;
-  min-height:72px;
+  gap:18px;
+  min-height:68px;
   width:100%;
   margin:0;
-  padding:12px 18px;
+  padding:10px 18px;
   box-sizing:border-box;
-  background:var(--md-sys-color-surface-container);
-  border-bottom:1px solid var(--md-sys-color-outline-variant);
+  background:color-mix(in srgb,var(--md-sys-color-primary) 13%,var(--md-sys-color-surface-container));
+  border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
   z-index:2;
 }
 .whichkey-title{
   display:flex;
   align-items:center;
-  gap:11px;
+  gap:10px;
   min-width:0;
 }
 .whichkey-title-icon{
-  width:38px;
-  height:38px;
+  width:36px;
+  height:36px;
   display:grid;
   place-items:center;
-  flex:0 0 38px;
-  border:1px solid var(--md-sys-color-outline-variant);
-  border-radius:11px;
-  background:var(--md-sys-color-surface-container-high);
+  flex:0 0 36px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant));
+  border-radius:10px;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-high));
   color:var(--md-sys-color-primary);
-  font-size:20px;
+  font-size:19px;
 }
 .whichkey-title-copy{min-width:0}
 .whichkey-title-copy h2{
   margin:0;
-  font-size:21px;
-  line-height:1.1;
+  font-size:20px;
+  line-height:1.08;
   letter-spacing:-.02em;
 }
 .whichkey-title-copy p{
   margin:3px 0 0;
-  font-size:11px;
+  font-size:10px;
   line-height:1.2;
   color:var(--md-sys-color-on-surface-variant);
 }
 .whichkey-header-actions{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:14px;
   flex:0 0 auto;
 }
 .whichkey-close-hint{
   display:flex;
   align-items:center;
-  gap:4px;
+  gap:6px;
+  margin-right:12px;
   color:var(--md-sys-color-on-surface-variant);
-  font-size:10px;
+  font-size:12px;
+  font-weight:650;
+  white-space:nowrap;
 }
-.whichkey-close-hint kbd{min-width:24px;padding:3px 5px}
+.whichkey-close-hint kbd{
+  min-width:30px;
+  min-height:28px;
+  padding:4px 7px;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 35%,var(--md-sys-color-outline));
+  background:color-mix(in srgb,var(--md-sys-color-primary) 9%,var(--md-sys-color-surface));
+  font-size:11px;
+}
 .whichkey-panel .whichkey-header .icon-button{
   flex:0 0 40px;
   width:40px;
@@ -540,13 +554,14 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   min-height:0;
   width:100%;
   margin:0;
-  padding:14px 16px 16px;
+  padding:12px 14px 14px;
   box-sizing:border-box;
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
+  gap:9px;
   overflow-y:auto;
   overflow-x:hidden;
+  align-content:start;
   overscroll-behavior:contain;
   scrollbar-width:thin;
   scrollbar-color:var(--md-sys-color-outline) transparent;
@@ -555,16 +570,20 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   min-width:0;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:8px;
   align-self:start;
+  padding:7px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+  border-radius:18px;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-surface-container-low));
 }
 .key-group{
   min-width:0;
   padding:0;
   margin:0;
-  border:1px solid var(--md-sys-color-outline-variant);
-  border-radius:17px;
-  background:var(--md-sys-color-surface-container-low);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 98%,var(--md-sys-color-primary) 2%);
   overflow:hidden;
 }
 .key-group-title{
@@ -572,12 +591,12 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   align-items:center;
   justify-content:space-between;
   gap:8px;
-  min-height:39px;
+  min-height:38px;
   box-sizing:border-box;
-  padding:9px 11px;
-  background:var(--md-sys-color-surface-container-high);
+  padding:8px 10px;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-high));
   color:var(--md-sys-color-on-surface);
-  border-bottom:1px solid var(--md-sys-color-outline-variant);
+  border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-outline-variant));
   font-size:10px;
   line-height:1.2;
   font-weight:750;
@@ -587,10 +606,10 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .key-group-count{
   flex:0 0 auto;
   padding:2px 6px;
-  border:1px solid var(--md-sys-color-outline-variant);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
   border-radius:999px;
   color:var(--md-sys-color-on-surface-variant);
-  background:var(--md-sys-color-surface-container);
+  background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container));
   font-size:9px;
   font-weight:700;
   letter-spacing:0;
@@ -603,7 +622,7 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   table-layout:fixed;
 }
 .key-table td{
-  padding:6px 9px;
+  padding:6px 8px;
   vertical-align:middle;
   border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 50%,transparent);
   font-size:11px;
@@ -634,7 +653,7 @@ kbd{
   border:1px solid var(--md-sys-color-outline);
   border-bottom-width:2px;
   border-radius:7px;
-  background:var(--md-sys-color-surface);
+  background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface));
   color:var(--md-sys-color-on-surface);
   font:650 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
   box-sizing:border-box;
@@ -649,10 +668,6 @@ kbd{
   font-weight:700;
 }
 .key-or{margin:0 1px}
-.key-column:nth-child(2) .key-group:first-child,
-.key-column:nth-child(3) .key-group:first-child{
-  border-color:color-mix(in srgb,var(--md-sys-color-primary) 28%,var(--md-sys-color-outline-variant));
-}
 @keyframes whichkey-overlay-enter{
   from{opacity:0}
   to{opacity:1}
@@ -681,7 +696,8 @@ kbd{
   .whichkey-title-icon{width:34px;height:34px;flex-basis:34px;font-size:18px}
   .whichkey-title-copy h2{font-size:18px}
   .whichkey-title-copy p{font-size:10px}
-  .whichkey-close-hint{display:none}
+  .whichkey-close-hint{display:flex;font-size:11px;margin-right:4px}
+  .whichkey-close-hint kbd{min-width:27px;min-height:26px}
   #whichkey-content{
     grid-template-columns:1fr;
     padding:10px;
