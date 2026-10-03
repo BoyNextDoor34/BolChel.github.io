@@ -11,6 +11,7 @@ const state = {
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null, draftId:null },
+  editorKeyboardEnabled:false, editorKeyboardIndex:-1,
   newsSuggestions:[],
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
@@ -52,8 +53,7 @@ const KEYMAP = [
     [['G','8'],'Семья'],
     [['G','9'],'Молодежь'],
     [['G','0'],'Туризм'],
-    [['G','-'],'Военнообязанные'],
-    [['G','='],'Перейти к разделу «Все новости»']
+    [['G','-'],'Военнообязанные']
   ]},
   {group:'Поиск и интерфейс', rows:[
     [['/'],'Фокус поиска'],
@@ -62,8 +62,8 @@ const KEYMAP = [
     [['Alt','A'],'Открыть настройки версии для слабовидящих']
   ]},
   {group:'Написание новостей', rows:[
-    [['G','E'],'Написать новость / предложить новость'],
-    [['E'],'Редактировать открытую новость / предложить изменение'],
+    [['G','E'],'Написать новость / предложить новость читателем'],
+    [['E'],'Редактировать открытую новость / предложить изменение читателем'],
     [['D'],'Удалить открытую новость (администратор)'],
     [['Ctrl','S'],'Сохранить изменения или предложение'],
     [['Ctrl','Enter'],'Опубликовать новость / отправить предложение редактору']
@@ -83,10 +83,23 @@ const KEYMAP = [
     [['E'],'Изменить свой выбранный комментарий'],
     [['R'],'Ответить на выбранный комментарий'],
     [['D'],'Удалить свой выбранный комментарий'],
-    [['B'],'Заблокировать автора выбранного комментария (администратор)'],
+    [['B'],'Заблокировать автора выбранного комментария (администратор / владелец)'],
     [['P'],'Открыть публичный профиль автора'],
     [['+'],'Положительная реакция'],
     [['-'],'Отрицательная реакция']
+  ]},
+  {group:'Редактор — всегда доступно', rows:[
+    [['G','M'],'Включить / выключить управление редактором'],
+    [['Ctrl','S'],'Сохранить изменения или предложение'],
+    [['Ctrl','Enter'],'Опубликовать новость / отправить предложение редактору']
+  ]},
+  {group:'Редактор — режим управления', rows:[
+    [['J / ↓'],'Следующий элемент редактора'],
+    [['K / ↑'],'Предыдущий элемент редактора'],
+    [['H / ←'],'Предыдущая кнопка панели редактора'],
+    [['L / →'],'Следующая кнопка панели редактора'],
+    [['Enter'],'Активировать выбранный элемент'],
+    [['I'],'Перейти к текстовому полю Markdown']
   ]},
   {group:'Редактор Markdown', rows:[
     [['Ctrl','B'],'Жирный текст'],
@@ -2213,7 +2226,7 @@ function handleGlobalKeydown(e){
     }
     if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
       const commands={
-        KeyN:openAllNews,KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyC:()=>window.toggleCommentKeyboardNavigation?.(),KeyE:()=>state.admin?openEditor(null):openEditor(null,'suggest'),
+        KeyN:openAllNews,KeyP:()=>openSection('profile'),KeyA:()=>openSection('about'),KeyC:()=>window.toggleCommentKeyboardNavigation?.(),KeyM:()=>window.toggleEditorKeyboardNavigation?.(),KeyE:()=>state.admin?openEditor(null):openEditor(null,'suggest'),
         Equal:openAllNews,
         Minus:()=>setCategory('Военнообязанные'),
         Digit1:()=>setCategory(CATEGORIES[0]),Digit2:()=>setCategory(CATEGORIES[1]),Digit3:()=>setCategory(CATEGORIES[2]),
@@ -2257,6 +2270,134 @@ function handleGlobalKeydown(e){
   }
   resetKeySequence();
 }
+/* Opt-in keyboard navigation for the desktop news editor. */
+(function(){
+  'use strict';
+  const controls=()=>[
+    document.querySelector('#editor-page #news-title-input'),
+    document.querySelector('#editor-page .editor-select-control[data-editor-select="category"] .editor-select-button'),
+    document.querySelector('#editor-page .editor-select-control[data-editor-select="author"] .editor-select-button'),
+    document.querySelector('#editor-page #news-summary-input'),
+    ...document.querySelectorAll('#editor-page .editor-tool'),
+    ...document.querySelectorAll('#editor-page .editor-mode'),
+    document.querySelector('#editor-page #news-image-input'),
+    document.querySelector('#editor-page #news-body-input'),
+    document.querySelector('#editor-page #editor-save-draft'),
+    document.querySelector('#editor-page #admin-save')
+  ].filter(Boolean);
+
+  const toolbarControls=()=>[...document.querySelectorAll('#editor-page .editor-tool,#editor-page .editor-mode')];
+
+  function sync(){
+    const list=controls();
+    if(!list.length){state.editorKeyboardIndex=-1;return;}
+    state.editorKeyboardIndex=Math.max(0,Math.min(state.editorKeyboardIndex<0?0:state.editorKeyboardIndex,list.length-1));
+    list.forEach((el,index)=>{
+      const selected=state.editorKeyboardEnabled&&index===state.editorKeyboardIndex;
+      el.classList.toggle('is-editor-keyboard-selected',selected);
+      el.setAttribute('aria-current',selected?'true':'false');
+    });
+    if(state.editorKeyboardEnabled){
+      list[state.editorKeyboardIndex]?.focus?.({preventScroll:true});
+      list[state.editorKeyboardIndex]?.scrollIntoView?.({block:'nearest',inline:'nearest',behavior:'auto'});
+    }
+  }
+
+  function select(delta){
+    const list=controls();
+    if(!list.length){showToast('В редакторе пока нет доступных элементов.');return;}
+    state.editorKeyboardIndex=(state.editorKeyboardIndex<0?0:state.editorKeyboardIndex)+delta;
+    if(state.editorKeyboardIndex<0)state.editorKeyboardIndex=list.length-1;
+    if(state.editorKeyboardIndex>=list.length)state.editorKeyboardIndex=0;
+    sync();
+  }
+
+  function selectToolbar(delta){
+    const list=toolbarControls();
+    if(!list.length)return;
+    const current=document.activeElement;
+    let idx=Math.max(0,list.indexOf(current));
+    idx=(idx+delta+list.length)%list.length;
+    const all=controls();
+    const globalIndex=all.indexOf(list[idx]);
+    state.editorKeyboardIndex=Math.max(0,globalIndex);
+    sync();
+  }
+
+  function activate(){
+    const el=controls()[state.editorKeyboardIndex];
+    if(!el)return;
+    if(el.matches('#news-body-input')){
+      el.focus();
+      return;
+    }
+    el.click?.();
+  }
+
+  function focusMarkdown(){
+    const body=document.querySelector('#editor-page #news-body-input');
+    if(!body)return false;
+    const list=controls(),idx=list.indexOf(body);
+    if(idx>=0)state.editorKeyboardIndex=idx;
+    body.focus();
+    sync();
+    return true;
+  }
+
+  window.toggleEditorKeyboardNavigation=()=>{
+    if(!state.admin||!['admin','owner'].includes(state.user?.profile?.role)||state.section!=='editor'){
+      showToast('Управление редактором с клавиатуры доступно в редакторе администратору или владельцу.');
+      return false;
+    }
+    state.editorKeyboardEnabled=!state.editorKeyboardEnabled;
+    state.editorKeyboardIndex=-1;
+    if(state.editorKeyboardEnabled){
+      sync();
+      showToast('Управление редактором с клавиатуры включено.');
+    }else{
+      controls().forEach(el=>el.classList.remove('is-editor-keyboard-selected'));
+      showToast('Управление редактором с клавиатуры выключено.');
+    }
+    return state.editorKeyboardEnabled;
+  };
+
+  document.addEventListener('keydown',event=>{
+    if(event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
+    if(state.section!=='editor'||!state.editorKeyboardEnabled||window.innerWidth<=860)return;
+    if(event.target?.closest?.('#whichkey-panel,dialog[open]'))return;
+    const code=event.code;
+    if(code==='KeyJ'||code==='ArrowDown'){
+      event.preventDefault();event.stopImmediatePropagation();select(1);return;
+    }
+    if(code==='KeyK'||code==='ArrowUp'){
+      event.preventDefault();event.stopImmediatePropagation();select(-1);return;
+    }
+    if(code==='KeyH'||code==='ArrowLeft'){
+      event.preventDefault();event.stopImmediatePropagation();selectToolbar(-1);return;
+    }
+    if(code==='KeyL'||code==='ArrowRight'){
+      event.preventDefault();event.stopImmediatePropagation();selectToolbar(1);return;
+    }
+    if(code==='Enter'){
+      event.preventDefault();event.stopImmediatePropagation();activate();return;
+    }
+    if(code==='KeyI'){
+      event.preventDefault();event.stopImmediatePropagation();focusMarkdown();return;
+    }
+  },true);
+
+  document.addEventListener('click',()=>{if(state.editorKeyboardEnabled&&state.section==='editor')requestAnimationFrame(sync);},true);
+  document.addEventListener('keydown',()=>{if(state.editorKeyboardEnabled&&state.section==='editor')queueMicrotask(sync);},true);
+
+  const boot=()=>{
+    const style=document.createElement('style');
+    style.id='editor-keyboard-navigation-style';
+    style.textContent='.is-editor-keyboard-selected{outline:2px solid var(--md-sys-color-primary);outline-offset:3px;box-shadow:none!important}';
+    document.head.appendChild(style);
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+
 function onMobileMenu(){
   const nav=$('.app-nav');
   const scrim=$('#mobile-scrim');
@@ -2419,10 +2560,15 @@ function initTouchGestures(){
   document.addEventListener('touchstart',e=>{
     if(!window.matchMedia?.('(max-width:860px)').matches)return;
     const t=e.changedTouches?.[0];if(!t)return;
-    const main=$('#main'),target=e.target,inMain=!!target?.closest?.('#main'),inDock=!!target?.closest?.('#mobile-dock');
-    if(!inMain&&!inDock)return;
+    const main=$('#main'),target=e.target;
+    const inMain=!!target?.closest?.('#main');
+    const inDock=!!target?.closest?.('#mobile-dock');
+    const inNav=!!target?.closest?.('.app-nav');
+    const inScrim=!!target?.closest?.('#mobile-scrim');
+    const inEditorField=!!target?.closest?.('#section-editor #news-body-input');
+    if(!inMain&&!inDock&&!inNav&&!inScrim)return;
     const ignored=ignoredTarget(target);
-    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,pullCandidate:inMain&&!inDock&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
+    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,inNav,inScrim,inEditorField,pullCandidate:inMain&&!inDock&&!inNav&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
   },{passive:true});
 
   document.addEventListener('touchmove',e=>{
@@ -2441,9 +2587,20 @@ function initTouchGestures(){
     const dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time,horizontal=Math.abs(dx)>Math.abs(dy)*1.2,quick=elapsed<1000;
     if(start.pulling){if(start.pullDistance>=pullThreshold){e.preventDefault();finishPullRefresh();}else setPullRefreshProgress(0,false);return;}
     if(!quick||Math.abs(dx)<threshold||!horizontal)return;
+    if(start.inEditorField&&state.section==='editor'){
+      const modes=['split','preview','edit'];
+      const current=Math.max(0,modes.indexOf(state.editor.mode));
+      const next=(current+(dx<0?1:-1)+modes.length)%modes.length;
+      e.preventDefault();
+      state.editor.mode=modes[next];
+      syncEditorMode();
+      showToast(modes[next]==='split'?'Два окна':modes[next]==='preview'?'Предпросмотр':'Markdown');
+      return;
+    }
     const nav=$('.app-nav');
     if(!nav?.classList.contains('is-open')&&start.x<=28&&dx>0){e.preventDefault();onMobileMenu();return;}
     if(nav?.classList.contains('is-open')&&dx<0){e.preventDefault();closeMobileMenu();return;}
+    if(start.inScrim&&nav?.classList.contains('is-open')&&dx<0){e.preventDefault();closeMobileMenu();return;}
     if(start.inDock){e.preventDefault();cyclePrimarySection(dx<0?1:-1);return;}
     if(start.ignored)return;
     if(state.section==='article'){
