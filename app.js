@@ -11,7 +11,7 @@ const state = {
   selectedNewsIndex:0, articleId:null, user:null, admin:false, authMode:'login',
   supabase:null, expandedHelp:false, keySequence:'', keySequenceTimer:null, leaderHeld:'',
   editor:{ id:null, mode:'edit', originalImageUrl:null, generatedPalette:null, imageObjectUrl:null, pendingCoverFile:null, authorId:null, suggestionMode:false, submissionId:null, draftId:null },
-  editorKeyboardEnabled:false, editorKeyboardIndex:-1,
+  editorKeyboardEnabled:false, editorKeyboardIndex:-1, lastEditableSpaceAt:0, lastEditableSpaceTarget:null,
   newsSuggestions:[],
   avatarCrop:{ file:null, img:null, zoom:1, rotation:0, x:0, y:0, dragging:false, lastX:0, lastY:0, blob:null },
   pendingAvatarBlob:null, sitePalette:null, activePalette:null, paletteContext:'neutral', paletteRequestId:0,
@@ -1027,7 +1027,7 @@ function toggleHelp(expanded=true){
   state.expandedHelp=expanded;
   panel.classList.toggle('is-expanded',expanded);
   panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
-  if(expanded){ panel.scrollTo({top:0,behavior:getMotionBehavior()}); $('#close-help')?.focus({preventScroll:true}); }
+  if(expanded){ const content=$('#whichkey-content'); content?.scrollTo({top:0,left:0,behavior:'auto'}); requestAnimationFrame(()=>content?.scrollTo({top:0,left:0,behavior:'auto'})); $('#close-help')?.focus({preventScroll:true}); }
 }
 
 function openAuth(mode='login'){ setAuthMode(mode); $('#auth-dialog').showModal(); setTimeout(()=>$('#auth-email').focus(),30); }
@@ -1615,7 +1615,15 @@ function bindEditorEvents(){
 
 }
 function syncEditorMode(animate=false){
-  $$('.editor-mode').forEach(btn=>btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode));
+  $$('.editor-mode').forEach(btn=>{
+    btn.classList.toggle('is-selected',btn.dataset.editorMode===state.editor.mode);
+    if(animate&&btn.dataset.editorMode===state.editor.mode){
+      btn.classList.remove('is-mode-switching');
+      void btn.offsetWidth;
+      btn.classList.add('is-mode-switching');
+      setTimeout(()=>btn.classList.remove('is-mode-switching'),280);
+    }
+  });
   const panes=$('#editor-panes');
   const input=$('.editor-pane-input');
   const preview=$('.editor-pane-preview');
@@ -1631,6 +1639,12 @@ function syncEditorMode(animate=false){
   if(mode==='split'&&mobile){
     input.style.setProperty('display','flex','important');
     preview.style.setProperty('display','block','important');
+  }
+  if(animate){
+    panes.classList.remove('is-mode-switching');
+    void panes.offsetWidth;
+    panes.classList.add('is-mode-switching');
+    setTimeout(()=>panes.classList.remove('is-mode-switching'),280);
   }
 }
 function markdownValue(){ return $('#news-body-input')?.value||''; }
@@ -1699,7 +1713,7 @@ function handleMarkdownKeydown(e){
     if(code==='KeyS'){e.preventDefault();saveEditorNews();}
     if(code==='Enter'){e.preventDefault();saveEditorNews();}
   }
-  if(e.key==='Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey){e.preventDefault(); insertAtCursor('  ');}
+  if(e.key==='Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !state.editorKeyboardEnabled){e.preventDefault(); insertAtCursor('  ');}
 }
 
 function renderMarkdownPreview(){
@@ -2202,6 +2216,29 @@ function handleGlobalKeydown(e){
   if((e.ctrlKey||e.metaKey)&&code==='KeyS'&&state.section==='editor'){e.preventDefault();saveEditorNews();return;}
 
   if(isEditable){
+    const rapidEditableHelp=e.code==='Slash'||e.key==='/';
+    if(rapidEditableHelp&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&state.lastEditableSpaceTarget===target&&Date.now()-state.lastEditableSpaceAt<650){
+      if((target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement)&&typeof target.selectionStart==='number'){
+        const pos=target.selectionStart;
+        if(pos>0&&target.value[pos-1]===' '){
+          target.value=target.value.slice(0,pos-1)+target.value.slice(pos);
+          target.setSelectionRange(pos-1,pos-1);
+          target.dispatchEvent(new Event('input',{bubbles:true}));
+        }
+      }
+      e.preventDefault();
+      state.lastEditableSpaceAt=0;
+      state.lastEditableSpaceTarget=null;
+      toggleHelp(!state.expandedHelp);
+      return;
+    }
+    if(code==='Space'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      state.lastEditableSpaceAt=Date.now();
+      state.lastEditableSpaceTarget=target;
+    }else if(code!=='Slash'&&e.key!=='/'){
+      state.lastEditableSpaceAt=0;
+      state.lastEditableSpaceTarget=null;
+    }
     handleEditableKeydown(e);
     if(code==='Escape'&&target.id==='news-search'){e.preventDefault();target.blur();}
     return;
@@ -2210,10 +2247,28 @@ function handleGlobalKeydown(e){
   if(e.altKey&&!e.ctrlKey&&!e.metaKey&&code==='KeyA'){e.preventDefault();openAccessibilitySettings();return;}
 
   if(state.expandedHelp){
+    const helpContent=$('#whichkey-content');
     if(code==='Escape'){e.preventDefault();toggleHelp(false);return;}
-    if(code==='PageDown'||code==='ArrowDown'||code==='KeyJ'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageDown'?panel.clientHeight*.85:180,behavior:getMotionBehavior()});return;}
-    if(code==='PageUp'||code==='ArrowUp'||code==='KeyK'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollBy({top:code==='PageUp'?-panel.clientHeight*.85:-180,behavior:getMotionBehavior()});return;}
-    if(code==='End'){e.preventDefault();const panel=$('#whichkey-panel');panel?.scrollTo({top:panel.scrollHeight,behavior:getMotionBehavior()});return;}
+    if(code==='PageDown'||code==='ArrowDown'||code==='KeyJ'){
+      e.preventDefault();
+      helpContent?.scrollBy({top:code==='PageDown'?helpContent.clientHeight*.84:150,behavior:getMotionBehavior()});
+      return;
+    }
+    if(code==='PageUp'||code==='ArrowUp'||code==='KeyK'){
+      e.preventDefault();
+      helpContent?.scrollBy({top:code==='PageUp'?-helpContent.clientHeight*.84:-150,behavior:getMotionBehavior()});
+      return;
+    }
+    if(code==='End'){
+      e.preventDefault();
+      helpContent?.scrollTo({top:helpContent.scrollHeight,behavior:getMotionBehavior()});
+      return;
+    }
+    if(code==='Home'){
+      e.preventDefault();
+      helpContent?.scrollTo({top:0,behavior:getMotionBehavior()});
+      return;
+    }
   }
 
   if(code==='Escape'&&!e.ctrlKey&&!e.metaKey){
@@ -2281,6 +2336,7 @@ function handleGlobalKeydown(e){
 /* Opt-in keyboard navigation for the desktop news editor. */
 (function(){
   'use strict';
+  const visible=el=>!!el&&!el.disabled&&(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
   const controls=()=>[
     document.querySelector('#editor-page #news-title-input'),
     document.querySelector('#editor-page .editor-select-control[data-editor-select="category"] .editor-select-button'),
@@ -2292,7 +2348,7 @@ function handleGlobalKeydown(e){
     document.querySelector('#editor-page #news-body-input'),
     document.querySelector('#editor-page #editor-save-draft'),
     document.querySelector('#editor-page #admin-save')
-  ].filter(Boolean);
+  ].filter(visible);
 
   const toolbarControls=()=>[...document.querySelectorAll('#editor-page .editor-tool,#editor-page .editor-mode')];
 
@@ -2376,8 +2432,14 @@ function handleGlobalKeydown(e){
     if(event.target?.closest?.('#whichkey-panel,dialog[open]'))return;
     const target=event.target;
     const editable=target?.matches?.('input,textarea,select,[contenteditable="true"]');
-    if(editable)return;
     const code=event.code;
+    if((code==='Tab'||code==='NumpadTab')&&!event.ctrlKey&&!event.metaKey&&!event.altKey){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      select(event.shiftKey?-1:1);
+      return;
+    }
+    if(editable)return;
     if(code==='KeyJ'||code==='ArrowDown'){
       event.preventDefault();event.stopImmediatePropagation();select(1);return;
     }
@@ -2517,7 +2579,10 @@ function bindGlobalEvents(){
     const btn=e.target.closest('[data-section]');
     if(btn){
       openSection(btn.dataset.section);
-       requestAnimationFrame(()=>syncPrimaryNavigation(btn.dataset.section));
+       requestAnimationFrame(()=>{
+         syncPrimaryNavigation(btn.dataset.section);
+         animateMobileDockItem(btn.dataset.section);
+       });
        scrollMainToTop('auto');
     }
   });
@@ -2548,14 +2613,26 @@ function bindGlobalEvents(){
 }
 
 function primarySectionFromState(section){return getPrimaryNavSection(section);}
-function cyclePrimarySection(delta){
+function animateMobileDockItem(section){
+  if(!window.matchMedia?.('(max-width:860px)').matches)return;
+  const item=document.querySelector('#mobile-dock .mobile-dock-item[data-section="'+CSS.escape(section)+'"]');
+  if(!item)return;
+  item.classList.remove('is-dock-activating');
+  void item.offsetWidth;
+  item.classList.add('is-dock-activating');
+  setTimeout(()=>item.classList.remove('is-dock-activating'),280);
+}
+function cyclePrimarySection(delta,animate=true){
   const sections=['news','profile','about'];
   const current=primarySectionFromState(state.section);
   const index=Math.max(0,sections.indexOf(current));
   const targetIndex=index+delta;
   if(targetIndex<0||targetIndex>=sections.length)return false;
   const target=sections[targetIndex];
-  if(target!==current)openSection(target);
+  if(target!==current){
+    openSection(target);
+    if(animate)requestAnimationFrame(()=>animateMobileDockItem(target));
+  }
   return target!==current;
 }
 function ensurePullRefreshIndicator(){
@@ -2576,7 +2653,7 @@ function finishPullRefresh(){
 }
 function initTouchGestures(){
   if(!('ontouchstart' in window)&&!navigator.maxTouchPoints)return;
-  const threshold=64,pullThreshold=96;let touchStart=null;
+  const threshold=48,pullThreshold=96;let touchStart=null;
   const ignoredTarget=target=>!!target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],pre,.md-table-wrap,.mobile-category-scroll,.crop-stage-wrap');
 
   document.addEventListener('touchstart',e=>{
@@ -2610,7 +2687,7 @@ function initTouchGestures(){
     if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
     const start=touchStart;const t=e.changedTouches?.[0];touchStart=null;
     if(!t){setPullRefreshProgress(0,false);return;}
-    const dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time,horizontal=Math.abs(dx)>Math.abs(dy)*1.2,quick=elapsed<1000;
+    const dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time,horizontal=Math.abs(dx)>Math.abs(dy)*1.2,quick=elapsed<1400;
     if(start.pulling){if(start.pullDistance>=pullThreshold){e.preventDefault();finishPullRefresh();}else setPullRefreshProgress(0,false);return;}
     if(!quick||Math.abs(dx)<threshold||!horizontal)return;
     if(start.inEditorField&&state.section==='editor'){
