@@ -126,3 +126,163 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
     }catch(error){ console.error('Community initial render enhancement failed:',error); }
   }
 })();
+
+/* Keyboard navigation for article comments. The existing comment actions remain
+   mouse-accessible; this layer adds a Vim-like selection model on top. */
+(function(){
+  'use strict';
+  let selectedCommentId=null;
+  let selectedActionIndex=-1;
+  let observedRoot=null;
+  let observer=null;
+
+  const $=(s,r=document)=>r.querySelector(s);
+  const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const comments=()=>$$('#article-page .community-comments .community-comment');
+  const currentComment=()=>{
+    const list=comments();
+    if(!list.length)return null;
+    return list.find(x=>String(x.dataset.commentId)===String(selectedCommentId))||list[0];
+  };
+  const actionsFor=comment=>comment?[...comment.querySelectorAll('[data-comment-reply],[data-comment-edit],[data-comment-delete],[data-comment-ban]')].filter(x=>!x.disabled):[];
+
+  function show(message){window.showToast?.(message);}
+
+  function syncSelection({focus=true,scroll=true}={}){
+    const list=comments();
+    if(!list.length){selectedCommentId=null;selectedActionIndex=-1;return null;}
+    let current=list.find(x=>String(x.dataset.commentId)===String(selectedCommentId));
+    if(!current){current=list[0];selectedCommentId=current.dataset.commentId;selectedActionIndex=-1;}
+    list.forEach(x=>{
+      const on=String(x.dataset.commentId)===String(selectedCommentId);
+      x.classList.toggle('is-keyboard-selected',on);
+      x.setAttribute('aria-selected',String(on));
+      x.tabIndex=on?0:-1;
+    });
+    const actions=actionsFor(current);
+    if(selectedActionIndex>=actions.length)selectedActionIndex=Math.max(-1,actions.length-1);
+    actions.forEach((button,index)=>button.classList.toggle('is-keyboard-selected',selectedActionIndex===index));
+    if(focus){
+      const target=selectedActionIndex>=0?actions[selectedActionIndex]:current;
+      target?.focus?.({preventScroll:true});
+    }
+    if(scroll)current.scrollIntoView?.({block:'nearest',inline:'nearest',behavior:typeof getMotionBehavior==='function'?getMotionBehavior(): 'smooth'});
+    return current;
+  }
+
+  function selectComment(delta){
+    const list=comments();
+    if(!list.length){show('В этой статье нет комментариев.');return;}
+    const currentIndex=Math.max(0,list.findIndex(x=>String(x.dataset.commentId)===String(selectedCommentId)));
+    const next=Math.max(0,Math.min(list.length-1,(selectedCommentId?currentIndex:0)+delta));
+    if(!selectedCommentId)selectedActionIndex=-1;
+    selectedCommentId=list[next].dataset.commentId;
+    if(next!==currentIndex)selectedActionIndex=-1;
+    syncSelection({focus:true,scroll:true});
+  }
+
+  function selectAction(delta){
+    const comment=currentComment();
+    if(!comment){show('Комментариев нет.');return;}
+    const actions=actionsFor(comment);
+    if(!actions.length){show('Для этого комментария нет доступных кнопок управления.');return;}
+    const start=selectedActionIndex<0?0:selectedActionIndex;
+    selectedActionIndex=(start+delta+actions.length)%actions.length;
+    syncSelection({focus:true,scroll:false});
+  }
+
+  function activateSelectedAction(){
+    const comment=currentComment();
+    if(!comment)return;
+    const actions=actionsFor(comment);
+    if(selectedActionIndex>=0&&actions[selectedActionIndex]){
+      actions[selectedActionIndex].click();
+      return true;
+    }
+    const reply=comment.querySelector('[data-comment-reply]');
+    if(reply){reply.click();return true;}
+    return false;
+  }
+
+  function focusComposer(){
+    const input=$('#article-page .community-comments [data-community-composer] textarea');
+    if(input){input.focus();return true;}
+    if(typeof window.openAuth==='function'){window.openAuth('login');return true;}
+    show('Чтобы оставить комментарий, войдите в аккаунт.');
+    return false;
+  }
+
+  function activateCommentAction(selector,message){
+    const comment=currentComment();
+    if(!comment)return false;
+    const button=comment.querySelector(selector);
+    if(!button){if(message)show(message);return false;}
+    button.click();
+    return true;
+  }
+
+  function ensureObserver(){
+    const root=$('#article-page');
+    if(!root||root===observedRoot)return;
+    observer?.disconnect();
+    observedRoot=root;
+    observer=new MutationObserver(()=>{
+      if(comments().length){
+        syncSelection({focus:false,scroll:false});
+      }
+    });
+    observer.observe(root,{childList:true,subtree:true});
+    if(comments().length)syncSelection({focus:false,scroll:false});
+  }
+
+  document.addEventListener('keydown',event=>{
+    ensureObserver();
+    const article=document.querySelector('#article-page .community-comments');
+    if(!article||!comments().length)return;
+    if(event.isComposing||event.ctrlKey||event.metaKey||event.altKey)return;
+    const target=event.target;
+    const editable=target?.matches?.('input,textarea,select,[contenteditable="true"]');
+    if(editable)return;
+
+    const code=event.code;
+    const key=event.key;
+    const comment=currentComment();
+    const selected=!!comment&&comment.classList.contains('is-keyboard-selected');
+
+    if(code==='KeyJ'||code==='ArrowDown'){
+      event.preventDefault();event.stopImmediatePropagation();selectComment(1);return;
+    }
+    if(code==='KeyK'||code==='ArrowUp'){
+      event.preventDefault();event.stopImmediatePropagation();selectComment(-1);return;
+    }
+    if(code==='KeyH'||code==='ArrowLeft'){
+      event.preventDefault();event.stopImmediatePropagation();selectAction(-1);return;
+    }
+    if(code==='KeyL'||code==='ArrowRight'){
+      event.preventDefault();event.stopImmediatePropagation();selectAction(1);return;
+    }
+    if(code==='Enter'&&selected){
+      event.preventDefault();event.stopImmediatePropagation();activateSelectedAction();return;
+    }
+    if(code==='KeyI'){event.preventDefault();event.stopImmediatePropagation();focusComposer();return;}
+    if(code==='KeyE'&&selected){if(activateCommentAction('[data-comment-edit]','Изменять можно только свой комментарий.')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    if(code==='KeyR'&&selected){if(activateCommentAction('[data-comment-reply]')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    if(code==='KeyD'&&selected){if(activateCommentAction('[data-comment-delete]','Удаление доступно только для своего комментария или модерации.')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    if(code==='KeyB'&&selected){if(activateCommentAction('[data-comment-ban]','Блокировка доступна только администратору или владельцу.')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    if(code==='KeyP'&&selected){if(activateCommentAction('.community-profile-link')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    if((code==='Equal'||code==='NumpadAdd')&&event.shiftKey&&selected){if(activateCommentAction('[data-comment-up]')){event.preventDefault();event.stopImmediatePropagation();}return;}
+    if((code==='Minus'||code==='NumpadSubtract')&&selected){if(activateCommentAction('[data-comment-down]')){event.preventDefault();event.stopImmediatePropagation();}return;}
+  },true);
+
+  function addStyle(){
+    if($('#community-keyboard-style'))return;
+    const style=document.createElement('style');style.id='community-keyboard-style';style.textContent=
+      '.community-comment.is-keyboard-selected{outline:2px solid var(--md-sys-color-primary);outline-offset:3px}\n'+
+      '.community-comment-action.is-keyboard-selected,.community-vote-button.is-keyboard-selected{outline:2px solid var(--md-sys-color-primary);outline-offset:2px}\n'+
+      '.community-comment[aria-selected="false"]{outline-color:transparent}';
+    document.head.appendChild(style);
+  }
+
+  const boot=()=>{addStyle();ensureObserver();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
