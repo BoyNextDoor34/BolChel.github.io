@@ -1037,6 +1037,38 @@ function toggleHelp(expanded=true){
   if(expanded){ const content=$('#whichkey-content'); content?.scrollTo({top:0,left:0,behavior:'auto'}); requestAnimationFrame(()=>content?.scrollTo({top:0,left:0,behavior:'auto'})); $('#close-help')?.focus({preventScroll:true}); }
 }
 
+function toggleMobileGestureHelp(open=true){
+  if(!window.matchMedia?.('(max-width:860px)').matches)return;
+  const panel=$('#mobile-gesture-panel');
+  const trigger=$('#mobile-gesture-help');
+  if(!panel)return;
+  const expanded=!!open;
+  panel.classList.toggle('is-open',expanded);
+  panel.setAttribute('aria-hidden',expanded?'false':'true');
+  trigger?.setAttribute('aria-expanded',expanded?'true':'false');
+  trigger?.classList.toggle('is-open',expanded);
+  trigger?.classList.remove('is-hidden');
+  if(expanded){
+    $('#mobile-gesture-content')?.scrollTo({top:0,left:0,behavior:'auto'});
+    requestAnimationFrame(()=>$('#mobile-gesture-close')?.focus({preventScroll:true}));
+  }else{
+    requestAnimationFrame(()=>trigger?.focus({preventScroll:true}));
+  }
+}
+
+function initMobileGestureHelp(){
+  const trigger=$('#mobile-gesture-help');
+  const panel=$('#mobile-gesture-panel');
+  const close=$('#mobile-gesture-close');
+  if(!trigger||!panel)return;
+  trigger.addEventListener('click',()=>toggleMobileGestureHelp(!panel.classList.contains('is-open')));
+  close?.addEventListener('click',()=>toggleMobileGestureHelp(false));
+  panel.addEventListener('click',e=>{if(e.target===panel)toggleMobileGestureHelp(false);});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&panel.classList.contains('is-open'))toggleMobileGestureHelp(false);
+  });
+}
+
 function openAuth(mode='login'){ setAuthMode(mode); $('#auth-dialog').showModal(); setTimeout(()=>$('#auth-email').focus(),30); }
 function setAuthMode(mode){
   state.authMode=mode;
@@ -2732,6 +2764,7 @@ function bindGlobalEvents(){
   }
 
   try{
+    initMobileGestureHelp();
     initTouchGestures();
   }catch(error){
     console.error('Touch gestures initialization failed:',error);
@@ -2779,7 +2812,7 @@ function finishPullRefresh(){
 }
 function initTouchGestures(){
   if(!('ontouchstart' in window)&&!navigator.maxTouchPoints)return;
-  const threshold=48,pullThreshold=96;let touchStart=null;
+  const threshold=48,pullThreshold=96,edgeZone=34;let touchStart=null;
   const ignoredTarget=target=>!!target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],pre,.md-table-wrap,.mobile-category-scroll,.crop-stage-wrap');
 
   document.addEventListener('touchstart',e=>{
@@ -2790,17 +2823,25 @@ function initTouchGestures(){
     const inDock=!!target?.closest?.('#mobile-dock');
     const inNav=!!target?.closest?.('.app-nav');
     const inScrim=!!target?.closest?.('#mobile-scrim');
+    const inGesturePanel=!!target?.closest?.('#mobile-gesture-panel');
+    const inGestureSheet=!!target?.closest?.('.mobile-gesture-sheet');
     const inEditorField=!!target?.closest?.('#section-editor #editor-panes');
-    if(!inMain&&!inDock&&!inNav&&!inScrim)return;
     const ignored=ignoredTarget(target);
-    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,inNav,inScrim,inEditorField,editorSwipeLocked:false,pullCandidate:inMain&&!inDock&&!inNav&&!ignored&&main?.scrollTop<=2,pullDistance:0,pulling:false};
+    const edgeGestureCandidate=t.clientX>=window.innerWidth-edgeZone&&!inGesturePanel;
+    if(!inMain&&!inDock&&!inNav&&!inScrim&&!inGesturePanel&&!edgeGestureCandidate)return;
+    touchStart={x:t.clientX,y:t.clientY,time:Date.now(),ignored,inDock,inNav,inScrim,inGesturePanel,inGestureSheet,inEditorField,edgeGestureCandidate,editorSwipeLocked:false,gestureSwipeLocked:false,pullCandidate:inMain&&!inDock&&!inNav&&!ignored&&!edgeGestureCandidate&&main?.scrollTop<=2,pullDistance:0,pulling:false};
   },{passive:true});
 
   document.addEventListener('touchmove',e=>{
     if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
     const t=e.changedTouches?.[0];if(!t)return;
     const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
-    if(touchStart.inEditorField&&!touchStart.editorSwipeLocked&&Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.08){
+    const horizontal=Math.abs(dx)>Math.abs(dy)*1.08;
+    if((touchStart.edgeGestureCandidate||touchStart.inGestureSheet)&&!touchStart.gestureSwipeLocked&&Math.abs(dx)>10&&horizontal){
+      touchStart.gestureSwipeLocked=true;
+      e.preventDefault();
+    }
+    if(touchStart.inEditorField&&!touchStart.editorSwipeLocked&&Math.abs(dx)>12&&horizontal){
       touchStart.editorSwipeLocked=true;
       e.preventDefault();
     }
@@ -2813,8 +2854,18 @@ function initTouchGestures(){
     if(!touchStart||!window.matchMedia?.('(max-width:860px)').matches)return;
     const start=touchStart;const t=e.changedTouches?.[0];touchStart=null;
     if(!t){setPullRefreshProgress(0,false);return;}
-    const dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time,horizontal=Math.abs(dx)>Math.abs(dy)*1.2,quick=elapsed<1400;
+    const dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time,horizontal=Math.abs(dx)>Math.abs(dy)*1.08,quick=elapsed<1400;
     if(start.pulling){if(start.pullDistance>=pullThreshold){e.preventDefault();finishPullRefresh();}else setPullRefreshProgress(0,false);return;}
+
+    if(start.inGesturePanel&&quick&&Math.abs(dx)>=threshold&&horizontal){
+      if(dx>0){e.preventDefault();toggleMobileGestureHelp(false);}
+      return;
+    }
+
+    if(start.edgeGestureCandidate&&quick&&dx<=-threshold&&horizontal){
+      e.preventDefault();toggleMobileGestureHelp(true);return;
+    }
+
     if(!quick||Math.abs(dx)<threshold||!horizontal)return;
     if(start.inEditorField&&state.section==='editor'){
       const modes=['split','edit','preview'];
