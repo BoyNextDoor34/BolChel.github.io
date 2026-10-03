@@ -41,6 +41,7 @@ const KEYMAP = [
   ]},
   {group:'Разделы и страницы', rows:[
     [['G','N'],'Новости'],
+    [['G','='],'Перейти к разделу «Все новости»'],
     [['G','P'],'Профиль'],
     [['G','A'],'О нас'],
     [['G','1'],'Политика'],
@@ -98,6 +99,8 @@ const KEYMAP = [
     [['K / ↑'],'Предыдущий элемент редактора'],
     [['H / ←'],'Предыдущая кнопка панели редактора'],
     [['L / →'],'Следующая кнопка панели редактора'],
+    [['Tab'],'Следующий элемент редактора'],
+    [['Shift','Tab'],'Предыдущий элемент редактора'],
     [['Enter'],'Активировать выбранный элемент'],
     [['I'],'Перейти к текстовому полю Markdown']
   ]},
@@ -106,8 +109,7 @@ const KEYMAP = [
     [['Ctrl','I'],'Курсив'],
     [['Ctrl','K'],'Добавить ссылку'],
     [['Ctrl','Shift','7'],'Нумерованный список'],
-    [['Ctrl','Shift','8'],'Маркированный список'],
-    [['Tab'],'Увеличить отступ']
+    [['Ctrl','Shift','8'],'Маркированный список']
   ]}
 ];
 
@@ -1713,7 +1715,7 @@ function handleMarkdownKeydown(e){
     if(code==='KeyS'){e.preventDefault();saveEditorNews();}
     if(code==='Enter'){e.preventDefault();saveEditorNews();}
   }
-  if(e.key==='Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !state.editorKeyboardEnabled){e.preventDefault(); insertAtCursor('  ');}
+
 }
 
 function renderMarkdownPreview(){
@@ -2251,22 +2253,22 @@ function handleGlobalKeydown(e){
     if(code==='Escape'){e.preventDefault();toggleHelp(false);return;}
     if(code==='PageDown'||code==='ArrowDown'||code==='KeyJ'){
       e.preventDefault();
-      helpContent?.scrollBy({top:code==='PageDown'?helpContent.clientHeight*.84:150,behavior:getMotionBehavior()});
+      helpContent?.scrollBy({top:code==='PageDown'?helpContent.clientHeight*.84:150,left:0,behavior:'auto'});
       return;
     }
     if(code==='PageUp'||code==='ArrowUp'||code==='KeyK'){
       e.preventDefault();
-      helpContent?.scrollBy({top:code==='PageUp'?-helpContent.clientHeight*.84:-150,behavior:getMotionBehavior()});
+      helpContent?.scrollBy({top:code==='PageUp'?-helpContent.clientHeight*.84:-150,left:0,behavior:'auto'});
       return;
     }
     if(code==='End'){
       e.preventDefault();
-      helpContent?.scrollTo({top:helpContent.scrollHeight,behavior:getMotionBehavior()});
+      helpContent?.scrollTo({top:helpContent.scrollHeight,left:0,behavior:'auto'});
       return;
     }
     if(code==='Home'){
       e.preventDefault();
-      helpContent?.scrollTo({top:0,behavior:getMotionBehavior()});
+      helpContent?.scrollTo({top:0,left:0,behavior:'auto'});
       return;
     }
   }
