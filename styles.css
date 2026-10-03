@@ -446,15 +446,11 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   box-sizing:border-box;
   overflow:hidden;
   padding:0;
-  background:
-    linear-gradient(135deg,
-      color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-surface) 82%) 0%,
-      color-mix(in srgb,var(--md-sys-color-secondary) 12%,var(--md-sys-color-surface-container) 88%) 50%,
-      color-mix(in srgb,var(--md-sys-color-tertiary) 15%,var(--md-sys-color-surface-container-low) 85%) 100%);
+  background:var(--md-sys-color-surface-container);
   color:var(--md-sys-color-on-surface);
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
+  border:1px solid var(--md-sys-color-outline-variant);
   border-radius:26px;
-  box-shadow:0 20px 54px color-mix(in srgb,#000 28%,transparent);
+  box-shadow:0 20px 54px color-mix(in srgb,#000 22%,transparent);
   overscroll-behavior:contain;
 }
 .whichkey-panel::before{
@@ -462,8 +458,8 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   position:fixed;
   inset:-100vmax;
   z-index:-1;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 12%,#000 34%,transparent);
-  backdrop-filter:blur(10px) saturate(.92);
+  background:color-mix(in srgb,#000 38%,transparent);
+  backdrop-filter:blur(8px);
   pointer-events:none;
 }
 .whichkey-panel .whichkey-header{
@@ -477,8 +473,8 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   margin:0;
   padding:10px 18px;
   box-sizing:border-box;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container));
-  border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
+  background:var(--md-sys-color-surface-container);
+  border-bottom:1px solid var(--md-sys-color-outline-variant);
   z-index:2;
 }
 .whichkey-title{
@@ -493,9 +489,9 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   display:grid;
   place-items:center;
   flex:0 0 36px;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant));
+  border:1px solid var(--md-sys-color-outline-variant);
   border-radius:10px;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-high));
+  background:var(--md-sys-color-surface-container-high);
   color:var(--md-sys-color-primary);
   font-size:19px;
 }
@@ -532,8 +528,8 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   min-width:30px;
   min-height:28px;
   padding:4px 7px;
-  border-color:color-mix(in srgb,var(--md-sys-color-primary) 35%,var(--md-sys-color-outline));
-  background:color-mix(in srgb,var(--md-sys-color-primary) 9%,var(--md-sys-color-surface));
+  border-color:var(--md-sys-color-outline);
+  background:var(--md-sys-color-surface);
   font-size:11px;
 }
 .whichkey-panel .whichkey-header .icon-button{
@@ -581,9 +577,9 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   min-width:0;
   padding:0;
   margin:0;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+  border:1px solid var(--md-sys-color-outline-variant);
   border-radius:14px;
-  background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 98%,var(--md-sys-color-primary) 2%);
+  background:var(--md-sys-color-surface-container-low);
   overflow:hidden;
 }
 .key-group-title{
@@ -594,9 +590,9 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
   min-height:38px;
   box-sizing:border-box;
   padding:8px 10px;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-high));
+  background:var(--md-sys-color-surface-container-high);
   color:var(--md-sys-color-on-surface);
-  border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-outline-variant));
+  border-bottom:1px solid var(--md-sys-color-outline-variant);
   font-size:10px;
   line-height:1.2;
   font-weight:750;
@@ -606,10 +602,10 @@ code, pre, kbd { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .key-group-count{
   flex:0 0 auto;
   padding:2px 6px;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+  border:1px solid var(--md-sys-color-outline-variant);
   border-radius:999px;
   color:var(--md-sys-color-on-surface-variant);
-  background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container));
+  background:var(--md-sys-color-surface-container);
   font-size:9px;
   font-weight:700;
   letter-spacing:0;
@@ -653,7 +649,7 @@ kbd{
   border:1px solid var(--md-sys-color-outline);
   border-bottom-width:2px;
   border-radius:7px;
-  background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface));
+  background:var(--md-sys-color-surface);
   color:var(--md-sys-color-on-surface);
   font:650 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
   box-sizing:border-box;
