@@ -625,6 +625,7 @@
       window.showToast(text);
     }
     window.dispatchEvent(new CustomEvent('interface-language-change',{detail:{code}}));
+    window.__communityRefreshLocalizedProfileData?.();
     return true;
   }
 
