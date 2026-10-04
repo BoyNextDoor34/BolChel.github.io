@@ -393,6 +393,7 @@
     '.news-title','.news-summary','.article-markdown','.article-lead',
     '.profile-name','.profile-bio','.community-comment-body',
     '.management-suggestion-title','.saved-draft-title','.profile-management-card-title',
+    '.community-public-publication-content h2','.community-public-publication-content h3','.community-public-publication-content p',
     '[data-user-content]'
   ].join(',');
 
@@ -402,7 +403,7 @@
   const attrBindings=new WeakMap();
   const trackedTextNodes=new Set();
   const trackedElements=new Set();
-  const richBindings=new WeakMap();
+  const trackedRichElements=new Set();
 
   const normalize=value=>String(value??'').replace(/\s+/g,' ').trim();
   const locale=()=>LANGUAGES[current]?.locale||'ru-RU';
@@ -498,7 +499,7 @@
   }
 
   function isProtected(node){
-    const el=node?.nodeType===Node.TEXT_NODE?node:node;
+    const el=node?.nodeType===Node.TEXT_NODE?node.parentElement:node;
     return !!el?.closest?.(userContentSelector);
   }
 
@@ -552,17 +553,18 @@
     en:'Supported: <code># headings</code>, <code>**bold**</code>, <code>*italic*</code>, <code>~~strike~~</code>, <code>&#96;code&#96;</code> blocks, quotes <code>&gt;</code>, lists, <code>[links](url)</code>, <code>![images](url)</code>, tables, and <code>---</code>. The editor saves the draft locally.'
   };
 
+  function applyRich(el){
+    if(!el)return;
+    const html=markdownHelpHtml[current]||markdownHelpHtml.ru;
+    if(el.innerHTML!==html)el.innerHTML=html;
+    trackedRichElements.add(el);
+  }
+
   function translateRich(root=document.body){
     const elements=[];
     if(root?.nodeType===Node.ELEMENT_NODE&&root.matches?.('.markdown-help'))elements.push(root);
     if(root?.querySelectorAll)elements.push(...root.querySelectorAll('.markdown-help'));
-    for(const el of elements){
-      const html=markdownHelpHtml[current]||markdownHelpHtml.ru;
-      if(el.innerHTML!==html){
-        richBindings.set(el,true);
-        el.innerHTML=html;
-      }
-    }
+    elements.forEach(applyRich);
   }
 
   function translateTree(root=document.body){
@@ -578,9 +580,10 @@
   function refreshTracked(){
     trackedTextNodes.forEach(node=>{if(!node.isConnected)trackedTextNodes.delete(node);});
     trackedElements.forEach(el=>{if(!el.isConnected)trackedElements.delete(el);});
+    trackedRichElements.forEach(el=>{if(!el.isConnected)trackedRichElements.delete(el);});
     trackedTextNodes.forEach(translateTextNode);
     trackedElements.forEach(el=>translateAttributes(el));
-    translateRich(document.body);
+    trackedRichElements.forEach(applyRich);
   }
 
   function closeLanguageMenu(){
