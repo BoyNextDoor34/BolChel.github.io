@@ -16,7 +16,44 @@
   const roleBadge=r=>'<span class="community-role-badge community-role-'+esc(r)+'"><span class="material-symbols-rounded">'+(icons[r]||icons.reader)+'</span>'+esc(roles[r]||roles.reader)+'</span>';
   const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'Дата неизвестна':d.toLocaleDateString(window.getInterfaceLocale?.() || 'ru-RU',{day:'numeric',month:'long',year:'numeric'});};
   const plural=(n,a,b,c)=>{const x=Math.abs(n)%100,y=x%10;return x>=11&&x<=14?c:y===1?a:y>=2&&y<=4?b:c;};
-  function age(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return'—';const n=new Date();let y=n.getFullYear()-d.getFullYear(),m=n.getMonth()-d.getMonth(),day=n.getDate()-d.getDate();if(day<0){m--;day+=new Date(n.getFullYear(),n.getMonth(),0).getDate();}if(m<0){y--;m+=12;}if(y)return y+' '+plural(y,'год','года','лет')+(m?' '+m+' '+plural(m,'месяц','месяца','месяцев'):'');if(m)return m+' '+plural(m,'месяц','месяца','месяцев');return day?day+' '+plural(day,'день','дня','дней'):'меньше суток';}
+  function localizedUnit(unit,count){
+    const lang=window.getInterfaceLanguage?.()||document.documentElement.dataset.language||'ru';
+    const n=Math.abs(Number(count)||0);
+    if(lang==='en'){
+      const labels={year:['year','years'],month:['month','months'],day:['day','days']};
+      return n===1?labels[unit][0]:labels[unit][1];
+    }
+    if(lang==='be'){
+      const mod10=n%10,mod100=n%100;
+      const forms={
+        year:mod10===1&&mod100!==11?'год':mod10>=2&&mod10<=4&&(mod100<12||mod100>14)?'гады':'гадоў',
+        month:mod10===1&&mod100!==11?'месяц':mod10>=2&&mod10<=4&&(mod100<12||mod100>14)?'месяцы':'месяцаў',
+        day:mod10===1&&mod100!==11?'дзень':mod10>=2&&mod10<=4&&(mod100<12||mod100>14)?'дні':'дзён'
+      };
+      return forms[unit];
+    }
+    if(unit==='year')return plural(n,'год','года','лет');
+    if(unit==='month')return plural(n,'месяц','месяца','месяцев');
+    return plural(n,'день','дня','дней');
+  }
+  function formatAge(v){
+    const d=new Date(v);
+    if(Number.isNaN(d.getTime()))return'—';
+    const n=new Date();
+    let y=n.getFullYear()-d.getFullYear(),m=n.getMonth()-d.getMonth(),day=n.getDate()-d.getDate();
+    if(day<0){m--;day+=new Date(n.getFullYear(),n.getMonth(),0).getDate();}
+    if(m<0){y--;m+=12;}
+    const lang=window.getInterfaceLanguage?.()||document.documentElement.dataset.language||'ru';
+    if(y>0){
+      const parts=[y+' '+localizedUnit('year',y)];
+      if(m>0)parts.push(m+' '+localizedUnit('month',m));
+      return parts.join(' ');
+    }
+    if(m>0)return m+' '+localizedUnit('month',m);
+    if(day>0)return day+' '+localizedUnit('day',day);
+    return lang==='en'?'less than a day':lang==='be'?'менш за суткі':'меньше суток';
+  }
+  const age=formatAge;
   const num=v=>Number.isFinite(Number(v))?Number(v):0;
   let publicProfileContext={id:null,profile:null,publications:[],palette:null};
 
@@ -124,7 +161,13 @@ m.onclick=async e=>{const p=e.target.closest?.('[data-profile-id]');if(p){e.prev
   '.community-user-management-list{display:grid;gap:12px}.community-user-management-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:13px;padding:15px;border:1px solid var(--md-sys-color-outline-variant);border-radius:20px;background:var(--md-sys-color-surface-container)}.community-management-avatar{width:52px;height:52px;border-radius:50%;object-fit:cover}.community-user-management-name{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-weight:700}.community-user-management-meta{margin-top:5px;color:var(--md-sys-color-on-surface-variant);font-size:12px}.community-management-ban-note{margin-top:8px;padding:9px 11px;border-radius:13px;background:color-mix(in srgb,var(--md-sys-color-error) 9%,var(--md-sys-color-surface));font-size:12px}.community-user-management-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.community-owner-protected{display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:var(--md-sys-color-primary);font-size:12px;font-weight:700}'+
   '@media(max-width:860px){.community-public-profile-grid{grid-template-columns:1fr}.community-public-publication{grid-template-columns:110px minmax(0,1fr)}.community-public-publication-full{grid-template-columns:110px minmax(0,1fr)}.community-public-publication-image{height:88px}.community-login-prompt,.community-ban-prompt{align-items:stretch;flex-direction:column}.community-login-prompt .filled-button{width:100%}.community-comment.is-reply{margin-left:16px}.community-user-management-actions{flex-direction:column}.community-user-management-actions button{width:100%}}@media(max-width:520px){.community-comment{padding:13px}.community-public-publication{grid-template-columns:1fr}.community-public-publication-image{height:150px}.community-comment-actions{gap:4px}}';
   document.head.appendChild(s);}
-  function install(){if(document.documentElement.dataset.communitySystem==='1')return;document.documentElement.dataset.communitySystem='1';styles();window.__communityMountArticle=mountArticle;window.__communityEnhanceProfile=ownProfile;window.__communityEnhanceNewsCards=newsCards;window.__communityCanManageNews=canManageNews;window.openCommunityProfile=openPublicProfile;window.__communitySessionChanged=()=>{const m=$('.community-comments');if(m)renderComments(m);if(S()?.section==='profile')ownProfile($('#profile-card'));};document.addEventListener('click',e=>{const el=e.target.closest?.('.community-clickable-byline,.community-inline-profile-link');if(el?.dataset.profileId){e.preventDefault();e.stopPropagation();openPublicProfile(el.dataset.profileId);}},true);document.addEventListener('keydown',e=>{const el=e.target?.closest?.('.community-clickable-byline,.community-inline-profile-link');if(el?.dataset.profileId&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openPublicProfile(el.dataset.profileId);}},true);}
+  function install(){if(document.documentElement.dataset.communitySystem==='1')return;document.documentElement.dataset.communitySystem='1';styles();window.__communityMountArticle=mountArticle;window.__communityEnhanceProfile=ownProfile;window.__communityEnhanceNewsCards=newsCards;window.__communityCanManageNews=canManageNews;window.openCommunityProfile=openPublicProfile;window.__communitySessionChanged=()=>{const m=$('.community-comments');if(m)renderComments(m);if(S()?.section==='profile')ownProfile($('#profile-card'));};
+    document.addEventListener('interface-language-change',()=>{
+      if(S()?.section==='profile')ownProfile($('#profile-card'));
+      if(S()?.section==='public-profile'&&publicProfileContext?.id)openPublicProfile(publicProfileContext.id);
+      if(S()?.section==='user-management'&&role()==='owner')users();
+    });
+    document.addEventListener('click',e=>{const el=e.target.closest?.('.community-clickable-byline,.community-inline-profile-link');if(el?.dataset.profileId){e.preventDefault();e.stopPropagation();openPublicProfile(el.dataset.profileId);}},true);document.addEventListener('keydown',e=>{const el=e.target?.closest?.('.community-clickable-byline,.community-inline-profile-link');if(el?.dataset.profileId&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openPublicProfile(el.dataset.profileId);}},true);}
   // This module is loaded at the end of <body>, so the DOM is already available
   // in normal page execution. Install immediately; waiting for DOMContentLoaded
   // would put us after app.js bootstrap and miss the first render.
