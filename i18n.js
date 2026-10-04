@@ -401,25 +401,25 @@
     for(const [rx,ruPrefix,enPrefix] of replacements){
       const m=raw.match(rx);
       if(!m)continue;
-      if(rx.source.startsWith('^(\\\\d+)\\\\s+новост')){
+      if(/новост/.test(rx.source)){
         const n=Number(m[1]);
         if(code==='ru')return raw;
         if(code==='en')return n+' '+(n===1?'news story':'news stories')+' for the query';
         return n+' '+(n===1?'навіна':'навін')+' па запыце';
       }
-      if(rx.source.startsWith('^(\\\\d+)\\\\s+материал')){
+      if(/материал/.test(rx.source)){
         const n=Number(m[1]);
         if(code==='ru')return raw;
         if(code==='en')return n+' '+(n===1?'material':'materials');
         return n+' '+(n===1?'матэрыял':'матэрыялы');
       }
-      if(rx.source.startsWith('^(\\\\d+)\\\\s+сочетани')){
+      if(/сочетани/.test(rx.source)){
         const n=Number(m[1]);
         if(code==='ru')return raw;
         if(code==='en')return n+' '+(n===1?'shortcut':'shortcuts');
         return n+' '+(n===1?'спалучэнне':'спалучэнні');
       }
-      if(rx.source.startsWith('^(\\\\d+)\\\\s+жест')){
+      if(/жест/.test(rx.source)){
         const n=Number(m[1]);
         if(code==='ru')return raw;
         if(code==='en')return n+' '+(n===1?'gesture':'gestures');
