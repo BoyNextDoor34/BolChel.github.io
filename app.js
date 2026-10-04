@@ -2903,18 +2903,6 @@ function safeRun(label,fn){
   }
 }
 
-window.addEventListener('interface-language-change',()=>{
-  if(typeof state==='undefined')return;
-  if(state.section==='news'){
-    renderCategoryNav();
-    renderNews();
-  }else if(state.section==='article'){
-    renderArticle();
-  }else if(state.section==='profile'){
-    renderProfile();
-  }
-});
-
 function bootstrap(){
   safeRun('loadAccessibilitySettings',loadAccessibilitySettings);
   safeRun('bindAccessibilityEvents',bindAccessibilityEvents);
