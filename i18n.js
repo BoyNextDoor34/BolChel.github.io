@@ -709,5 +709,7 @@
     if(document.body)observer.observe(document.body,observerConfig);
   };
 
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
 
 })();
