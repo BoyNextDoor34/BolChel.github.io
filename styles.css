@@ -3095,3 +3095,64 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
     bottom:7px !important;
   }
 }
+
+
+/* Final gesture popup positioning: centered sheet with a seamless left pull-tab. */
+@media(max-width:860px){
+  .mobile-gesture-panel{
+    align-items:center;
+    justify-content:center;
+  }
+
+  .mobile-gesture-sheet{
+    margin:0;
+    border-radius:24px;
+    transform:translate3d(calc(50vw + 24px),0,0);
+  }
+  .mobile-gesture-panel.is-open .mobile-gesture-sheet{
+    transform:translate3d(0,0,0);
+  }
+
+  /* The handle lives on the popup's left edge: same surface, no seam. */
+  .mobile-gesture-help{
+    right:auto !important;
+    left:calc(100vw - var(--mobile-gesture-tab-width));
+    border-left:1px solid var(--md-sys-color-outline-variant);
+    border-right:0;
+    border-radius:10px 0 0 10px;
+    background:var(--md-sys-color-surface-container);
+    transition:left .3s cubic-bezier(.2,.8,.2,1),transform .18s ease;
+  }
+  .mobile-gesture-help.is-open{
+    left:calc(50% - (var(--mobile-gesture-width) / 2) - var(--mobile-gesture-tab-width) + 1px);
+    right:auto !important;
+    background:var(--md-sys-color-surface-container);
+    border-color:var(--md-sys-color-outline-variant);
+    animation:mobile-gesture-pull-tab-left .3s cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  @keyframes mobile-gesture-pull-tab-left{
+    0%{
+      left:calc(100vw - var(--mobile-gesture-tab-width));
+      transform:translateY(-50%) scaleX(1);
+    }
+    20%{
+      left:calc(100vw - var(--mobile-gesture-tab-width) - 5px);
+      transform:translate(2px,-50%) scaleX(1.12);
+    }
+    100%{
+      left:calc(50% - (var(--mobile-gesture-width) / 2) - var(--mobile-gesture-tab-width) + 1px);
+      transform:translateY(-50%) scaleX(1);
+    }
+  }
+}
+
+@media(max-width:520px){
+  .mobile-gesture-sheet{
+    margin:0;
+    border-radius:21px;
+  }
+  .mobile-gesture-help.is-open{
+    left:calc(50% - (var(--mobile-gesture-width) / 2) - var(--mobile-gesture-tab-width) + 1px);
+  }
+}
