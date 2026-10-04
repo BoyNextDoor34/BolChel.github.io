@@ -3179,21 +3179,15 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
 }
 
 
-/* Ensure the closed gesture tab follows the active Material 3 palette. */
+/* Gesture tab uses exactly the same palette and visual state when closed or open. */
 @media(max-width:860px){
-  .mobile-gesture-help{
-    background:var(--md-sys-color-primary-container);
-    color:var(--md-sys-color-on-primary-container);
+  .mobile-gesture-help,
+  .mobile-gesture-help.is-open{
+    background:var(--md-sys-color-surface-container);
+    color:var(--md-sys-color-on-surface-variant);
     border-color:var(--md-sys-color-outline-variant);
   }
-  .mobile-gesture-help .material-symbols-rounded{
-    color:var(--md-sys-color-primary);
-  }
-  .mobile-gesture-help.is-open{
-    background:var(--md-sys-color-primary-container);
-    color:var(--md-sys-color-on-primary-container);
-    border-color:var(--md-sys-color-primary);
-  }
+  .mobile-gesture-help .material-symbols-rounded,
   .mobile-gesture-help.is-open .material-symbols-rounded{
     color:var(--md-sys-color-primary);
   }
