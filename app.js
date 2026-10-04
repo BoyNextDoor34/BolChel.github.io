@@ -63,6 +63,7 @@ const KEYMAP = [
     [['/'],'Фокус поиска'],
     [['Space','/'],'Открыть / закрыть расширенную шпаргалку'],
     [['T'],'Переключить светлую / тёмную тему'],
+    [['Alt','L'],'Переключить на следующий язык интерфейса'],
     [['Alt','A'],'Открыть настройки версии для слабовидящих']
   ]},
   {group:'Написание новостей', rows:[
@@ -132,7 +133,7 @@ function formatDateTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return {date:'', time:''};
   return {
-    date:date.toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'}),
+    date:date.toLocaleDateString(window.getInterfaceLocale?.() || 'ru-RU',{day:'2-digit',month:'long',year:'numeric'}),
     time:date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})
   };
 }
@@ -1206,7 +1207,7 @@ async function renderAdminNewsManager(root){
     list.innerHTML='<div class="media-note">Новых предложений пока нет.</div>';
     return;
   }
-  list.innerHTML=suggestions.map(s=>'<div class="admin-suggestion-row" data-suggestion-id="'+escapeHtml(s.id)+'"><div class="admin-news-main"><strong>'+escapeHtml(s.title)+'</strong><span>'+escapeHtml(s.category)+' · '+escapeHtml(new Date(s.created_at).toLocaleDateString('ru-RU'))+'</span><span class="suggestion-author">Автор: '+escapeHtml(state.authorProfiles?.[s.author_id]?.nickname||'Пользователь')+'</span></div><div class="admin-suggestion-actions"><button class="tonal-button suggestion-publish" data-approve-suggestion="'+escapeHtml(s.id)+'" type="button"><span class="material-symbols-rounded">publish</span>Опубликовать</button><button class="text-button suggestion-reject" data-reject-suggestion="'+escapeHtml(s.id)+'" type="button">Отклонить</button></div></div>').join('');
+  list.innerHTML=suggestions.map(s=>'<div class="admin-suggestion-row" data-suggestion-id="'+escapeHtml(s.id)+'"><div class="admin-news-main"><strong>'+escapeHtml(s.title)+'</strong><span>'+escapeHtml(s.category)+' · '+escapeHtml(new Date(s.created_at).toLocaleDateString(window.getInterfaceLocale?.() || 'ru-RU'))+'</span><span class="suggestion-author">Автор: '+escapeHtml(state.authorProfiles?.[s.author_id]?.nickname||'Пользователь')+'</span></div><div class="admin-suggestion-actions"><button class="tonal-button suggestion-publish" data-approve-suggestion="'+escapeHtml(s.id)+'" type="button"><span class="material-symbols-rounded">publish</span>Опубликовать</button><button class="text-button suggestion-reject" data-reject-suggestion="'+escapeHtml(s.id)+'" type="button">Отклонить</button></div></div>').join('');
   list.querySelectorAll('[data-approve-suggestion]').forEach(btn=>btn.onclick=()=>approveNewsSuggestion(btn.dataset.approveSuggestion));
   list.querySelectorAll('[data-reject-suggestion]').forEach(btn=>btn.onclick=()=>rejectNewsSuggestion(btn.dataset.rejectSuggestion));
 }
