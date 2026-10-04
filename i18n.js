@@ -460,7 +460,7 @@
   function translateAttributes(root){
     const elements=[];
     if(root?.nodeType===Node.ELEMENT_NODE)elements.push(root);
-    if(root?.querySelectorAll)elements.push(...root.querySelectorAll('[aria-label],[placeholder],[title],alt'));
+    if(root?.querySelectorAll)elements.push(...root.querySelectorAll('[aria-label],[placeholder],[title],[alt]'));
     for(const el of elements){
       if(!el||el.matches?.('input[type="text"][data-user-content],textarea[data-user-content]'))continue;
       const map=attrBindings.get(el)||Object.create(null);
