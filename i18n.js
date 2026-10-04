@@ -385,7 +385,7 @@
     'Написание новостей':{be:'Напісанне навін',en:'Writing news'},
     'Редактор сохраняет черновик локально.':{be:'Рэдактар захоўвае чарнавік лакальна.',en:'The editor saves the draft locally.'},
     'Поддерживаются':{be:'Падтрымліваюцца',en:'Supported'},
-    'Начните писать…\\n\\nПоддерживается обычный Markdown: заголовки, **жирный**, *курсив*, списки, цитаты, ссылки, изображения, таблицы, код и разделители.':{be:'Пачніце пісаць…\\n\\nПадтрымліваецца звычайны Markdown: загалоўкі, **тлусты**, *курсіў*, спісы, цытаты, спасылкі, выявы, табліцы, код і раздзяляльнікі.',en:'Start writing…\\n\\nStandard Markdown is supported: headings, **bold**, *italic*, lists, quotes, links, images, tables, code, and dividers.'}
+    'Начните писать…\n\nПоддерживается обычный Markdown: заголовки, **жирный**, *курсив*, списки, цитаты, ссылки, изображения, таблицы, код и разделители.':{be:'Пачніце пісаць…\n\nПадтрымліваецца звычайны Markdown: загалоўкі, **тлусты**, *курсіў*, спісы, цытаты, спасылкі, выявы, табліцы, код і раздзяляльнікі.',en:'Start writing…\n\nStandard Markdown is supported: headings, **bold**, *italic*, lists, quotes, links, images, tables, code, and dividers.'}
   };
 
   const userContentSelector=[
@@ -404,7 +404,7 @@
   const trackedElements=new Set();
   const richBindings=new WeakMap();
 
-  const normalize=value=>String(value??'').replace(/\\s+/g,' ').trim();
+  const normalize=value=>String(value??'').replace(/\s+/g,' ').trim();
   const locale=()=>LANGUAGES[current]?.locale||'ru-RU';
 
   function translateExact(source,code=current){
@@ -422,13 +422,13 @@
     }
     const raw=String(source);
     const replacements=[
-      [/^Автор:\\s*(.*)$/,'Автор:','Author:'],
-      [/^Заблокирован:\\s*(.*)$/,'Заблокирован:','Blocked:'],
+      [/^Автор:\s*(.*)$/,'Автор:','Author:'],
+      [/^Заблокирован:\s*(.*)$/,'Заблокирован:','Blocked:'],
       [/^Изменено$/,'Изменено','Edited'],
-      [/^(\\d+)\\s+новост(?:ь|и|ей)\\s+по\\s+запросу$/,'',''],
-      [/^(\\d+)\\s+материал(?:а|ов)?$/,'',''],
-      [/^(\\d+)\\s+сочетани(?:е|я|й)$/,'',''],
-      [/^(\\d+)\\s+жест(?:а|ов)?$/,'','']
+      [/^(\d+)\s+новост(?:ь|и|ей)\s+по\s+запросу$/,'',''],
+      [/^(\d+)\s+материал(?:а|ов)?$/,'',''],
+      [/^(\d+)\s+сочетани(?:е|я|й)$/,'',''],
+      [/^(\d+)\s+жест(?:а|ов)?$/,'','']
     ];
     for(const [rx,ruPrefix,enPrefix] of replacements){
       const m=raw.match(rx);
@@ -462,21 +462,21 @@
       return raw.replace(ruPrefix,marker||enPrefix);
     }
 
-    let m=raw.match(/^Ваш аккаунт заблокирован:\\s*(.*)$/);
+    let m=raw.match(/^Ваш аккаунт заблокирован:\s*(.*)$/);
     if(m&&code!=='ru')return (code==='en'?'Your account is blocked: ':'Ваш акаўнт заблакіраваны: ')+m[1];
 
-    m=raw.match(/^Не удалось подключиться к Supabase:\\s*(.*)$/);
+    m=raw.match(/^Не удалось подключиться к Supabase:\s*(.*)$/);
     if(m&&code!=='ru')return (code==='en'?'Failed to connect to Supabase: ':'Не ўдалося падключыцца да Supabase: ')+m[1];
 
-    m=raw.match(/^Не удалось загрузить комментарии:\\s*(.*)$/);
+    m=raw.match(/^Не удалось загрузить комментарии:\s*(.*)$/);
     if(m&&code!=='ru')return (code==='en'?'Failed to load comments: ':'Не ўдалося загрузіць каментарыі: ')+m[1];
 
-    m=raw.match(/^Регистрация:\\s*(.*?)\\s*·\\s*(.*?)\\s*·\\s*(\\d+)\\s+чистых реакций\\s*·\\s*(\\d+)\\s+публикаций$/);
+    m=raw.match(/^Регистрация:\s*(.*?)\s*·\s*(.*?)\s*·\s*(\d+)\s+чистых реакций\s*·\s*(\d+)\s+публикаций$/);
     if(m&&code!=='ru'){
       return (code==='en'?'Registration: ':'Рэгістрацыя: ')+m[1]+' · '+m[2]+' · '+m[3]+' '+(code==='en'?'net reactions':'чыстых рэакцый')+' · '+m[4]+' '+(code==='en'?'publications':'публікацый');
     }
 
-    m=raw.match(/^(\\d+)\\s+чистых реакций\\s*·\\s*(\\d+)\\s+публикаций$/);
+    m=raw.match(/^(\d+)\s+чистых реакций\s*·\s*(\d+)\s+публикаций$/);
     if(m&&code!=='ru')return m[1]+' '+(code==='en'?'net reactions':'чыстых рэакцый')+' · '+m[2]+' '+(code==='en'?'publications':'публікацый');
 
     return raw;
@@ -490,8 +490,8 @@
       ?translateExact(core,code)
       :transform(core,code);
     if(translated===core)return source;
-    const leading=(source.match(/^\\s*/)||[''])[0];
-    const trailing=(source.match(/\\s*$/)||[''])[0];
+    const leading=(source.match(/^\s*/)||[''])[0];
+    const trailing=(source.match(/\s*$/)||[''])[0];
     const start=leading.length;
     const end=trailing.length;
     return leading+translated+((end>0&&end<=source.length-start)?source.slice(source.length-end):'');
