@@ -258,6 +258,19 @@
     'Сбросить поиск и раздел':{be:'Скінуць пошук і раздзел',en:'Reset search and section'},
     'Очистить поиск':{be:'Ачысціць пошук',en:'Clear search'},
     'Случайная новость':{be:'Выпадковая навіна',en:'Random news'},
+    'Политика':{be:'Палітыка',en:'Politics'},
+    'Экономика':{be:'Эканоміка',en:'Economy'},
+    'Общество':{be:'Грамадства',en:'Society'},
+    'Технологии и наука':{be:'Тэхналогіі і навука',en:'Technology and science'},
+    'Культура':{be:'Культура',en:'Culture'},
+    'Спорт':{be:'Спорт',en:'Sports'},
+    'Образование':{be:'Адукацыя',en:'Education'},
+    'Семья':{be:'Сям’я',en:'Family'},
+    'Молодежь':{be:'Моладзь',en:'Youth'},
+    'Туризм':{be:'Турызм',en:'Tourism'},
+    'Военнообязанные':{be:'Ваеннаабавязаныя',en:'Military conscripts'},
+    'Язык интерфейса':{be:'Мова інтэрфейсу',en:'Interface language'},
+    'Выбор языка интерфейса':{be:'Выбар мовы інтэрфейсу',en:'Interface language selection'},
 
     'Навигация по новостям':{be:'Навігацыя па навінах',en:'News navigation'},
     'Следующая новость':{be:'Наступная навіна',en:'Next news story'},
@@ -368,7 +381,8 @@
     '[data-user-content]'
   ].join(',');
 
-  let current=ORDER.includes(localStorage.getItem(STORAGE_KEY))?localStorage.getItem(STORAGE_KEY):'ru';
+  let current='ru';
+  try{const saved=localStorage.getItem(STORAGE_KEY);if(ORDER.includes(saved))current=saved;}catch(_){ }
   const textBindings=new WeakMap();
   const attrBindings=new WeakMap();
 
@@ -501,7 +515,7 @@
     const value=control.querySelector('.editor-select-value');
     const menu=control.querySelector('.editor-select-menu');
     if(value)value.textContent=LANGUAGES[current].label;
-    button?.setAttribute('aria-label',(current==='ru'?'Язык интерфейса: ':'Interface language: ')+LANGUAGES[current].label);
+    button?.setAttribute('aria-label',(translateExact('Язык интерфейса',current)+': ')+LANGUAGES[current].label);
     control.querySelectorAll('[data-language]').forEach(option=>{
       option.classList.toggle('is-selected',option.dataset.language===current);
       option.setAttribute('aria-selected',option.dataset.language===current?'true':'false');
