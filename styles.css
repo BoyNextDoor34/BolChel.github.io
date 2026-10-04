@@ -274,6 +274,12 @@ body.nav-collapsed main { margin-left:88px; width:calc(100vw - 88px); max-width:
 .page-context span:first-child { color:var(--md-sys-color-primary); font-weight:800; }
 .context-dot { opacity:.4; }
 .icon-button, .avatar-button { border:0; background:transparent; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; cursor:pointer; }
+.language-select-control { width:150px; flex:0 0 150px; position:relative; }
+.language-select-control .editor-select-button { min-height:44px; height:44px; border-radius:999px; padding:0 12px 0 14px; gap:8px; }
+.language-select-control .editor-select-button .material-symbols-rounded:first-child { color:var(--md-sys-color-primary); }
+.language-select-control .editor-select-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.language-select-control .language-select-chevron { flex:0 0 auto; }
+.language-select-control .editor-select-menu { min-width:100%; }
 .icon-button:hover, .avatar-button:hover { background:var(--md-sys-color-surface-container-high); }
 .icon-button.small { width:34px; height:34px; }
 .avatar-button { overflow:hidden; padding:0; background:var(--md-sys-color-surface-container-high); }
@@ -937,6 +943,11 @@ kbd{
   .mobile-dock-item.is-active { background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-primary); border:1px solid var(--md-sys-color-outline-variant); font-weight:800; }
   .mobile-dock-item .material-symbols-rounded { font-size:22px; }
   .topbar-actions .filled-button { padding:0 14px; }
+  .language-select-control { width:44px; flex-basis:44px; }
+  .language-select-control .editor-select-button { width:44px; min-height:44px; height:44px; padding:0; justify-content:center; border-radius:50%; }
+  .language-select-control .editor-select-value,
+  .language-select-control .language-select-chevron { display:none; }
+  .language-select-control .editor-select-menu { left:auto; right:0; width:180px; min-width:180px; }
   .about-grid { grid-template-columns:1fr; }
   .scrim { position:fixed; inset:0; z-index:70; display:block; background:color-mix(in srgb, #000 38%, transparent); opacity:0; pointer-events:none; transition:.2s ease; }
   .scrim.is-visible { opacity:1; pointer-events:auto; }
