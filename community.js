@@ -14,7 +14,7 @@
   const canManageNews=n=>{if(!n||!me())return false;if(role()==='owner')return true;if(role()!=='admin')return false;const ar=S()?.authorProfiles?.[n.authorId]?.role;return String(n.authorId)===String(me().id)||ar==='reader';};
   const show=m=>window.showToast?.(m), avatar=p=>p?.avatar_url||(typeof DEFAULT_AVATAR!=='undefined'?DEFAULT_AVATAR:''), name=p=>p?.nickname||'Пользователь';
   const roleBadge=r=>'<span class="community-role-badge community-role-'+esc(r)+'"><span class="material-symbols-rounded">'+(icons[r]||icons.reader)+'</span>'+esc(roles[r]||roles.reader)+'</span>';
-  const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'Дата неизвестна':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});};
+  const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?'Дата неизвестна':d.toLocaleDateString(window.getInterfaceLocale?.() || 'ru-RU',{day:'numeric',month:'long',year:'numeric'});};
   const plural=(n,a,b,c)=>{const x=Math.abs(n)%100,y=x%10;return x>=11&&x<=14?c:y===1?a:y>=2&&y<=4?b:c;};
   function age(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return'—';const n=new Date();let y=n.getFullYear()-d.getFullYear(),m=n.getMonth()-d.getMonth(),day=n.getDate()-d.getDate();if(day<0){m--;day+=new Date(n.getFullYear(),n.getMonth(),0).getDate();}if(m<0){y--;m+=12;}if(y)return y+' '+plural(y,'год','года','лет')+(m?' '+m+' '+plural(m,'месяц','месяца','месяцев'):'');if(m)return m+' '+plural(m,'месяц','месяца','месяцев');return day?day+' '+plural(day,'день','дня','дней'):'меньше суток';}
   const num=v=>Number.isFinite(Number(v))?Number(v):0;
