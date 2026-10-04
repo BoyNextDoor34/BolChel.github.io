@@ -218,6 +218,31 @@
     page.dataset.suggestionId=sourceItem.id;
     page.dataset.suggestionMode=mode;
 
+    // A suggestion keeps its original author. Do not let openEditor() replace
+    // the displayed author with the currently signed-in reviewer.
+    if(sourceItem.author_id){
+      let authorProfile=state.authorProfiles?.[sourceItem.author_id]||null;
+      if(!authorProfile){
+        try{
+          const sb=await getClient();
+          const authorResult=await sb?.from('profiles').select('id,nickname,role').eq('id',sourceItem.author_id).maybeSingle();
+          if(authorResult?.data){
+            authorProfile=authorResult.data;
+            state.authorProfiles=state.authorProfiles||{};
+            state.authorProfiles[sourceItem.author_id]=authorProfile;
+          }
+        }catch(error){
+          console.warn('Suggestion author profile load failed:',error);
+        }
+      }
+      const authorField=$('.editor-author-field');
+      if(authorField){
+        const authorName=authorProfile?.nickname||authorCache[sourceItem.author_id]||'Пользователь';
+        authorField.innerHTML='<span>Автор</span><div class="editor-author-readonly"><input type="hidden" id="news-author-input" value="'+esc(sourceItem.author_id)+'"><span class="editor-author-name">'+esc(authorName)+'</span></div>';
+      }
+      if(typeof state!=='undefined')state.editor.authorId=sourceItem.author_id;
+    }
+
     const pendingMode=mode==='published-edit'||mode==='admin-review-update'||sourceItem.status==='pending_update';
     const baseSource=publishedSource||sourceItem;
     const pendingValue=(pendingKey,baseKey)=>{
