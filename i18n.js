@@ -370,7 +370,22 @@
     'Подтвердить действие?':{be:'Пацвердзіць дзеянне?',en:'Confirm action?'},
     'Назад':{be:'Назад',en:'Back'},
     'Закрыть':{be:'Закрыць',en:'Close'},
-    'Станьте первым, кто выскажется.':{be:'Станьце першым, хто выкажацца.',en:'Be the first to have your say.'}
+    'Станьте первым, кто выскажется.':{be:'Станьце першым, хто выкажацца.',en:'Be the first to have your say.'},
+    'Сохранить черновик':{be:'Захаваць чарнавік',en:'Save draft'},
+    'Выйти':{be:'Выйсці',en:'Sign out'},
+    'Написать новость':{be:'Напісаць навіну',en:'Write a news story'},
+    'Предложить новость':{be:'Прапанаваць навіну',en:'Suggest a news story'},
+    'Управление пользователями':{be:'Кіраванне карыстальнікамі',en:'User management'},
+    'Пользователи':{be:'Карыстальнікі',en:'Users'},
+    'Показать все':{be:'Паказаць усё',en:'Show all'},
+    'Действия':{be:'Дзеянні',en:'Actions'},
+    'Чистые реакции':{be:'Чыстыя рэакцыі',en:'Net reactions'},
+    'Публикации':{be:'Публікацыі',en:'Publications'},
+    'Аккаунт заблокирован':{be:'Акаўнт заблакіраваны',en:'Account blocked'},
+    'Написание новостей':{be:'Напісанне навін',en:'Writing news'},
+    'Редактор сохраняет черновик локально.':{be:'Рэдактар захоўвае чарнавік лакальна.',en:'The editor saves the draft locally.'},
+    'Поддерживаются':{be:'Падтрымліваюцца',en:'Supported'},
+    'Начните писать…\\n\\nПоддерживается обычный Markdown: заголовки, **жирный**, *курсив*, списки, цитаты, ссылки, изображения, таблицы, код и разделители.':{be:'Пачніце пісаць…\\n\\nПадтрымліваецца звычайны Markdown: загалоўкі, **тлусты**, *курсіў*, спісы, цытаты, спасылкі, выявы, табліцы, код і раздзяляльнікі.',en:'Start writing…\\n\\nStandard Markdown is supported: headings, **bold**, *italic*, lists, quotes, links, images, tables, code, and dividers.'}
   };
 
   const userContentSelector=[
@@ -385,8 +400,11 @@
   try{const saved=localStorage.getItem(STORAGE_KEY);if(ORDER.includes(saved))current=saved;}catch(_){ }
   const textBindings=new WeakMap();
   const attrBindings=new WeakMap();
+  const trackedTextNodes=new Set();
+  const trackedElements=new Set();
+  const richBindings=new WeakMap();
 
-  const normalize=value=>String(value??'').replace(/\s+/g,' ').trim();
+  const normalize=value=>String(value??'').replace(/\\s+/g,' ').trim();
   const locale=()=>LANGUAGES[current]?.locale||'ru-RU';
 
   function translateExact(source,code=current){
@@ -404,13 +422,13 @@
     }
     const raw=String(source);
     const replacements=[
-      [/^Автор:\s*(.*)$/,'Автор:','Author:'],
-      [/^Заблокирован:\s*(.*)$/,'Заблокирован:','Blocked:'],
+      [/^Автор:\\s*(.*)$/,'Автор:','Author:'],
+      [/^Заблокирован:\\s*(.*)$/,'Заблокирован:','Blocked:'],
       [/^Изменено$/,'Изменено','Edited'],
-      [/^(\d+)\s+новост(?:ь|и|ей)\s+по\s+запросу$/,'','$'],
-      [/^(\d+)\s+материал(?:а|ов)?$/,'','$'],
-      [/^(\d+)\s+сочетани(?:е|я|й)$/,'','$'],
-      [/^(\d+)\s+жест(?:а|ов)?$/,'','$']
+      [/^(\\d+)\\s+новост(?:ь|и|ей)\\s+по\\s+запросу$/,'',''],
+      [/^(\\d+)\\s+материал(?:а|ов)?$/,'',''],
+      [/^(\\d+)\\s+сочетани(?:е|я|й)$/,'',''],
+      [/^(\\d+)\\s+жест(?:а|ов)?$/,'','']
     ];
     for(const [rx,ruPrefix,enPrefix] of replacements){
       const m=raw.match(rx);
@@ -443,32 +461,66 @@
       const marker=translateExact(ruPrefix,code);
       return raw.replace(ruPrefix,marker||enPrefix);
     }
-    let m=raw.match(/^Ваш аккаунт заблокирован:\s*(.*)$/);
+
+    let m=raw.match(/^Ваш аккаунт заблокирован:\\s*(.*)$/);
     if(m&&code!=='ru')return (code==='en'?'Your account is blocked: ':'Ваш акаўнт заблакіраваны: ')+m[1];
-    m=raw.match(/^Не удалось подключиться к Supabase:\s*(.*)$/);
+
+    m=raw.match(/^Не удалось подключиться к Supabase:\\s*(.*)$/);
     if(m&&code!=='ru')return (code==='en'?'Failed to connect to Supabase: ':'Не ўдалося падключыцца да Supabase: ')+m[1];
-    m=raw.match(/^Не удалось загрузить комментарии:\s*(.*)$/);
+
+    m=raw.match(/^Не удалось загрузить комментарии:\\s*(.*)$/);
     if(m&&code!=='ru')return (code==='en'?'Failed to load comments: ':'Не ўдалося загрузіць каментарыі: ')+m[1];
+
+    m=raw.match(/^Регистрация:\\s*(.*?)\\s*·\\s*(.*?)\\s*·\\s*(\\d+)\\s+чистых реакций\\s*·\\s*(\\d+)\\s+публикаций$/);
+    if(m&&code!=='ru'){
+      return (code==='en'?'Registration: ':'Рэгістрацыя: ')+m[1]+' · '+m[2]+' · '+m[3]+' '+(code==='en'?'net reactions':'чыстых рэакцый')+' · '+m[4]+' '+(code==='en'?'publications':'публікацый');
+    }
+
+    m=raw.match(/^(\\d+)\\s+чистых реакций\\s*·\\s*(\\d+)\\s+публикаций$/);
+    if(m&&code!=='ru')return m[1]+' '+(code==='en'?'net reactions':'чыстых рэакцый')+' · '+m[2]+' '+(code==='en'?'publications':'публікацый');
+
     return raw;
   }
 
+  function localizeTextValue(value,code){
+    const source=String(value??'');
+    const core=normalize(source);
+    if(!core)return source;
+    const translated=translateExact(core,code)!==core||I18N[core]
+      ?translateExact(core,code)
+      :transform(core,code);
+    if(translated===core)return source;
+    const leading=(source.match(/^\\s*/)||[''])[0];
+    const trailing=(source.match(/\\s*$/)||[''])[0];
+    const start=leading.length;
+    const end=trailing.length;
+    return leading+translated+((end>0&&end<=source.length-start)?source.slice(source.length-end):'');
+  }
+
   function isProtected(node){
-    const el=node?.nodeType===Node.TEXT_NODE?node.parentElement:node;
+    const el=node?.nodeType===Node.TEXT_NODE?node:node;
     return !!el?.closest?.(userContentSelector);
+  }
+
+  function isTranslatableText(node){
+    if(!node||node.nodeType!==Node.TEXT_NODE||isProtected(node))return false;
+    const key=normalize(node.nodeValue);
+    if(!key)return false;
+    if(I18N[key])return true;
+    return transform(key,'be')!==key||transform(key,'en')!==key;
   }
 
   function translateTextNode(node){
     if(!node||node.nodeType!==Node.TEXT_NODE||isProtected(node))return;
-    const bound=textBindings.get(node);
-    const key=bound||normalize(node.nodeValue);
-    if(!key||(!bound&&!I18N[key])) {
-      const transformed=transform(node.nodeValue,current);
-      if(transformed!==node.nodeValue)node.nodeValue=transformed;
-      return;
+    let key=textBindings.get(node);
+    if(!key){
+      if(!isTranslatableText(node))return;
+      key=node.nodeValue;
+      textBindings.set(node,key);
     }
-    if(!bound)textBindings.set(node,key);
-    const next=current==='ru'?key:I18N[key]?.[current]||key;
+    const next=localizeTextValue(key,current);
     if(node.nodeValue!==next)node.nodeValue=next;
+    trackedTextNodes.add(node);
   }
 
   function translateAttributes(root){
@@ -476,8 +528,9 @@
     if(root?.nodeType===Node.ELEMENT_NODE)elements.push(root);
     if(root?.querySelectorAll)elements.push(...root.querySelectorAll('[aria-label],[placeholder],[title],[alt]'));
     for(const el of elements){
-      if(!el||el.matches?.('input[type="text"][data-user-content],textarea[data-user-content]'))continue;
+      if(!el)continue;
       const map=attrBindings.get(el)||Object.create(null);
+      let useful=false;
       for(const attr of ['aria-label','placeholder','title','alt']){
         if(!el.hasAttribute(attr))continue;
         const value=el.getAttribute(attr);
@@ -485,10 +538,30 @@
         const key=map[attr]||normalize(value);
         if(!map[attr]&&I18N[key])map[attr]=key;
         if(!map[attr])continue;
+        useful=true;
         const next=current==='ru'?map[attr]:I18N[map[attr]]?.[current]||map[attr];
         if(value!==next)el.setAttribute(attr,next);
       }
-      attrBindings.set(el,map);
+      if(useful){attrBindings.set(el,map);trackedElements.add(el);}
+    }
+  }
+
+  const markdownHelpHtml={
+    ru:'Поддерживаются <code># заголовки</code>, <code>**bold**</code>, <code>*italic*</code>, <code>~~strike~~</code>, <code>&#96;code&#96;</code>, блоки <code>&#96;&#96;&#96;</code>, цитаты <code>&gt;</code>, списки, <code>[ссылки](url)</code>, <code>![картинки](url)</code>, таблицы и <code>---</code>. Редактор сохраняет черновик локально.',
+    be:'Падтрымліваюцца <code># загалоўкі</code>, <code>**bold**</code>, <code>*italic*</code>, <code>~~strike~~</code>, <code>&#96;code&#96;</code>, блокі <code>&#96;&#96;&#96;</code>, цытаты <code>&gt;</code>, спісы, <code>[спасылкі](url)</code>, <code>![выявы](url)</code>, табліцы і <code>---</code>. Рэдактар захоўвае чарнавік лакальна.',
+    en:'Supported: <code># headings</code>, <code>**bold**</code>, <code>*italic*</code>, <code>~~strike~~</code>, <code>&#96;code&#96;</code> blocks, quotes <code>&gt;</code>, lists, <code>[links](url)</code>, <code>![images](url)</code>, tables, and <code>---</code>. The editor saves the draft locally.'
+  };
+
+  function translateRich(root=document.body){
+    const elements=[];
+    if(root?.nodeType===Node.ELEMENT_NODE&&root.matches?.('.markdown-help'))elements.push(root);
+    if(root?.querySelectorAll)elements.push(...root.querySelectorAll('.markdown-help'));
+    for(const el of elements){
+      const html=markdownHelpHtml[current]||markdownHelpHtml.ru;
+      if(el.innerHTML!==html){
+        richBindings.set(el,true);
+        el.innerHTML=html;
+      }
     }
   }
 
@@ -499,6 +572,15 @@
     while(walker.nextNode())nodes.push(walker.currentNode);
     nodes.forEach(translateTextNode);
     translateAttributes(root);
+    translateRich(root);
+  }
+
+  function refreshTracked(){
+    trackedTextNodes.forEach(node=>{if(!node.isConnected)trackedTextNodes.delete(node);});
+    trackedElements.forEach(el=>{if(!el.isConnected)trackedElements.delete(el);});
+    trackedTextNodes.forEach(translateTextNode);
+    trackedElements.forEach(el=>translateAttributes(el));
+    translateRich(document.body);
   }
 
   function closeLanguageMenu(){
@@ -513,7 +595,6 @@
     if(!control)return;
     const button=control.querySelector('.editor-select-button');
     const value=control.querySelector('.editor-select-value');
-    const menu=control.querySelector('.editor-select-menu');
     if(value)value.textContent=LANGUAGES[current].label;
     button?.setAttribute('aria-label',(translateExact('Язык интерфейса',current)+': ')+LANGUAGES[current].label);
     control.querySelectorAll('[data-language]').forEach(option=>{
@@ -522,15 +603,20 @@
     });
   }
 
+  let applying=false;
   function setLanguage(code,{persist=true,announce=true}={}){
     if(!LANGUAGES[code])return false;
     current=code;
-    if(persist)localStorage.setItem(STORAGE_KEY,code);
+    if(persist){try{localStorage.setItem(STORAGE_KEY,code);}catch(_){}}
     document.documentElement.lang=LANGUAGES[code].code;
     document.documentElement.dataset.language=code;
-    document.documentElement.style.setProperty('--interface-locale',JSON.stringify(LANGUAGES[code].locale));
     updatePicker();
-    translateTree(document.body);
+    applying=true;
+    observer?.disconnect();
+    try{refreshTracked();}finally{
+      applying=false;
+      if(document.body)observer?.observe(document.body,observerConfig);
+    }
     if(announce&&typeof window.showToast==='function'){
       const text=code==='en'?'Interface language: English':code==='be'?'Мова інтэрфейсу: беларуская':'Язык интерфейса: русский';
       window.showToast(text);
@@ -553,8 +639,7 @@
     if(control.dataset.languageBound!=='1'){
       control.dataset.languageBound='1';
       button.addEventListener('click',event=>{
-        event.preventDefault();
-        event.stopPropagation();
+        event.preventDefault();event.stopPropagation();
         const open=control.classList.toggle('is-open');
         if(open){
           document.querySelectorAll('.editor-select-control.is-open').forEach(other=>{
@@ -568,20 +653,14 @@
       });
       menu.querySelectorAll('[data-language]').forEach(option=>{
         option.addEventListener('click',event=>{
-          event.preventDefault();
-          event.stopPropagation();
+          event.preventDefault();event.stopPropagation();
           setLanguage(option.dataset.language);
           closeLanguageMenu();
         });
       });
       button.addEventListener('keydown',event=>{
-        if(event.key==='Escape'){
-          event.preventDefault();
-          closeLanguageMenu();
-        }else if(event.key==='Enter'||event.key===' '){
-          event.preventDefault();
-          button.click();
-        }
+        if(event.key==='Escape'){event.preventDefault();closeLanguageMenu();}
+        else if(event.key==='Enter'||event.key===' '){event.preventDefault();button.click();}
       });
       document.addEventListener('click',event=>{
         if(!control.contains(event.target))closeLanguageMenu();
@@ -593,9 +672,7 @@
   document.addEventListener('keydown',event=>{
     if(event.isComposing)return;
     if(event.altKey&&!event.ctrlKey&&!event.metaKey&&event.code==='KeyL'){
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      nextLanguage();
+      event.preventDefault();event.stopImmediatePropagation();nextLanguage();
     }
   },true);
 
@@ -605,31 +682,19 @@
   window.setInterfaceLanguage=setLanguage;
   window.nextInterfaceLanguage=nextLanguage;
 
-  const observerConfig={
-    subtree:true,
-    childList:true,
-    characterData:true,
-    attributes:true,
-    attributeFilter:['aria-label','placeholder','title','alt']
-  };
-
+  const observerConfig={subtree:true,childList:true};
   const observer=new MutationObserver(mutations=>{
-    if(document.body)observer.disconnect();
+    if(applying)return;
+    observer.disconnect();
     try{
       for(const mutation of mutations){
-        if(mutation.type==='characterData'){
-          translateTextNode(mutation.target);
-        }else if(mutation.type==='attributes'){
-          translateAttributes(mutation.target);
-        }else{
-          mutation.addedNodes.forEach(node=>{
-            if(node.nodeType===Node.TEXT_NODE)translateTextNode(node);
-            else if(node.nodeType===Node.ELEMENT_NODE)translateTree(node);
-          });
-        }
+        mutation.addedNodes.forEach(node=>{
+          if(node.nodeType===Node.TEXT_NODE)translateTextNode(node);
+          else if(node.nodeType===Node.ELEMENT_NODE)translateTree(node);
+        });
       }
     }finally{
-      if(document.body)observer.observe(document.body,observerConfig);
+      if(document.body&&!applying)observer.observe(document.body,observerConfig);
     }
   });
 
@@ -641,5 +706,5 @@
     if(document.body)observer.observe(document.body,observerConfig);
   };
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
 })();
