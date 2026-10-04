@@ -3097,7 +3097,7 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
 }
 
 
-/* Final gesture popup positioning: centered sheet with a seamless left pull-tab. */
+/* Final gesture popup positioning: centered sheet with a smooth transform-only pull-tab. */
 @media(max-width:860px){
   .mobile-gesture-panel{
     align-items:center;
@@ -3107,43 +3107,47 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
   .mobile-gesture-sheet{
     margin:0;
     border-radius:24px;
+    will-change:transform;
     transform:translate3d(calc(50vw + 24px),0,0);
   }
   .mobile-gesture-panel.is-open .mobile-gesture-sheet{
     transform:translate3d(0,0,0);
   }
 
-  /* The handle lives on the popup's left edge: same surface, no seam. */
+  /*
+   * The tab uses one fixed anchor (left:100%) and moves only with transform.
+   * Changing left during animation caused the previous visible jump/reflow.
+   */
   .mobile-gesture-help{
     right:auto !important;
-    left:calc(100vw - var(--mobile-gesture-tab-width));
+    left:100%;
     border-left:1px solid var(--md-sys-color-outline-variant);
     border-right:0;
     border-radius:10px 0 0 10px;
     background:var(--md-sys-color-surface-container);
-    transition:left .3s cubic-bezier(.2,.8,.2,1),transform .18s ease;
+    transform:translate3d(-100%,-50%,0);
+    will-change:transform;
+    transition:transform .34s cubic-bezier(.2,.8,.2,1),background .18s ease,border-color .18s ease;
   }
   .mobile-gesture-help.is-open{
-    left:calc(50% - (var(--mobile-gesture-width) / 2) - var(--mobile-gesture-tab-width) + 1px);
+    left:100%;
     right:auto !important;
     background:var(--md-sys-color-surface-container);
     border-color:var(--md-sys-color-outline-variant);
-    animation:mobile-gesture-pull-tab-left .3s cubic-bezier(.2,.8,.2,1) both;
+    animation:none;
+    transform:translate3d(
+      calc(
+        (var(--mobile-gesture-width) / -2) -
+        var(--mobile-gesture-tab-width) +
+        1px -
+        50vw
+      ),
+      -50%,
+      0
+    );
   }
-
-  @keyframes mobile-gesture-pull-tab-left{
-    0%{
-      left:calc(100vw - var(--mobile-gesture-tab-width));
-      transform:translateY(-50%) scaleX(1);
-    }
-    20%{
-      left:calc(100vw - var(--mobile-gesture-tab-width) - 5px);
-      transform:translate(2px,-50%) scaleX(1.12);
-    }
-    100%{
-      left:calc(50% - (var(--mobile-gesture-width) / 2) - var(--mobile-gesture-tab-width) + 1px);
-      transform:translateY(-50%) scaleX(1);
-    }
+  .mobile-gesture-help.is-open .material-symbols-rounded{
+    color:var(--md-sys-color-primary);
   }
 }
 
@@ -3153,6 +3157,23 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
     border-radius:21px;
   }
   .mobile-gesture-help.is-open{
-    left:calc(50% - (var(--mobile-gesture-width) / 2) - var(--mobile-gesture-tab-width) + 1px);
+    left:100%;
+    transform:translate3d(
+      calc(
+        (var(--mobile-gesture-width) / -2) -
+        var(--mobile-gesture-tab-width) +
+        1px -
+        50vw
+      ),
+      -50%,
+      0
+    );
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .mobile-gesture-help,
+  .mobile-gesture-sheet{
+    transition:none !important;
   }
 }
