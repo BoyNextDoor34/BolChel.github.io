@@ -3177,3 +3177,24 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
     transition:none !important;
   }
 }
+
+
+/* Ensure the closed gesture tab follows the active Material 3 palette. */
+@media(max-width:860px){
+  .mobile-gesture-help{
+    background:var(--md-sys-color-primary-container);
+    color:var(--md-sys-color-on-primary-container);
+    border-color:var(--md-sys-color-outline-variant);
+  }
+  .mobile-gesture-help .material-symbols-rounded{
+    color:var(--md-sys-color-primary);
+  }
+  .mobile-gesture-help.is-open{
+    background:var(--md-sys-color-primary-container);
+    color:var(--md-sys-color-on-primary-container);
+    border-color:var(--md-sys-color-primary);
+  }
+  .mobile-gesture-help.is-open .material-symbols-rounded{
+    color:var(--md-sys-color-primary);
+  }
+}
