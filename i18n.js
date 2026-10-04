@@ -605,29 +605,40 @@
   window.setInterfaceLanguage=setLanguage;
   window.nextInterfaceLanguage=nextLanguage;
 
+  const observerConfig={
+    subtree:true,
+    childList:true,
+    characterData:true,
+    attributes:true,
+    attributeFilter:['aria-label','placeholder','title','alt']
+  };
+
+  const observer=new MutationObserver(mutations=>{
+    if(document.body)observer.disconnect();
+    try{
+      for(const mutation of mutations){
+        if(mutation.type==='characterData'){
+          translateTextNode(mutation.target);
+        }else if(mutation.type==='attributes'){
+          translateAttributes(mutation.target);
+        }else{
+          mutation.addedNodes.forEach(node=>{
+            if(node.nodeType===Node.TEXT_NODE)translateTextNode(node);
+            else if(node.nodeType===Node.ELEMENT_NODE)translateTree(node);
+          });
+        }
+      }
+    }finally{
+      if(document.body)observer.observe(document.body,observerConfig);
+    }
+  });
+
   const boot=()=>{
     document.documentElement.lang=LANGUAGES[current].code;
     document.documentElement.dataset.language=current;
     initPicker();
     translateTree(document.body);
-    window.requestAnimationFrame(()=>translateTree(document.body));
   };
 
-  const observer=new MutationObserver(mutations=>{
-    for(const mutation of mutations){
-      if(mutation.type==='characterData'){
-        translateTextNode(mutation.target);
-      }else if(mutation.type==='attributes'){
-        if(mutation.target.closest?.('#language-select')||['aria-label','placeholder','title','alt'].includes(mutation.attributeName))translateAttributes(mutation.target);
-      }else{
-        mutation.addedNodes.forEach(node=>{
-          if(node.nodeType===Node.TEXT_NODE)translateTextNode(node);
-          else if(node.nodeType===Node.ELEMENT_NODE)translateTree(node);
-        });
-      }
-    }
-  });
-
-  if(document.body)observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','placeholder','title','alt']});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
