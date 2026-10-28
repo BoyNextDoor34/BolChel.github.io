@@ -2791,18 +2791,6 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
 .mobile-gesture-panel,
 .mobile-gesture-help{display:none}
 
-.mobile-gesture-filter-defs{
-  position:absolute;
-  width:0;
-  height:0;
-  overflow:hidden;
-  pointer-events:none;
-}
-
-.mobile-gesture-color-flood{
-  flood-color:var(--md-sys-color-primary);
-}
-
 @media(max-width:860px){
   :root{
     --mobile-gesture-width:min(330px,calc(100vw - 42px));
@@ -2971,7 +2959,7 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
     display:block;
     margin:0 auto;
     object-fit:contain;
-    filter:url(#mobile-gesture-colorize);
+    color:var(--md-sys-color-primary);
   }
 
   /* The tab overlaps the popup edge by one pixel, so it reads as one piece. */
