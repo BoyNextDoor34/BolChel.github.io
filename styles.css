@@ -2954,12 +2954,34 @@ html.a11y-enabled[data-a11y-contrast="navy-cream"] .muted{
     color:var(--md-sys-color-on-surface-variant);
   }
   .mobile-gesture-icon{
+    display:block;
     width:43px;
     height:39px;
-    display:block;
     margin:0 auto;
-    object-fit:contain;
-    color:var(--md-sys-color-primary);
+    background-color:var(--md-sys-color-primary);
+    -webkit-mask-repeat:no-repeat;
+    -webkit-mask-position:center;
+    -webkit-mask-size:contain;
+    mask-repeat:no-repeat;
+    mask-position:center;
+    mask-size:contain;
+    mask-mode:alpha;
+  }
+  .mobile-gesture-icon[data-gesture-icon="swipe-left"]{
+    -webkit-mask-image:url("./assets/swipe-left-svgrepo-com.svg");
+    mask-image:url("./assets/swipe-left-svgrepo-com.svg");
+  }
+  .mobile-gesture-icon[data-gesture-icon="swipe-right"]{
+    -webkit-mask-image:url("./assets/swipe-right-svgrepo-com.svg");
+    mask-image:url("./assets/swipe-right-svgrepo-com.svg");
+  }
+  .mobile-gesture-icon[data-gesture-icon="swipe-both"]{
+    -webkit-mask-image:url("./assets/swipe-both-54-svgrepo-com.svg");
+    mask-image:url("./assets/swipe-both-54-svgrepo-com.svg");
+  }
+  .mobile-gesture-icon[data-gesture-icon="swipe-down"]{
+    -webkit-mask-image:url("./assets/swipe-down-29-svgrepo-com.svg");
+    mask-image:url("./assets/swipe-down-29-svgrepo-com.svg");
   }
 
   /* The tab overlaps the popup edge by one pixel, so it reads as one piece. */
